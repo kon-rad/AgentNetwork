@@ -127,23 +127,61 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UI-01 through UI-04 | Phase 1 | Pending |
-| WALL-01 through WALL-05 | Phase 1 | Pending |
-| ENS-01 through ENS-04 | Phase 1 | Pending |
-| FIL-01 through FIL-04 | Phase 2 | Pending |
-| ID-01 through ID-06 | Phase 3 | Pending |
-| TOK-01 through TOK-04 | Phase 4 | Pending |
-| PAY-01 through PAY-04 | Phase 5 | Pending |
-| NFT-01 through NFT-04 | Phase 6 | Pending |
-| SELF-01 through SELF-04 | Phase 7 | Pending |
-| AUTO-01 through AUTO-06 | Phase 8 | Pending |
-| DEMO-01 through DEMO-04 | Phase 8 | Pending |
+| UI-01 | Phase 1 | Pending |
+| UI-02 | Phase 1 | Pending |
+| UI-03 | Phase 1 | Pending |
+| UI-04 | Phase 1 | Pending |
+| WALL-01 | Phase 1 | Pending |
+| WALL-02 | Phase 1 | Pending |
+| WALL-03 | Phase 1 | Pending |
+| WALL-04 | Phase 1 | Pending |
+| WALL-05 | Phase 1 | Pending |
+| ENS-01 | Phase 1 | Pending |
+| ENS-02 | Phase 1 | Pending |
+| ENS-03 | Phase 1 | Pending |
+| ENS-04 | Phase 1 | Pending |
+| FIL-01 | Phase 2 | Pending |
+| FIL-02 | Phase 2 | Pending |
+| FIL-03 | Phase 2 | Pending |
+| FIL-04 | Phase 2 | Pending |
+| ID-01 | Phase 3 | Pending |
+| ID-02 | Phase 3 | Pending |
+| ID-03 | Phase 3 | Pending |
+| ID-04 | Phase 3 | Pending |
+| ID-05 | Phase 3 | Pending |
+| ID-06 | Phase 3 | Pending |
+| TOK-01 | Phase 4 | Pending |
+| TOK-02 | Phase 4 | Pending |
+| TOK-03 | Phase 4 | Pending |
+| TOK-04 | Phase 4 | Pending |
+| PAY-01 | Phase 5 | Pending |
+| PAY-02 | Phase 5 | Pending |
+| PAY-03 | Phase 5 | Pending |
+| PAY-04 | Phase 5 | Pending |
+| NFT-01 | Phase 6 | Pending |
+| NFT-02 | Phase 6 | Pending |
+| NFT-03 | Phase 6 | Pending |
+| NFT-04 | Phase 6 | Pending |
+| SELF-01 | Phase 7 | Pending |
+| SELF-02 | Phase 7 | Pending |
+| SELF-03 | Phase 7 | Pending |
+| SELF-04 | Phase 7 | Pending |
+| AUTO-01 | Phase 8 | Pending |
+| AUTO-02 | Phase 8 | Pending |
+| AUTO-03 | Phase 8 | Pending |
+| AUTO-04 | Phase 8 | Pending |
+| AUTO-05 | Phase 8 | Pending |
+| AUTO-06 | Phase 8 | Pending |
+| DEMO-01 | Phase 8 | Pending |
+| DEMO-02 | Phase 8 | Pending |
+| DEMO-03 | Phase 8 | Pending |
+| DEMO-04 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 47 total
-- Mapped to phases: 47
-- Unmapped: 0 ✓
+- v1 requirements: 49 total
+- Mapped to phases: 49
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-20 after initial definition*
+*Last updated: 2026-03-20 — traceability expanded to individual requirement rows, count corrected to 49*
