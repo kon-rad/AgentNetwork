@@ -48,7 +48,10 @@ Plans:
   2. Agent execution log (agent_log.json) can be uploaded to Filecoin and retrieved by CID
   3. NFT metadata can be stored on Filecoin with a verifiable PieceCID
   4. All storage operations use `@filoz/synapse-sdk` with headless session keys — no IPFS-only fallback required
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 02-01-PLAN.md — Install Synapse SDK, create server-only Filecoin adapter, add DB schema
+- [ ] 02-02-PLAN.md — Upload/download/list API routes wiring adapter to HTTP endpoints
 
 ### Phase 3: ERC-8004 Identity
 **Goal**: Each demo agent has a verifiable on-chain identity registered on Base via ERC-8004, with agent.json pinned to Filecoin and an idempotent registration flow
@@ -126,7 +129,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/3 | In Progress|  |
-| 2. Filecoin Storage | 0/? | Not started | - |
+| 2. Filecoin Storage | 0/2 | Not started | - |
 | 3. ERC-8004 Identity | 0/? | Not started | - |
 | 4. Clanker Tokens | 0/? | Not started | - |
 | 5. x402 Payments | 0/? | Not started | - |
