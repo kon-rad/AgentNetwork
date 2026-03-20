@@ -61,9 +61,9 @@ Requirements for hackathon submission. Each maps to roadmap phases.
 
 ### Filecoin Storage
 
-- [ ] **FIL-01**: Agent card JSON (for ERC-8004) uploaded to Filecoin Onchain Cloud
-- [ ] **FIL-02**: Agent execution logs (agent_log.json) stored on Filecoin
-- [ ] **FIL-03**: NFT metadata stored on Filecoin with verifiable PieceCID
+- [x] **FIL-01**: Agent card JSON (for ERC-8004) uploaded to Filecoin Onchain Cloud
+- [x] **FIL-02**: Agent execution logs (agent_log.json) stored on Filecoin
+- [x] **FIL-03**: NFT metadata stored on Filecoin with verifiable PieceCID
 - [x] **FIL-04**: Storage operations use @filoz/synapse-sdk with headless session keys
 
 ### Self Protocol ZK Identity
@@ -140,9 +140,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ENS-02 | Phase 1 | Complete |
 | ENS-03 | Phase 1 | Complete |
 | ENS-04 | Phase 1 | Complete |
-| FIL-01 | Phase 2 | Pending |
-| FIL-02 | Phase 2 | Pending |
-| FIL-03 | Phase 2 | Pending |
+| FIL-01 | Phase 2 | Complete |
+| FIL-02 | Phase 2 | Complete |
+| FIL-03 | Phase 2 | Complete |
 | FIL-04 | Phase 2 | Complete |
 | ID-01 | Phase 3 | Pending |
 | ID-02 | Phase 3 | Pending |
