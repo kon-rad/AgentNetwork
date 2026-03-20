@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 ## Current Position
 
 Phase: 1 of 8 (Foundation)
-Plan: 0 of ? in current phase
-Status: Ready to plan
-Last activity: 2026-03-20 — Roadmap created, all 49 v1 requirements mapped to 8 phases
+Plan: 1 of ? in current phase
+Status: In progress
+Last activity: 2026-03-20 — Completed 01-01: Wallet stack (RainbowKit + wagmi v2 + viem) installed, SSR providers wired
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] ~5%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 4min
+- Total execution time: 0.07 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-foundation | 1 | 4min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans: 4min
+- Trend: Baseline established
 
 *Updated after each plan completion*
 
@@ -46,6 +46,10 @@ Recent decisions affecting current work:
 - [Init]: Use proxy.ts (not middleware.ts) for x402 in Next.js 16
 - [Init]: Deploy all Clanker tokens in one session on day 1 — rate limit is 1 token per wallet per 24h
 - [Init]: Register Self Protocol verifier contract on Celo before building frontend QR component
+- [01-01]: wagmi must be pinned to v2.x — pnpm resolves v3 by default, breaking RainbowKit 2.x peer deps
+- [01-01]: Import RainbowKit styles.css in providers.tsx (client component), NOT globals.css — Tailwind 4 CSS conflict
+- [01-01]: No Turbopack polyfill config needed — viem/wagmi/RainbowKit are ESM-native, Turbopack handles natively
+- [01-01]: layout.tsx must be async with await cookies() for Next.js 16 (synchronous cookies() throws)
 
 ### Pending Todos
 
@@ -62,5 +66,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Roadmap created — ready to plan Phase 1
+Stopped at: Completed 01-01-PLAN.md — wallet stack installed, SSR providers configured, build passes
 Resume file: None

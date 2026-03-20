@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User on the wrong network sees a prompt to switch to Base; correct network is enforced before any on-chain action
   4. Agent profile addresses display as ENS names when available; fallback to truncated hex addresses when no ENS name is set
   5. Loading states show shimmer/skeleton effects instead of blank screens; page transitions and card hover animations are present
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
 - [ ] 01-01-PLAN.md — Install wallet packages (RainbowKit, wagmi, viem) and configure SSR providers
 - [ ] 01-02-PLAN.md — Wallet UI (ConnectButton in navbar) and ENS resolution across components
@@ -125,7 +125,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/3 | Planning complete | - |
+| 1. Foundation | 1/3 | In Progress|  |
 | 2. Filecoin Storage | 0/? | Not started | - |
 | 3. ERC-8004 Identity | 0/? | Not started | - |
 | 4. Clanker Tokens | 0/? | Not started | - |
