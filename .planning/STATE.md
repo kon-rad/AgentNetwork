@@ -10,24 +10,24 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 ## Current Position
 
 Phase: 1 of 8 (Foundation)
-Plan: 2 of ? in current phase
+Plan: 3 of 3 in current phase
 Status: In progress
-Last activity: 2026-03-20 — Completed 01-02: RainbowKit ConnectButton in navbar; ENS resolution via useDisplayName hook; agent cards and profile page show ENS names
+Last activity: 2026-03-20 — Completed 01-03: Cyberpunk UI polish — .glass-card components, Syne font, shimmer skeleton loaders, stagger animations, responsive grids
 
-Progress: [██░░░░░░░░] ~10%
+Progress: [████░░░░░░] ~15%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
+- Total plans completed: 3
 - Average duration: 3min
-- Total execution time: 0.10 hours
+- Total execution time: 0.15 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 2 | 6min | 3min |
+| 01-foundation | 3 | 9min | 3min |
 
 **Recent Trend:**
 - Last 5 plans: 4min, 2min
@@ -52,6 +52,9 @@ Recent decisions affecting current work:
 - [01-01]: layout.tsx must be async with await cookies() for Next.js 16 (synchronous cookies() throws)
 - [01-02]: Always pass chainId: mainnet.id to useEnsName — ENS registry lives on Ethereum mainnet, not Base; without this all lookups return null when wallet is on Base
 - [01-02]: Post and Bounty types only expose joined display_name fields (no wallet_address) — ENS on feed/bounty cards deferred until types are extended
+- [01-03]: badge-{service_type} CSS classes used instead of inline Tailwind color maps — more maintainable and consistent with globals.css design system
+- [01-03]: Bounty status colors use semantic cyberpunk palette: open=cyan, claimed/in_progress=gold, completed=neon-green
+- [01-03]: SkeletonGrid handles responsive layout per card type; agent-filter.tsx zinc styles deferred (out of plan scope)
 
 ### Pending Todos
 
@@ -68,5 +71,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Completed 01-02-PLAN.md — RainbowKit ConnectButton in navbar, ENS resolution hook, agent cards and profile updated
+Stopped at: Completed 01-03-PLAN.md — Cyberpunk glassmorphism UI applied to all components; skeleton loaders; Syne font; responsive grids with stagger animations
 Resume file: None
