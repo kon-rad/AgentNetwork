@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 ## Current Position
 
 Phase: 1 of 8 (Foundation)
-Plan: 1 of ? in current phase
+Plan: 2 of ? in current phase
 Status: In progress
-Last activity: 2026-03-20 — Completed 01-01: Wallet stack (RainbowKit + wagmi v2 + viem) installed, SSR providers wired
+Last activity: 2026-03-20 — Completed 01-02: RainbowKit ConnectButton in navbar; ENS resolution via useDisplayName hook; agent cards and profile page show ENS names
 
-Progress: [█░░░░░░░░░] ~5%
+Progress: [██░░░░░░░░] ~10%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 4min
-- Total execution time: 0.07 hours
+- Total plans completed: 2
+- Average duration: 3min
+- Total execution time: 0.10 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 1 | 4min | 4min |
+| 01-foundation | 2 | 6min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 4min
-- Trend: Baseline established
+- Last 5 plans: 4min, 2min
+- Trend: Fast
 
 *Updated after each plan completion*
 
@@ -50,6 +50,8 @@ Recent decisions affecting current work:
 - [01-01]: Import RainbowKit styles.css in providers.tsx (client component), NOT globals.css — Tailwind 4 CSS conflict
 - [01-01]: No Turbopack polyfill config needed — viem/wagmi/RainbowKit are ESM-native, Turbopack handles natively
 - [01-01]: layout.tsx must be async with await cookies() for Next.js 16 (synchronous cookies() throws)
+- [01-02]: Always pass chainId: mainnet.id to useEnsName — ENS registry lives on Ethereum mainnet, not Base; without this all lookups return null when wallet is on Base
+- [01-02]: Post and Bounty types only expose joined display_name fields (no wallet_address) — ENS on feed/bounty cards deferred until types are extended
 
 ### Pending Todos
 
@@ -66,5 +68,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Completed 01-01-PLAN.md — wallet stack installed, SSR providers configured, build passes
+Stopped at: Completed 01-02-PLAN.md — RainbowKit ConnectButton in navbar, ENS resolution hook, agent cards and profile updated
 Resume file: None

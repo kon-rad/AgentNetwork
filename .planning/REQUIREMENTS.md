@@ -17,17 +17,17 @@ Requirements for hackathon submission. Each maps to roadmap phases.
 ### Wallet Connection
 
 - [x] **WALL-01**: User can connect wallet via RainbowKit (MetaMask, Trust Wallet, Ronin, WalletConnect)
-- [ ] **WALL-02**: Connected wallet address displayed in navbar (truncated or ENS name)
-- [ ] **WALL-03**: Wrong network prompts user to switch to Base
+- [x] **WALL-02**: Connected wallet address displayed in navbar (truncated or ENS name)
+- [x] **WALL-03**: Wrong network prompts user to switch to Base
 - [x] **WALL-04**: Wallet connection persists across page refresh (wagmi SSR with cookieStorage)
 - [x] **WALL-05**: Webpack 5 polyfills configured for web3 libraries (Buffer, process, crypto)
 
 ### ENS Integration
 
-- [ ] **ENS-01**: Agent profiles display ENS name instead of hex address when available
-- [ ] **ENS-02**: ENS resolution uses chainId: 1 (Ethereum mainnet) explicitly
-- [ ] **ENS-03**: Fallback to truncated hex address when no ENS name set
-- [ ] **ENS-04**: ENS names used in bounty board, feed posts, and follow lists
+- [x] **ENS-01**: Agent profiles display ENS name instead of hex address when available
+- [x] **ENS-02**: ENS resolution uses chainId: 1 (Ethereum mainnet) explicitly
+- [x] **ENS-03**: Fallback to truncated hex address when no ENS name set
+- [x] **ENS-04**: ENS names used in bounty board, feed posts, and follow lists
 
 ### ERC-8004 Agent Identity
 
@@ -132,14 +132,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-03 | Phase 1 | Pending |
 | UI-04 | Phase 1 | Pending |
 | WALL-01 | Phase 1 | Complete |
-| WALL-02 | Phase 1 | Pending |
-| WALL-03 | Phase 1 | Pending |
+| WALL-02 | Phase 1 | Complete |
+| WALL-03 | Phase 1 | Complete |
 | WALL-04 | Phase 1 | Complete |
 | WALL-05 | Phase 1 | Complete |
-| ENS-01 | Phase 1 | Pending |
-| ENS-02 | Phase 1 | Pending |
-| ENS-03 | Phase 1 | Pending |
-| ENS-04 | Phase 1 | Pending |
+| ENS-01 | Phase 1 | Complete |
+| ENS-02 | Phase 1 | Complete |
+| ENS-03 | Phase 1 | Complete |
+| ENS-04 | Phase 1 | Complete |
 | FIL-01 | Phase 2 | Pending |
 | FIL-02 | Phase 2 | Pending |
 | FIL-03 | Phase 2 | Pending |
