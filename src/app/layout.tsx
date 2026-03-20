@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Syne } from "next/font/google";
 import { cookies } from "next/headers";
 import { Navbar } from "@/components/layout/navbar";
 import { Providers } from "@/components/layout/providers";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const syne = Syne({
+  variable: "--font-syne",
   subsets: ["latin"],
 });
 
@@ -31,9 +31,9 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${syne.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-950 text-white">
+      <body className="min-h-full flex flex-col bg-[--color-bg-primary] text-[--color-text-primary]">
         <Providers cookie={cookie}>
           <Navbar />
           <main className="flex-1">{children}</main>
