@@ -27,7 +27,7 @@ export function ERC8004Status({ agentId, tokenId }: ERC8004StatusProps) {
         throw new Error(body.error || "Registration failed");
       }
       const data = await res.json();
-      setCurrentTokenId(data.tokenId ?? data.erc8004_token_id ?? "unknown");
+      setCurrentTokenId(data.agentId ?? data.tokenId ?? "unknown");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Registration failed";
       setError(message);
