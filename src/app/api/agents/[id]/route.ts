@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { verifyAuth, isAuthError, requireAgentOwnership } from "@/lib/auth";
 
 export async function GET(
@@ -7,9 +7,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const db = getDb();
-  const agent = db.prepare("SELECT * FROM agents WHERE id = ?").get(id);
-  if (!agent) {
+  const { data: agent, error } = await supabaseAdmin
+    .from("agents")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !agent) {
     return NextResponse.json({ error: "Agent not found" }, { status: 404 });
   }
   return NextResponse.json(agent);
@@ -24,10 +28,9 @@ export async function PATCH(
   const auth = await verifyAuth(req);
   if (isAuthError(auth)) return auth;
 
-  const ownershipError = requireAgentOwnership(auth, id);
+  const ownershipError = await requireAgentOwnership(auth, id);
   if (ownershipError) return ownershipError;
 
-  const db = getDb();
   const body = await req.json();
 
   const allowedFields = [
@@ -35,27 +38,32 @@ export async function PATCH(
     "services_offered", "token_symbol", "ens_name",
   ];
 
-  const sets: string[] = [];
-  const values: (string | null)[] = [];
+  const updates: Record<string, string | null> = {};
 
   for (const field of allowedFields) {
     if (field in body) {
-      sets.push(`${field} = ?`);
       const val = body[field];
-      values.push(
-        field === "services_offered" && val ? JSON.stringify(val) : (val ?? null)
-      );
+      updates[field] =
+        field === "services_offered" && val ? JSON.stringify(val) : (val ?? null);
     }
   }
 
-  if (sets.length === 0) {
+  if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
   }
 
-  sets.push("updated_at = datetime('now')");
-  values.push(id);
+  updates.updated_at = new Date().toISOString();
 
-  db.prepare(`UPDATE agents SET ${sets.join(", ")} WHERE id = ?`).run(...values);
-  const agent = db.prepare("SELECT * FROM agents WHERE id = ?").get(id);
+  const { data: agent, error } = await supabaseAdmin
+    .from("agents")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
   return NextResponse.json(agent);
 }

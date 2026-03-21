@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { getDb } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { registerAgent } from '@/lib/chain/erc8004'
 import { uploadToFilecoin } from '@/lib/chain/filecoin'
 import { buildAgentCard } from '@/lib/agent-card'
@@ -12,35 +12,51 @@ export async function POST(
 ): Promise<Response> {
   try {
     const { id } = await params
-    const db = getDb()
 
     // Load agent from DB
-    const agent = db.prepare('SELECT * FROM agents WHERE id = ?').get(id) as Agent | undefined
-    if (!agent) {
+    const { data: agent, error: agentError } = await supabaseAdmin
+      .from('agents')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (agentError || !agent) {
       return Response.json({ error: 'Agent not found' }, { status: 404 })
     }
 
+    const typedAgent = agent as Agent
+
     // Idempotency: if already registered, return existing info
-    if (agent.erc8004_token_id) {
+    if (typedAgent.erc8004_token_id) {
       return Response.json({
-        agentId: agent.erc8004_token_id,
+        agentId: typedAgent.erc8004_token_id,
         message: 'Agent is already registered on ERC-8004',
-        basescanUrl: `https://sepolia.basescan.org/token/0x8004A818BFB912233c491871b3d84c89A494BD9e?a=${agent.erc8004_token_id}`,
+        basescanUrl: `https://sepolia.basescan.org/token/0x8004A818BFB912233c491871b3d84c89A494BD9e?a=${typedAgent.erc8004_token_id}`,
       })
     }
 
     // Generate agent.json card
-    const agentCard = buildAgentCard(agent)
+    const agentCard = buildAgentCard(typedAgent)
 
     // Upload agent.json to Filecoin
-    const cardUpload = await uploadToFilecoin(agentCard, `agent_card_${agent.id}.json`)
+    const cardUpload = await uploadToFilecoin(agentCard, `agent_card_${typedAgent.id}.json`)
 
     // Persist agent_card upload to filecoin_uploads table
     const cardUploadId = crypto.randomUUID()
-    db.prepare(
-      `INSERT INTO filecoin_uploads (id, agent_id, upload_type, piece_cid, retrieval_url, name)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    ).run(cardUploadId, agent.id, 'agent_card', cardUpload.pieceCid, cardUpload.retrievalUrl, `agent_card_${agent.id}.json`)
+    const { error: cardInsertError } = await supabaseAdmin
+      .from('filecoin_uploads')
+      .insert({
+        id: cardUploadId,
+        agent_id: typedAgent.id,
+        upload_type: 'agent_card',
+        piece_cid: cardUpload.pieceCid,
+        retrieval_url: cardUpload.retrievalUrl,
+        name: `agent_card_${typedAgent.id}.json`,
+      })
+
+    if (cardInsertError) {
+      throw new Error(`Failed to persist agent_card upload: ${cardInsertError.message}`)
+    }
 
     const retrievalUrl = cardUpload.retrievalUrl
 
@@ -48,12 +64,17 @@ export async function POST(
     const { agentId, txHash } = await registerAgent(retrievalUrl)
 
     // Store token ID in DB
-    db.prepare(
-      `UPDATE agents SET erc8004_token_id = ?, updated_at = datetime('now') WHERE id = ?`,
-    ).run(agentId.toString(), agent.id)
+    const { error: updateError } = await supabaseAdmin
+      .from('agents')
+      .update({ erc8004_token_id: agentId.toString(), updated_at: new Date().toISOString() })
+      .eq('id', typedAgent.id)
+
+    if (updateError) {
+      throw new Error(`Failed to store token ID: ${updateError.message}`)
+    }
 
     // Generate and upload agent_log.json
-    let log = buildAgentLog(agent)
+    let log = buildAgentLog(typedAgent)
     log = addLogEntry(log, {
       action: 'register_identity',
       status: 'success',
@@ -64,14 +85,20 @@ export async function POST(
       },
     })
 
-    const logUpload = await uploadToFilecoin(log, `agent_log_${agent.id}.json`)
+    const logUpload = await uploadToFilecoin(log, `agent_log_${typedAgent.id}.json`)
 
     // Persist agent_log upload to filecoin_uploads table
     const logUploadId = crypto.randomUUID()
-    db.prepare(
-      `INSERT INTO filecoin_uploads (id, agent_id, upload_type, piece_cid, retrieval_url, name)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    ).run(logUploadId, agent.id, 'agent_log', logUpload.pieceCid, logUpload.retrievalUrl, `agent_log_${agent.id}.json`)
+    await supabaseAdmin
+      .from('filecoin_uploads')
+      .insert({
+        id: logUploadId,
+        agent_id: typedAgent.id,
+        upload_type: 'agent_log',
+        piece_cid: logUpload.pieceCid,
+        retrieval_url: logUpload.retrievalUrl,
+        name: `agent_log_${typedAgent.id}.json`,
+      })
 
     return Response.json(
       {

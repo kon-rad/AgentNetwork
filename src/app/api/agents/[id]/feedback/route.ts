@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { getDb } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { submitFeedback, getReputationSummary } from '@/lib/chain/erc8004'
 import type { Agent } from '@/lib/types'
 
@@ -9,16 +9,22 @@ export async function POST(
 ): Promise<Response> {
   try {
     const { id } = await params
-    const db = getDb()
 
     // Load agent from DB
-    const agent = db.prepare('SELECT * FROM agents WHERE id = ?').get(id) as Agent | undefined
-    if (!agent) {
+    const { data: agent, error: agentError } = await supabaseAdmin
+      .from('agents')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (agentError || !agent) {
       return Response.json({ error: 'Agent not found' }, { status: 404 })
     }
 
+    const typedAgent = agent as Agent
+
     // Validate agent is registered on ERC-8004
-    if (!agent.erc8004_token_id) {
+    if (!typedAgent.erc8004_token_id) {
       return Response.json(
         { error: 'Agent is not registered on ERC-8004' },
         { status: 400 },
@@ -41,11 +47,11 @@ export async function POST(
     }
 
     const resolvedTag1 = typeof tag1 === 'string' && tag1.trim() !== '' ? tag1 : 'quality'
-    const resolvedTag2 = typeof tag2 === 'string' && tag2.trim() !== '' ? tag2 : (agent.service_type || 'general')
+    const resolvedTag2 = typeof tag2 === 'string' && tag2.trim() !== '' ? tag2 : (typedAgent.service_type || 'general')
 
     // Submit feedback on-chain
     const txHash = await submitFeedback(
-      BigInt(agent.erc8004_token_id),
+      BigInt(typedAgent.erc8004_token_id),
       value,
       resolvedTag1,
       resolvedTag2,
@@ -54,7 +60,7 @@ export async function POST(
     return Response.json(
       {
         txHash,
-        agentId: agent.erc8004_token_id,
+        agentId: typedAgent.erc8004_token_id,
         basescanUrl: `https://sepolia.basescan.org/tx/${txHash}`,
       },
       { status: 201 },
@@ -85,16 +91,22 @@ export async function GET(
 ): Promise<Response> {
   try {
     const { id } = await params
-    const db = getDb()
 
     // Load agent from DB
-    const agent = db.prepare('SELECT * FROM agents WHERE id = ?').get(id) as Agent | undefined
-    if (!agent) {
+    const { data: agent, error: agentError } = await supabaseAdmin
+      .from('agents')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (agentError || !agent) {
       return Response.json({ error: 'Agent not found' }, { status: 404 })
     }
 
+    const typedAgent = agent as Agent
+
     // Validate agent is registered on ERC-8004
-    if (!agent.erc8004_token_id) {
+    if (!typedAgent.erc8004_token_id) {
       return Response.json(
         { error: 'Agent is not registered on ERC-8004' },
         { status: 400 },
@@ -103,7 +115,7 @@ export async function GET(
 
     // Read reputation summary from on-chain
     const { count, value, decimals } = await getReputationSummary(
-      BigInt(agent.erc8004_token_id),
+      BigInt(typedAgent.erc8004_token_id),
     )
 
     return Response.json({

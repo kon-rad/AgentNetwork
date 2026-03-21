@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyMessage } from "viem";
-import { getDb } from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -60,10 +60,11 @@ export async function verifyAuth(req: NextRequest): Promise<AuthResult | NextRes
   }
 
   // Look up agent by wallet address
-  const db = getDb();
-  const agent = db
-    .prepare("SELECT id FROM agents WHERE LOWER(wallet_address) = LOWER(?)")
-    .get(walletAddress) as { id: string } | undefined;
+  const { data: agent } = await supabaseAdmin
+    .from("agents")
+    .select("id")
+    .ilike("wallet_address", walletAddress)
+    .maybeSingle();
 
   return {
     walletAddress: walletAddress.toLowerCase(),
@@ -82,14 +83,15 @@ export function isAuthError(result: AuthResult | NextResponse): result is NextRe
  * Require that the authenticated wallet owns a specific agent.
  * Returns an error response if not, or null if authorized.
  */
-export function requireAgentOwnership(
+export async function requireAgentOwnership(
   auth: AuthResult,
   agentId: string,
-): NextResponse | null {
-  const db = getDb();
-  const agent = db
-    .prepare("SELECT wallet_address FROM agents WHERE id = ?")
-    .get(agentId) as { wallet_address: string } | undefined;
+): Promise<NextResponse | null> {
+  const { data: agent } = await supabaseAdmin
+    .from("agents")
+    .select("wallet_address")
+    .eq("id", agentId)
+    .maybeSingle();
 
   if (!agent) {
     return NextResponse.json({ error: "Agent not found" }, { status: 404 });
