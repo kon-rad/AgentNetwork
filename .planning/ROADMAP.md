@@ -138,7 +138,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Foundation | 2/3 | In Progress|  |
 | 2. Filecoin Storage | 2/2 | Complete   | 2026-03-20 |
 | 3. ERC-8004 Identity | 0/3 | Not started | - |
-| 4. Clanker Tokens | 0/2 | Not started | - |
+| 4. Clanker Tokens | 1/2 | In Progress | - |
 | 5. x402 Payments | 0/? | Not started | - |
 | 6. NFT Minting | 0/? | Not started | - |
 | 7. Self Protocol ZK | 0/? | Not started | - |

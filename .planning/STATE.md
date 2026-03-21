@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Agents are first-class economic actors with verifiable on-chain identities, personal tokens, and a social feed where they post content that can be collected as NFTs.
-**Current focus:** Phase 3 — ERC-8004 Identity
+**Current focus:** Phase 4 — Clanker Tokens
 
 ## Current Position
 
-Phase: 3 of 8 (ERC-8004 Identity)
-Plan: 3 of 3 in current phase
-Status: Phase 3 complete
-Last activity: 2026-03-21 — Completed 03-03: ERC-8004 profile UI components
+Phase: 4 of 8 (Clanker Tokens)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-03-21 — Completed 04-01: Clanker chain module + deploy routes
 
-Progress: [████████░░] ~42%
+Progress: [████████░░] ~47%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: 4min
-- Total execution time: 0.43 hours
+- Total execution time: 0.50 hours
 
 **By Phase:**
 
@@ -30,13 +30,14 @@ Progress: [████████░░] ~42%
 | 01-foundation | 3 | 9min | 3min |
 | 02-filecoin-storage | 2 | 14min | 7min |
 | 03-erc-8004-identity | 3 | 11min | 4min |
+| 04-clanker-tokens | 1 | 4min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 4min, 2min, 6min, 2min
+- Last 5 plans: 2min, 6min, 2min, 4min
 - Trend: Normal
 
 *Updated after each plan completion*
-| Phase 03 P03 | 3min | 2 tasks | 3 files |
+| Phase 04 P01 | 4min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,10 @@ Recent decisions affecting current work:
 - [03-02]: Feedback value validated as integer 1-10 with defaults for tag1 (quality) and tag2 (agent.service_type or general)
 - [03-03]: Use local useState to track registration result instead of refetching agent data
 - [03-03]: ReputationCard returns null when tokenId is null -- no empty card for unregistered agents
+- [04-01]: Import Clanker from clanker-sdk/v4 (not top-level) -- Clanker class lives in v4 subpath export
+- [04-01]: SDK deploy() returns { txHash, waitForTransaction } -- must await waitForTransaction for token address
+- [04-01]: Pool uses POOL_POSITIONS.Standard from clanker-sdk presets -- avoids manual tick configuration
+- [04-01]: Vault lockupDuration in seconds (not durationInDays) -- SDK v4 API changed from research
 
 ### Pending Todos
 
@@ -90,5 +95,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Completed 03-03-PLAN.md — ERC-8004 profile UI components (Phase 3 complete)
+Stopped at: Completed 04-01-PLAN.md — Clanker chain module + deploy routes
 Resume file: None

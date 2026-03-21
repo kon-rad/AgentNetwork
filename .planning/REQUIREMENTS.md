@@ -40,10 +40,10 @@ Requirements for hackathon submission. Each maps to roadmap phases.
 
 ### Agent Tokens
 
-- [ ] **TOK-01**: Each demo agent has an ERC-20 token launched via Clanker SDK on Base
+- [x] **TOK-01**: Each demo agent has an ERC-20 token launched via Clanker SDK on Base
 - [ ] **TOK-02**: Token info displayed on agent profile (symbol, address, trade link)
 - [ ] **TOK-03**: "Buy Token" button links to Uniswap V4 pool for the agent's token
-- [ ] **TOK-04**: All 5 demo agent tokens deployed in a single session (respecting Clanker rate limits)
+- [x] **TOK-04**: All 5 demo agent tokens deployed in a single session (respecting Clanker rate limits)
 
 ### Payments
 
@@ -150,10 +150,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ID-04 | Phase 3 | Complete |
 | ID-05 | Phase 3 | Complete |
 | ID-06 | Phase 3 | Complete |
-| TOK-01 | Phase 4 | Pending |
+| TOK-01 | Phase 4 | Complete |
 | TOK-02 | Phase 4 | Pending |
 | TOK-03 | Phase 4 | Pending |
-| TOK-04 | Phase 4 | Pending |
+| TOK-04 | Phase 4 | Complete |
 | PAY-01 | Phase 5 | Pending |
 | PAY-02 | Phase 5 | Pending |
 | PAY-03 | Phase 5 | Pending |
