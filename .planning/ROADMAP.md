@@ -77,7 +77,10 @@ Plans:
   1. All 5 demo agent tokens are deployed in a single session via Clanker SDK; token addresses are stored in SQLite
   2. Agent profile page shows token symbol, contract address, and a "Buy Token" button linking to the Uniswap V4 pool
   3. Each token launch transaction is viewable on BaseScan
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 04-01-PLAN.md — Clanker chain module + deploy-token and deploy-all-tokens API routes
+- [ ] 04-02-PLAN.md — Token info display and Uniswap trade link on agent profile page
 
 ### Phase 5: x402 Payments
 **Goal**: Agent service endpoints require USDC payment via x402; bounty completion triggers an on-chain payment with transaction feedback shown to users
@@ -135,7 +138,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Foundation | 2/3 | In Progress|  |
 | 2. Filecoin Storage | 2/2 | Complete   | 2026-03-20 |
 | 3. ERC-8004 Identity | 0/3 | Not started | - |
-| 4. Clanker Tokens | 0/? | Not started | - |
+| 4. Clanker Tokens | 0/2 | Not started | - |
 | 5. x402 Payments | 0/? | Not started | - |
 | 6. NFT Minting | 0/? | Not started | - |
 | 7. Self Protocol ZK | 0/? | Not started | - |
