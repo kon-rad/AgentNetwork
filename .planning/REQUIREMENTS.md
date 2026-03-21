@@ -1,187 +1,110 @@
-# Requirements: Network
+# Requirements: Network v2.0 — Agent Subscriptions & Live Agents
 
-**Defined:** 2026-03-20
-**Core Value:** Agents are first-class economic actors with verifiable on-chain identities, personal tokens, and a social feed where they post content that can be collected as NFTs.
+**Defined:** 2026-03-22
+**Core Value:** Users pay to subscribe to live AI agents they can chat with, observe, and manage — agents run in isolated containers with their own personalities, skills, and wallets.
 
-## v1 Requirements
+## v2.0 Requirements
 
-Requirements for hackathon submission. Each maps to roadmap phases.
+### Database & Auth
 
-### UI Foundation
+- [ ] **DB-01**: Existing SQLite tables (agents, posts, follows, bounties) are migrated to Supabase Postgres with zero data loss
+- [ ] **DB-02**: All Next.js API routes use Supabase client with connection pooling (Supavisor port 6543)
+- [ ] **DB-03**: NanoClaw VPS service can read/write to the same Supabase database as the Next.js app
+- [ ] **AUTH-01**: User can sign in by signing a SIWE message with their Ethereum wallet
+- [ ] **AUTH-02**: User session persists across page refresh via httpOnly cookie (iron-session)
+- [ ] **AUTH-03**: User can sign out and session is invalidated
+- [ ] **AUTH-04**: API routes reject unauthenticated requests with 401
+- [ ] **OWN-01**: Each agent has an owner_wallet field linking it to the wallet that paid for it
+- [ ] **OWN-02**: Only the owner wallet can access an agent's chat, observability, and management
+- [ ] **OWN-03**: Supabase Row-Level Security policies enforce ownership on agent_events, messages, and agent rows
 
-- [x] **UI-01**: Platform has a high-tech cyberpunk aesthetic with glassmorphism cards, electric cyan accents, noise texture, and grid background
-- [x] **UI-02**: Responsive layout works on desktop and tablet
-- [x] **UI-03**: Page transitions and card hover animations provide visual polish
-- [x] **UI-04**: Loading states use shimmer/skeleton effects instead of blank screens
+### Payments & Subscriptions
 
-### Wallet Connection
+- [ ] **PAY-01**: User can initiate a 100 USDC transfer on Base to subscribe to an agent
+- [ ] **PAY-02**: UI shows payment states: wallet prompt → pending (with tx hash + BaseScan link) → confirmed → agent launching
+- [ ] **PAY-03**: Payment tx hash is stored as proof of subscription in Supabase
+- [ ] **PAY-04**: Agent is only launched after payment confirmation on-chain
+- [ ] **SUB-01**: User can see their active subscription status on the agent profile
+- [ ] **SUB-02**: Subscription is monthly (100 USDC/month) with expiration tracked in Supabase
+- [ ] **SUB-03**: User can renew subscription before expiration via another 100 USDC payment
 
-- [x] **WALL-01**: User can connect wallet via RainbowKit (MetaMask, Trust Wallet, Ronin, WalletConnect)
-- [x] **WALL-02**: Connected wallet address displayed in navbar (truncated or ENS name)
-- [x] **WALL-03**: Wrong network prompts user to switch to Base
-- [x] **WALL-04**: Wallet connection persists across page refresh (wagmi SSR with cookieStorage)
-- [x] **WALL-05**: Webpack 5 polyfills configured for web3 libraries (Buffer, process, crypto)
+### NanoClaw & Infrastructure
 
-### ENS Integration
+- [ ] **NC-01**: NanoClaw is forked with all messaging channels (Telegram, WhatsApp, Slack, Discord, Gmail) disabled
+- [ ] **NC-02**: Custom webapp HTTP channel accepts messages from Next.js and streams responses via SSE
+- [ ] **NC-03**: NanoClaw is deployed on a VPS with Docker and the nanoclaw-agent Docker image
+- [ ] **NC-04**: Credential proxy shares a single Claude subscription (API key or OAuth token) across all agent containers
+- [ ] **NC-05**: WireGuard tunnel encrypts all traffic between Railway (Next.js) and VPS (NanoClaw)
+- [ ] **NC-06**: Shared secret header authenticates requests from Next.js to NanoClaw (defense-in-depth)
+- [ ] **NC-07**: NanoClaw can register new agent groups programmatically when a subscription is purchased
+- [ ] **CICD-01**: Monorepo structure: app/ (Next.js) and agent-server/ (NanoClaw fork) in one repo
+- [ ] **CICD-02**: GitHub Actions deploys app/ changes to Railway automatically
+- [ ] **CICD-03**: GitHub Actions deploys agent-server/ changes to VPS via SSH
+- [ ] **CICD-04**: Agent container image rebuilds update skills/MCP without restarting the NanoClaw host process
 
-- [x] **ENS-01**: Agent profiles display ENS name instead of hex address when available
-- [x] **ENS-02**: ENS resolution uses chainId: 1 (Ethereum mainnet) explicitly
-- [x] **ENS-03**: Fallback to truncated hex address when no ENS name set
-- [x] **ENS-04**: ENS names used in bounty board, feed posts, and follow lists
+### Agent Templates & Skills
 
-### ERC-8004 Agent Identity
+- [ ] **TMPL-01**: Agent templates table in Supabase stores Soul.md content, skill set names, and MCP package lists per agent type
+- [ ] **TMPL-02**: User can browse available agent templates before subscribing
+- [ ] **TMPL-03**: On subscription, the agent's CLAUDE.md is written from the template's Soul.md content
+- [ ] **SKILL-01**: Shared skills (Tier 1) are available to all agents via container/skills/ directory
+- [ ] **SKILL-02**: Template skills (Tier 2) are mounted per agent type based on the template's skill set
+- [ ] **SKILL-03**: Agents can create learned skills (Tier 3) at runtime that persist across sessions
+- [ ] **SKILL-04**: Skills are Claude Code skill files (.md with YAML frontmatter) loaded by the SDK
 
-- [x] **ID-01**: Agent can register on-chain identity via ERC-8004 IdentityRegistry on Base Sepolia
-- [x] **ID-02**: Registration mints ERC-721 NFT with agentURI pointing to Filecoin-stored agent card JSON
-- [x] **ID-03**: Agent profile page shows ERC-8004 registration status and BaseScan link
-- [x] **ID-04**: agent.json manifest generated per agent (name, operator wallet, ERC-8004 identity, tools, task categories)
-- [x] **ID-05**: agent_log.json structured execution logs generated per agent (decisions, tool calls, retries, failures, outputs)
-- [x] **ID-06**: ERC-8004 Reputation Registry used to record agent feedback/ratings
+### Chat
 
-### Agent Tokens
+- [ ] **CHAT-01**: User can send messages to their agent via a chat interface
+- [ ] **CHAT-02**: Agent responses stream in real-time via SSE (token-level or turn-level)
+- [ ] **CHAT-03**: Chat message history persists in Supabase and loads on page open
+- [ ] **CHAT-04**: Agent status indicator shows idle / thinking / using tool states
+- [ ] **CHAT-05**: Chat input sends on Enter, Shift+Enter for newlines
 
-- [x] **TOK-01**: Each demo agent has an ERC-20 token launched via Clanker SDK on Base
-- [x] **TOK-02**: Token info displayed on agent profile (symbol, address, trade link)
-- [x] **TOK-03**: "Buy Token" button links to Uniswap V4 pool for the agent's token
-- [x] **TOK-04**: All 5 demo agent tokens deployed in a single session (respecting Clanker rate limits)
+### Observability Dashboard
 
-### Payments
+- [ ] **OBS-01**: Owner can view a real-time activity feed of their agent (LLM calls, tool usage, responses)
+- [ ] **OBS-02**: Token usage is displayed per session and cumulatively (input tokens, output tokens, model name)
+- [ ] **OBS-03**: Tool calls are shown with tool name, input, output, and duration
+- [ ] **OBS-04**: Agent events stream to the dashboard via Supabase Realtime (no custom SSE pipeline)
+- [ ] **OBS-05**: Owner can browse files in the agent's workspace directory
 
-- [x] **PAY-01**: Agent service endpoints wrapped with x402 payment middleware accepting USDC on Base
-- [x] **PAY-02**: Agent clients use x402 fetch wrapper for autonomous service payments
-- [x] **PAY-03**: Bounty completion triggers on-chain USDC payment with transaction hash
-- [x] **PAY-04**: Transaction confirmation feedback shown to user (pending/confirmed/failed with BaseScan link)
+## Future Requirements
 
-### NFT Content
+### Per-Agent Wallets
+- **WALL-01**: Each agent gets its own on-chain wallet (keypair generated on launch)
+- **WALL-02**: Agent can execute on-chain transactions via wallet skill/MCP tool
+- **WALL-03**: Owner can view agent wallet balance and transaction history
 
-- [x] **NFT-01**: Agent can mint post content as ERC-721 NFT on Base
-- [x] **NFT-02**: NFT metadata stored on Filecoin with verifiable CID
-- [x] **NFT-03**: Minted posts show "NFT" badge and link to collection
-- [x] **NFT-04**: Agent profile portfolio tab shows minted NFTs
-
-### Filecoin Storage
-
-- [x] **FIL-01**: Agent card JSON (for ERC-8004) uploaded to Filecoin Onchain Cloud
-- [x] **FIL-02**: Agent execution logs (agent_log.json) stored on Filecoin
-- [x] **FIL-03**: NFT metadata stored on Filecoin with verifiable PieceCID
-- [x] **FIL-04**: Storage operations use @filoz/synapse-sdk with headless session keys
-
-### Self Protocol ZK Identity
-
-- [x] **SELF-01**: Verification page where agent operator scans passport via Self Protocol QR code
-- [x] **SELF-02**: Backend verifier validates ZK proof from Self Protocol
-- [x] **SELF-03**: Verified agents display "ZK Verified" badge on profile
-- [x] **SELF-04**: Verification uses Self Protocol on Celo (separate from Base chain config)
-
-### Autonomous Agent Loop
-
-- [x] **AUTO-01**: Agent autonomously discovers bounties matching its service type
-- [x] **AUTO-02**: Agent plans content strategy and creates posts
-- [x] **AUTO-03**: Agent executes on-chain actions (register identity, mint NFTs, complete bounties)
-- [x] **AUTO-04**: Agent verifies output quality and confirms on-chain transactions
-- [x] **AUTO-05**: All agent decisions logged to agent_log.json with timestamps and tool calls
-- [x] **AUTO-06**: 3-5 diverse demo agents running (filmmaker, coder, trader, auditor, clipper)
-
-### Demo Deliverables
-
-- [x] **DEMO-01**: On-chain ERC-8004 registration transactions viewable on BaseScan
-- [x] **DEMO-02**: On-chain token launches viewable on BaseScan
-- [x] **DEMO-03**: On-chain NFT mints viewable on BaseScan
-- [ ] **DEMO-04**: 2-minute demo video showing end-to-end autonomous agent behavior
-
-## v2 Requirements
-
-Deferred to post-hackathon. Tracked but not in current roadmap.
-
-### Reputation
-
-- **REP-01**: On-chain reputation scores surfaced as sort/filter in agent directory
-- **REP-02**: Agent token holder benefits display (fee distribution, LP info)
-
-### Social
-
-- **SOC-01**: Algorithmic feed ranking ("For You" vs chronological)
-- **SOC-02**: Agent-to-agent real-time messaging
-
-### Governance
-
-- **GOV-01**: Token-weighted governance for agent decisions
-- **GOV-02**: DAO structure for platform governance
+### Advanced Features
+- **ADV-01**: Agent-to-agent communication via NanoClaw IPC
+- **ADV-02**: Agent marketplace where agents offer services to other agents
+- **ADV-03**: Token-gated observability (agent token holders can view public events)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Real-time chat between agents | Scope creep, no bounty value, feed is sufficient |
-| Custom smart contract deployment | ERC-8004 + Clanker handle required on-chain primitives |
-| Voice/video agent communication | Infeasible in hackathon timeline, no bounty track |
-| Multi-chain agent identity | Base-first is correct priority; ENS on Ethereum is sufficient |
-| Email/password authentication | Contradicts wallet-as-identity architecture |
-| Mobile app | Web-first per PROJECT.md |
-| Production security hardening | Hackathon demo, not production deployment |
-| Algorithmic feed | Complex ML, no bounty value, chronological is sufficient |
+| Email/password auth | Undermines wallet-as-identity architecture; two auth systems |
+| WebSocket for chat | SSE sufficient for one-directional streaming; WebSocket adds complexity |
+| Recurring on-chain auto-payment (ERC-4337) | Requires account abstraction infrastructure; manual renewal simpler |
+| Per-user Claude API key injection | Shared credential proxy sufficient for subscription model |
+| Full LLM replay / time-travel debugging | Storage costs too high; event summaries + file browser sufficient |
+| Multi-agent chat (user-facing agent swarms) | NanoClaw handles internally; UI orchestration out of scope for v2.0 |
+| At-rest encryption per agent (vault) | Deferred to v3 |
+| Sensitive content tagging | Deferred |
+| Mobile app | Web-first |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UI-01 | Phase 1 | Complete |
-| UI-02 | Phase 1 | Complete |
-| UI-03 | Phase 1 | Complete |
-| UI-04 | Phase 1 | Complete |
-| WALL-01 | Phase 1 | Complete |
-| WALL-02 | Phase 1 | Complete |
-| WALL-03 | Phase 1 | Complete |
-| WALL-04 | Phase 1 | Complete |
-| WALL-05 | Phase 1 | Complete |
-| ENS-01 | Phase 1 | Complete |
-| ENS-02 | Phase 1 | Complete |
-| ENS-03 | Phase 1 | Complete |
-| ENS-04 | Phase 1 | Complete |
-| FIL-01 | Phase 2 | Complete |
-| FIL-02 | Phase 2 | Complete |
-| FIL-03 | Phase 2 | Complete |
-| FIL-04 | Phase 2 | Complete |
-| ID-01 | Phase 3 | Complete |
-| ID-02 | Phase 3 | Complete |
-| ID-03 | Phase 3 | Complete |
-| ID-04 | Phase 3 | Complete |
-| ID-05 | Phase 3 | Complete |
-| ID-06 | Phase 3 | Complete |
-| TOK-01 | Phase 4 | Complete |
-| TOK-02 | Phase 4 | Complete |
-| TOK-03 | Phase 4 | Complete |
-| TOK-04 | Phase 4 | Complete |
-| PAY-01 | Phase 5 | Complete |
-| PAY-02 | Phase 5 | Complete |
-| PAY-03 | Phase 5 | Complete |
-| PAY-04 | Phase 5 | Complete |
-| NFT-01 | Phase 6 | Complete |
-| NFT-02 | Phase 6 | Complete |
-| NFT-03 | Phase 6 | Complete |
-| NFT-04 | Phase 6 | Complete |
-| SELF-01 | Phase 7 | Complete |
-| SELF-02 | Phase 7 | Complete |
-| SELF-03 | Phase 7 | Complete |
-| SELF-04 | Phase 7 | Complete |
-| AUTO-01 | Phase 8 | Complete |
-| AUTO-02 | Phase 8 | Complete |
-| AUTO-03 | Phase 8 | Complete |
-| AUTO-04 | Phase 8 | Complete |
-| AUTO-05 | Phase 8 | Complete |
-| AUTO-06 | Phase 8 | Complete |
-| DEMO-01 | Phase 8 | Complete |
-| DEMO-02 | Phase 8 | Complete |
-| DEMO-03 | Phase 8 | Complete |
-| DEMO-04 | Phase 8 | Pending |
+| (To be filled by roadmapper) | | |
 
 **Coverage:**
-- v1 requirements: 49 total
-- Mapped to phases: 49
-- Unmapped: 0
+- v2.0 requirements: 33 total
+- Mapped to phases: 0
+- Unmapped: 33
 
 ---
-*Requirements defined: 2026-03-20*
-*Last updated: 2026-03-20 — traceability expanded to individual requirement rows, count corrected to 49*
+*Requirements defined: 2026-03-22*
+*Last updated: 2026-03-22 after initial definition*
