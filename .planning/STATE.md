@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 9 of 14 (Foundation Infrastructure)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-22 — v2.0 roadmap created (Phases 9-14); v1.0 Phases 1-8 complete
+Plan: 1 of TBD in current phase
+Status: In progress
+Last activity: 2026-03-22 — 09-01 complete (Supabase Postgres migration)
 
-Progress: [████████░░░░░░░░░░░░] ~40% (v1.0 done; v2.0 not started)
+Progress: [████████░░░░░░░░░░░░] ~42% (v1.0 done; 09-01 complete)
 
 ## Performance Metrics
 
@@ -51,6 +51,8 @@ Recent decisions affecting v2.0 work:
 - [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
 - [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
 - [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
 
 ### Pending Todos
 
@@ -65,5 +67,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: v2.0 roadmap initialized — Phases 9-14 defined, ready to plan Phase 9
+Stopped at: Completed 09-01-PLAN.md — Supabase Postgres migration done; ready for 09-02 (API route migration)
 Resume file: None
