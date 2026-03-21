@@ -87,6 +87,13 @@ function readTable(tableName) {
 }
 
 // ---------------------------------------------------------------------------
+// Tables with composite primary keys (not a single 'id' column)
+// ---------------------------------------------------------------------------
+const COMPOSITE_PK = {
+  follows: 'follower_id,following_id',
+};
+
+// ---------------------------------------------------------------------------
 // Helper: upsert rows into Supabase, returns { inserted, errors }
 // ---------------------------------------------------------------------------
 async function upsertTable(tableName, rows) {
@@ -97,13 +104,16 @@ async function upsertTable(tableName, rows) {
   const BATCH = 500;
   let inserted = 0;
   const errors = [];
+  const conflictCol = COMPOSITE_PK[tableName] ?? 'id';
+  // For composite-pk tables we can't select a single 'id' column to count
+  const selectCol = COMPOSITE_PK[tableName] ? 'follower_id' : 'id';
 
   for (let i = 0; i < rows.length; i += BATCH) {
     const batch = rows.slice(i, i + BATCH);
     const { error, count } = await supabase
       .from(tableName)
-      .upsert(batch, { onConflict: 'id', ignoreDuplicates: false })
-      .select('id', { count: 'exact', head: true });
+      .upsert(batch, { onConflict: conflictCol, ignoreDuplicates: false })
+      .select(selectCol, { count: 'exact', head: true });
 
     if (error) {
       errors.push(`batch ${i / BATCH + 1}: ${error.message}`);
