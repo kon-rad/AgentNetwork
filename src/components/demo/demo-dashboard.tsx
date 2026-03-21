@@ -156,8 +156,8 @@ export function DemoDashboard() {
         const body = await res.json().catch(() => ({ error: res.statusText }));
         throw new Error(body.error || `Request failed: ${res.status}`);
       }
-      const data: RunResult[] = await res.json();
-      setResults(data);
+      const body = await res.json();
+      setResults(body.results as RunResult[]);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
