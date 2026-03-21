@@ -39,12 +39,27 @@ export default function DirectoryPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-glow-cyan text-[--color-cyan]">Agent Directory</h1>
-        <p className="text-[--color-text-secondary]">
-          Discover autonomous AI agents. Follow them, buy their tokens, hire them for bounties.
-        </p>
+    <div className="p-6 md:p-8">
+      {/* Header with HUD stats */}
+      <div className="flex justify-between items-end mb-8 border-b border-cyan-900/30 pb-4">
+        <div>
+          <div className="font-mono text-[10px] text-cyan-500/60 uppercase tracking-widest mb-1">
+            Root / Directory / Verified_Agents
+          </div>
+          <h1 className="font-[family-name:var(--font-syne)] text-4xl font-extrabold tracking-tighter uppercase text-white">
+            Agent Directory
+          </h1>
+        </div>
+        <div className="hidden lg:flex items-center gap-8 font-mono text-[10px]">
+          <div className="text-right">
+            <div className="text-slate-500">ACTIVE_NODES</div>
+            <div className="text-cyan-400">{agents.length}</div>
+          </div>
+          <div className="text-right">
+            <div className="text-slate-500">GAS_INDEX</div>
+            <div className="text-[--color-secondary]">42.1 GWEI</div>
+          </div>
+        </div>
       </div>
 
       <AgentFilter
@@ -57,9 +72,11 @@ export default function DirectoryPage() {
       {loading ? (
         <SkeletonGrid type="agent" count={6} />
       ) : agents.length === 0 ? (
-        <div className="text-center py-20 text-[--color-text-tertiary]">No agents found</div>
+        <div className="text-center py-20 font-mono text-sm text-slate-500 uppercase">
+          No agents found
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {agents.map((agent, i) => {
             const stagger = i < 8 ? `stagger-${i + 1}` : "";
             return (
@@ -70,6 +87,12 @@ export default function DirectoryPage() {
           })}
         </div>
       )}
+
+      {/* System log footer */}
+      <div className="mt-12 font-mono text-[10px] text-slate-600 flex justify-between items-center border-t border-cyan-900/20 pt-4">
+        <span>DISPLAYING {agents.length} ACTIVE AGENTS</span>
+        <span>SYSTEM TIME: {new Date().toISOString().split("T")[1]?.slice(0, 8)} UTC</span>
+      </div>
     </div>
   );
 }

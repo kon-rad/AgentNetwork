@@ -1,26 +1,271 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-syne);
   --font-mono: var(--font-geist-mono);
+
+  /* Surface hierarchy */
+  --color-surface: #111319;
+  --color-surface-dim: #111319;
+  --color-surface-container-lowest: #0c0e13;
+  --color-surface-container-low: #191c21;
+  --color-surface-container: #1d2025;
+  --color-surface-container-high: #282a30;
+  --color-surface-container-highest: #32353b;
+  --color-surface-bright: #37393f;
+  --color-surface-variant: #32353b;
+
+  /* Primary — Electric Cyan "Life-Link" */
+  --color-primary: #dbfcff;
+  --color-primary-container: #00f0ff;
+  --color-primary-fixed: #7df4ff;
+  --color-primary-fixed-dim: #00dbe9;
+  --color-on-primary: #00363a;
+  --color-on-primary-container: #006970;
+
+  /* Secondary — Gold "Value-Tier" */
+  --color-secondary: #f6be37;
+  --color-secondary-container: #c89600;
+  --color-secondary-fixed: #ffdf9f;
+  --color-secondary-fixed-dim: #f6be37;
+
+  /* Tertiary — Neon Green */
+  --color-tertiary: #daffde;
+  --color-tertiary-container: #00f985;
+  --color-tertiary-fixed: #60ff99;
+  --color-tertiary-fixed-dim: #00e479;
+
+  /* Error */
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+
+  /* Text / on-surface */
+  --color-on-surface: #e1e2ea;
+  --color-on-surface-variant: #b9cacb;
+  --color-on-background: #e1e2ea;
+  --color-outline: #849495;
+  --color-outline-variant: #3b494b;
+  --color-surface-tint: #00dbe9;
+
+  /* Legacy aliases for existing code */
+  --color-bg-primary: #111319;
+  --color-bg-card: rgba(29, 32, 37, 0.6);
+  --color-bg-card-hover: rgba(40, 42, 48, 0.8);
+  --color-border: rgba(59, 73, 75, 0.3);
+  --color-border-hover: rgba(0, 240, 255, 0.2);
+  --color-cyan: #00f0ff;
+  --color-cyan-dim: rgba(0, 240, 255, 0.5);
+  --color-gold: #f6be37;
+  --color-neon-green: #00e479;
+  --color-text-primary: #e1e2ea;
+  --color-text-secondary: #b9cacb;
+  --color-text-tertiary: #849495;
+  --color-glow-cyan: 0 0 20px rgba(0, 240, 255, 0.15);
+  --color-glow-gold: 0 0 20px rgba(240, 185, 50, 0.15);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* CRT scan-line overlay */
+@layer base {
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.03) 0px,
+      rgba(0, 0, 0, 0.03) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+  }
+
+  /* Holographic grid floor */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 70%);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes borderFlicker {
+  0%, 100% { border-color: rgba(0, 240, 255, 0.3); }
+  50% { border-color: rgba(0, 240, 255, 0.7); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+.stagger-7 { animation-delay: 0.35s; }
+.stagger-8 { animation-delay: 0.4s; }
+
+/* Glass card — frosted surface with cyan gradient sheen */
+.glass-card {
+  background: var(--color-bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-outline-variant);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background-image: linear-gradient(135deg, rgba(0, 240, 255, 0.04) 0%, transparent 60%);
+}
+
+.glass-card:hover {
+  background: var(--color-bg-card-hover);
+  border-color: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.08);
+}
+
+/* Corner tick brackets — HUD targeting reticle */
+.corner-tick {
+  position: relative;
+}
+.corner-tick::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid #00f0ff;
+  border-left: 2px solid #00f0ff;
+}
+.corner-tick::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-bottom: 2px solid #00f0ff;
+  border-right: 2px solid #00f0ff;
+}
+
+/* HUD bracket elements */
+.hud-bracket-tl { border-top: 2px solid #00f0ff; border-left: 2px solid #00f0ff; width: 15px; height: 15px; position: absolute; top: -2px; left: -2px; }
+.hud-bracket-tr { border-top: 2px solid #00f0ff; border-right: 2px solid #00f0ff; width: 15px; height: 15px; position: absolute; top: -2px; right: -2px; }
+.hud-bracket-bl { border-bottom: 2px solid #00f0ff; border-left: 2px solid #00f0ff; width: 15px; height: 15px; position: absolute; bottom: -2px; left: -2px; }
+.hud-bracket-br { border-bottom: 2px solid #00f0ff; border-right: 2px solid #00f0ff; width: 15px; height: 15px; position: absolute; bottom: -2px; right: -2px; }
+
+/* Hexagonal avatar clip */
+.hexagon-clip {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+/* Cyan glow text */
+.text-glow-cyan {
+  text-shadow: 0 0 20px rgba(0, 240, 255, 0.3), 0 0 40px rgba(0, 240, 255, 0.1);
+}
+
+/* Shimmer loading */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(25, 28, 33, 0.7) 25%,
+    rgba(40, 42, 48, 0.7) 50%,
+    rgba(25, 28, 33, 0.7) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Bevel neon button (Y2K chrome) */
+.bevel-neon {
+  box-shadow:
+    inset 2px 2px 0px rgba(255,255,255,0.2),
+    inset -2px -2px 0px rgba(0,0,0,0.4),
+    0 0 15px rgba(0, 249, 133, 0.4);
+}
+
+/* Holographic badge text */
+.holographic-text {
+  background: linear-gradient(135deg, #00f0ff 0%, #f6be37 50%, #00f0ff 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.4));
+}
+
+/* Skewed mission briefing */
+.skew-brief {
+  transform: perspective(1000px) rotateY(-2deg) rotateX(1deg);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.1);
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.2);
+}
+
+/* Service type badge LED colors */
+.badge-filmmaker { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+.badge-coder { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+.badge-auditor { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+.badge-trader { background: rgba(240, 185, 50, 0.15); color: #f0b932; border: 1px solid rgba(240, 185, 50, 0.3); }
+.badge-clipper { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+.badge-curator { background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); }
+.badge-designer { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
+
+/* Badge LED glow dots */
+.badge-led-filmmaker { background: #a855f7; box-shadow: 0 0 5px #a855f7; }
+.badge-led-coder { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
+.badge-led-auditor { background: #ef4444; box-shadow: 0 0 5px #ef4444; }
+.badge-led-trader { background: #f0b932; box-shadow: 0 0 5px #f0b932; }
+.badge-led-clipper { background: #3b82f6; box-shadow: 0 0 5px #3b82f6; }
+.badge-led-curator { background: #ec4899; box-shadow: 0 0 5px #ec4899; }
+.badge-led-designer { background: #f97316; box-shadow: 0 0 5px #f97316; }

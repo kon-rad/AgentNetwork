@@ -6,51 +6,78 @@ function timeAgo(dateStr: string): string {
   const then = new Date(dateStr + "Z").getTime();
   const diff = Math.floor((now - then) / 1000);
   if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-  return `${Math.floor(diff / 86400)}d`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
 }
 
 export function PostCard({ post }: { post: Post }) {
   return (
-    <div className="glass-card px-4 py-4 animate-fade-in-up">
-      <div className="flex gap-3">
+    <article className="glass-card relative p-6 corner-tick group hover:shadow-[0_0_20px_rgba(0,240,255,0.05)] transition-all animate-fade-in-up">
+      <div className="flex gap-4">
         <Link href={`/agent/${post.agent_id}`} className="shrink-0">
-          <div className="w-10 h-10 rounded-full bg-[--color-cyan]/10 flex items-center justify-center text-sm font-bold text-[--color-cyan]">
-            {post.agent_display_name?.charAt(0) || "?"}
+          <div className="w-12 h-12 border border-cyan-400 overflow-hidden">
+            {post.agent_avatar_url ? (
+              <img src={post.agent_avatar_url} alt="" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+            ) : (
+              <div className="w-full h-full bg-cyan-500/10 flex items-center justify-center text-sm font-bold text-cyan-400 font-mono">
+                {post.agent_display_name?.charAt(0) || "?"}
+              </div>
+            )}
           </div>
         </Link>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <Link href={`/agent/${post.agent_id}`} className="font-semibold text-[--color-text-primary] text-sm hover:underline">
-              {post.agent_display_name}
-            </Link>
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <Link href={`/agent/${post.agent_id}`} className="font-[family-name:var(--font-syne)] text-[--color-primary] font-extrabold tracking-tight hover:text-cyan-400 transition-colors">
+                {post.agent_display_name}
+              </Link>
+              <span className="font-mono text-[10px] text-slate-500 ml-2">
+                {timeAgo(post.created_at)}
+              </span>
+            </div>
             {post.agent_service_type && (
-              <span className="text-xs text-[--color-text-tertiary]">{post.agent_service_type}</span>
+              <span className={`font-mono text-[10px] px-2 border uppercase tracking-widest badge-${post.agent_service_type}`}>
+                {post.agent_service_type}
+              </span>
             )}
-            <span className="text-xs text-[--color-text-tertiary]">{timeAgo(post.created_at)}</span>
           </div>
-          <p className="text-sm text-[--color-text-secondary] mt-1 whitespace-pre-wrap">{post.content}</p>
+
+          <p className="text-[--color-on-surface-variant] text-sm leading-relaxed mb-4">
+            {post.content}
+          </p>
+
+          {/* NFT badge */}
           {post.nft_contract && (
-            <a
-              href={`https://sepolia.basescan.org/token/${post.nft_contract}?a=${post.nft_token_id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 transition-colors"
-            >
-              NFT #{post.nft_token_id}
-            </a>
+            <div className="mb-4">
+              <a
+                href={`https://sepolia.basescan.org/token/${post.nft_contract}?a=${post.nft_token_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 bg-slate-950/80 backdrop-blur px-2 py-1 font-mono text-[10px] text-cyan-400 border border-cyan-400/30 hover:bg-cyan-500/10 transition-colors"
+              >
+                NFT #{post.nft_token_id}
+                {post.filecoin_cid && (
+                  <span className="text-slate-500 ml-2">CID: {post.filecoin_cid.slice(0, 12)}...</span>
+                )}
+              </a>
+            </div>
           )}
-          <div className="flex items-center gap-6 mt-3 text-xs text-[--color-text-tertiary]">
-            <button className="hover:text-[--color-text-primary] transition-colors">
-              {post.like_count} likes
+
+          {/* Stats */}
+          <div className="flex gap-6 font-mono text-[10px] text-slate-500 uppercase">
+            <button className="flex items-center gap-1.5 hover:text-cyan-400 transition-colors">
+              <span className="material-symbols-outlined text-sm">favorite</span> {post.like_count}
             </button>
-            <button className="hover:text-[--color-text-primary] transition-colors">
-              {post.repost_count} reposts
+            <button className="flex items-center gap-1.5 hover:text-cyan-400 transition-colors">
+              <span className="material-symbols-outlined text-sm">repeat</span> {post.repost_count}
+            </button>
+            <button className="ml-auto hover:text-cyan-400 transition-colors">
+              <span className="material-symbols-outlined text-sm">share</span>
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

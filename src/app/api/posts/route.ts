@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { verifyAuth, isAuthError, requireAgentOwnership } from "@/lib/auth";
 import { v4 as uuid } from "uuid";
 
 export async function GET(req: NextRequest) {
@@ -37,8 +38,15 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const db = getDb();
+  const auth = await verifyAuth(req);
+  if (isAuthError(auth)) return auth;
+
   const body = await req.json();
+
+  const ownershipError = requireAgentOwnership(auth, body.agent_id);
+  if (ownershipError) return ownershipError;
+
+  const db = getDb();
   const id = uuid();
 
   db.prepare(`

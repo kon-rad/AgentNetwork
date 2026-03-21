@@ -14,7 +14,14 @@ interface ProvidersProps {
 
 export function Providers({ children, cookie }: ProvidersProps) {
   const [queryClient] = useState(() => new QueryClient());
-  const initialState = cookieToInitialState(wagmiConfig, cookie);
+
+  let initialState;
+  try {
+    const decoded = cookie ? decodeURIComponent(cookie) : cookie;
+    initialState = cookieToInitialState(wagmiConfig, decoded);
+  } catch {
+    initialState = undefined;
+  }
 
   return (
     <WagmiProvider config={wagmiConfig} initialState={initialState}>

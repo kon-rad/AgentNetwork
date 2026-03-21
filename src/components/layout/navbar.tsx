@@ -14,12 +14,13 @@ export function Navbar() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-b border-[--color-border] bg-[--color-bg-primary]/80 backdrop-blur-md sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="text-lg font-bold tracking-tight text-[--color-cyan] text-glow-cyan">
-          NETWORK
+    <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-3 bg-slate-950/60 backdrop-blur-xl shadow-[0_0_15px_rgba(0,240,255,0.1)]">
+      <div className="bg-gradient-to-b from-cyan-500/10 to-transparent absolute inset-0 pointer-events-none" />
+      <div className="flex items-center gap-8 relative">
+        <Link href="/" className="text-2xl font-black text-cyan-400 tracking-tighter italic font-[family-name:var(--font-syne)] uppercase">
+          NEURAL HUD
         </Link>
-        <div className="flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-6 font-[family-name:var(--font-syne)] uppercase tracking-tighter text-sm">
           {NAV_ITEMS.map((item) => {
             const isActive =
               item.href === "/"
@@ -29,21 +30,57 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`transition-all ${
                   isActive
-                    ? "bg-[--color-cyan]/10 text-[--color-cyan]"
-                    : "text-[--color-text-secondary] hover:text-[--color-text-primary] hover:bg-white/5"
+                    ? "text-cyan-400 border-b-2 border-cyan-400 pb-1"
+                    : "text-slate-500 hover:text-cyan-300 hover:shadow-[0_0_10px_rgba(0,240,255,0.3)]"
                 }`}
               >
                 {item.label}
               </Link>
             );
           })}
-        </div>
-        <div className="flex justify-end">
-          <ConnectButton showBalance={false} chainStatus="icon" accountStatus="avatar" />
-        </div>
+        </nav>
       </div>
-    </nav>
+      <div className="flex items-center gap-4 relative">
+        <ConnectButton.Custom>
+          {({ account, chain, openAccountModal, openChainModal, openConnectModal, mounted }) => {
+            const connected = mounted && account && chain;
+            return (
+              <div
+                {...(!mounted && {
+                  "aria-hidden": true,
+                  style: { opacity: 0, pointerEvents: "none", userSelect: "none" },
+                })}
+              >
+                {!connected ? (
+                  <button
+                    onClick={openConnectModal}
+                    className="bg-[--color-primary-container] text-[--color-on-primary-container] px-4 py-1.5 font-[family-name:var(--font-syne)] font-bold text-xs tracking-widest uppercase hover:shadow-[0_0_15px_rgba(0,240,255,0.4)] transition-all"
+                  >
+                    CONNECT WALLET
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={openChainModal}
+                      className="font-mono text-[10px] text-cyan-400/60 hover:text-cyan-400 transition-colors"
+                    >
+                      {chain.name}
+                    </button>
+                    <button
+                      onClick={openAccountModal}
+                      className="border border-cyan-500/30 px-3 py-1 font-mono text-xs text-cyan-400 hover:bg-cyan-500/10 transition-all"
+                    >
+                      {account.displayName}
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          }}
+        </ConnectButton.Custom>
+      </div>
+    </header>
   );
 }

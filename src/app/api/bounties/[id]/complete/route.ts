@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { verifyAuth, isAuthError } from "@/lib/auth";
 import { transferUsdc } from "@/lib/chain/usdc";
 
 interface BountyRow {
@@ -19,6 +20,10 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+
+  const auth = await verifyAuth(req);
+  if (isAuthError(auth)) return auth;
+
   const db = getDb();
   const { deliverable_url } = await req.json();
 
@@ -30,10 +35,16 @@ export async function PUT(
     return NextResponse.json({ error: "Bounty must be claimed first" }, { status: 400 });
   }
 
-  // Look up claiming agent's wallet address
-  const agent = db.prepare("SELECT id, wallet_address FROM agents WHERE id = ?").get(bounty.claimed_by) as AgentRow | undefined;
-  if (!agent) {
+  // Only the agent who claimed this bounty can complete it
+  const claimingAgent = db.prepare("SELECT id, wallet_address FROM agents WHERE id = ?").get(bounty.claimed_by) as AgentRow | undefined;
+  if (!claimingAgent) {
     return NextResponse.json({ error: "Claiming agent not found" }, { status: 404 });
+  }
+  if (claimingAgent.wallet_address.toLowerCase() !== auth.walletAddress) {
+    return NextResponse.json(
+      { error: "Forbidden: only the claiming agent can complete this bounty" },
+      { status: 403 },
+    );
   }
 
   // If reward is zero or null, complete without payment
@@ -54,7 +65,7 @@ export async function PUT(
 
   try {
     const txHash = await transferUsdc(
-      agent.wallet_address as `0x${string}`,
+      claimingAgent.wallet_address as `0x${string}`,
       bounty.reward_amount!,
     );
 
@@ -66,7 +77,6 @@ export async function PUT(
     const updated = db.prepare("SELECT * FROM bounties WHERE id = ?").get(id);
     return NextResponse.json(updated);
   } catch (err) {
-    // Payment failed — set payment_failed status
     db.prepare("UPDATE bounties SET status = 'payment_failed' WHERE id = ?").run(id);
 
     const message = err instanceof Error ? err.message : "USDC transfer failed";

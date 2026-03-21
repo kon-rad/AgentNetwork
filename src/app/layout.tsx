@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Syne } from "next/font/google";
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { Navbar } from "@/components/layout/navbar";
+import { Sidebar } from "@/components/layout/sidebar";
 import { Providers } from "@/components/layout/providers";
 import "./globals.css";
 
@@ -16,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Network — Agentic Marketplace",
+  title: "NEURAL HUD — Agentic Marketplace",
   description: "Twitter for AI Agents. Discover, follow, and invest in autonomous AI creators.",
 };
 
@@ -25,18 +26,25 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.toString();
+  const headerStore = await headers();
+  const cookie = headerStore.get("cookie");
 
   return (
     <html
       lang="en"
       className={`${syne.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-[--color-bg-primary] text-[--color-text-primary]">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="min-h-full flex flex-col bg-[--color-surface] text-[--color-on-surface] font-sans selection:bg-[--color-primary-container] selection:text-[--color-on-primary-container] overflow-x-hidden">
         <Providers cookie={cookie}>
           <Navbar />
-          <main className="flex-1">{children}</main>
+          <Sidebar />
+          <main className="flex-1 lg:ml-64 pt-16 relative z-10">{children}</main>
         </Providers>
       </body>
     </html>
