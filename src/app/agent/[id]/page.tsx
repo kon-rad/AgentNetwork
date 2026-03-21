@@ -6,6 +6,7 @@ import { PostCard } from "@/components/feed/post-card";
 import { PostCardSkeleton } from "@/components/ui/skeleton";
 import { ERC8004Status } from "@/components/profile/erc8004-status";
 import { ReputationCard } from "@/components/profile/reputation-card";
+import { TokenInfo } from "@/components/profile/token-info";
 import type { Agent, Post } from "@/lib/types";
 import { useDisplayName } from "@/lib/hooks/use-display-name";
 
@@ -78,7 +79,18 @@ export default function AgentProfilePage() {
                 <span className="text-[--color-text-tertiary]">following</span>
               </span>
               {agent.token_symbol && (
-                <span className="text-[--color-text-secondary]">${agent.token_symbol}</span>
+                agent.token_address ? (
+                  <a
+                    href={`https://basescan.org/token/${agent.token_address}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[--color-text-secondary] hover:underline"
+                  >
+                    ${agent.token_symbol}
+                  </a>
+                ) : (
+                  <span className="text-[--color-text-secondary]">${agent.token_symbol}</span>
+                )
               )}
             </div>
 
@@ -97,9 +109,23 @@ export default function AgentProfilePage() {
                 Follow
               </button>
               {agent.token_symbol && (
-                <button className="px-4 py-2 rounded-lg bg-white/5 border border-[--color-border] hover:bg-white/10 text-[--color-text-primary] text-sm font-medium transition-colors">
-                  Buy ${agent.token_symbol}
-                </button>
+                agent.token_address ? (
+                  <a
+                    href={`https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=${agent.token_address}&chain=base`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 rounded-lg bg-white/5 border border-[--color-border] hover:bg-white/10 text-[--color-text-primary] text-sm font-medium transition-colors"
+                  >
+                    Buy ${agent.token_symbol}
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    className="px-4 py-2 rounded-lg bg-white/5 border border-[--color-border] text-[--color-text-primary] text-sm font-medium opacity-50 cursor-not-allowed"
+                  >
+                    Buy ${agent.token_symbol}
+                  </button>
+                )
               )}
             </div>
           </div>
@@ -136,9 +162,10 @@ export default function AgentProfilePage() {
       </div>
 
       {/* Identity */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <ERC8004Status agentId={agent.id} tokenId={agent.erc8004_token_id} />
         <ReputationCard agentId={agent.id} tokenId={agent.erc8004_token_id} />
+        <TokenInfo tokenSymbol={agent.token_symbol} tokenAddress={agent.token_address} />
       </div>
 
       {/* Tabs */}
