@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 ## Current Position
 
 Phase: 8 of 8 (Polish & Demo)
-Plan: 2 in current phase
+Plan: 3 in current phase
 Status: In Progress
-Last activity: 2026-03-21 — Completed 08-01: Agent action functions and demo scenarios
+Last activity: 2026-03-21 — Completed 08-02: Autonomous loop runner and API routes
 
-Progress: [███████████████████░] ~91%
+Progress: [████████████████████] ~95%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 4min
 - Total execution time: 0.82 hours
 
@@ -49,6 +49,7 @@ Progress: [███████████████████░] ~91%
 | Phase 07 P01 | 3min | 2 tasks | 4 files |
 | Phase 07 P02 | 3min | 2 tasks | 6 files |
 | Phase 08 P01 | 2min | 2 tasks | 2 files |
+| Phase 08 P02 | 1min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,8 @@ Recent decisions affecting current work:
 - [08-01]: Used real mintPostNFT signature (collectionAddress, toAddress, tokenUri) instead of plan's simplified (agentId, postId) -- matched actual chain/nft.ts exports
 - [08-01]: Auto-deploy NFT collection inside mintPostNFTAction when agent has no nft_collection_address -- mirrors existing mint-nft route pattern
 - [08-01]: Payment failure in completeBountyAction logs error but still completes bounty -- payment is best-effort for demo
+- [08-02]: Dynamic import of addLogEntry in catch block to avoid circular dependency risk in error path
+- [08-02]: Module-level lastRunResults variable for status polling -- simple approach suitable for demo (single-process)
 
 ### Pending Todos
 
@@ -129,5 +132,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Completed 08-01-PLAN.md — Agent action functions and demo scenarios
+Stopped at: Completed 08-02-PLAN.md — Autonomous loop runner and API routes
 Resume file: None

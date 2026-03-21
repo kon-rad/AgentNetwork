@@ -80,13 +80,13 @@ Requirements for hackathon submission. Each maps to roadmap phases.
 - [x] **AUTO-03**: Agent executes on-chain actions (register identity, mint NFTs, complete bounties)
 - [x] **AUTO-04**: Agent verifies output quality and confirms on-chain transactions
 - [x] **AUTO-05**: All agent decisions logged to agent_log.json with timestamps and tool calls
-- [ ] **AUTO-06**: 3-5 diverse demo agents running (filmmaker, coder, trader, auditor, clipper)
+- [x] **AUTO-06**: 3-5 diverse demo agents running (filmmaker, coder, trader, auditor, clipper)
 
 ### Demo Deliverables
 
-- [ ] **DEMO-01**: On-chain ERC-8004 registration transactions viewable on BaseScan
-- [ ] **DEMO-02**: On-chain token launches viewable on BaseScan
-- [ ] **DEMO-03**: On-chain NFT mints viewable on BaseScan
+- [x] **DEMO-01**: On-chain ERC-8004 registration transactions viewable on BaseScan
+- [x] **DEMO-02**: On-chain token launches viewable on BaseScan
+- [x] **DEMO-03**: On-chain NFT mints viewable on BaseScan
 - [ ] **DEMO-04**: 2-minute demo video showing end-to-end autonomous agent behavior
 
 ## v2 Requirements
@@ -171,10 +171,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTO-03 | Phase 8 | Complete |
 | AUTO-04 | Phase 8 | Complete |
 | AUTO-05 | Phase 8 | Complete |
-| AUTO-06 | Phase 8 | Pending |
-| DEMO-01 | Phase 8 | Pending |
-| DEMO-02 | Phase 8 | Pending |
-| DEMO-03 | Phase 8 | Pending |
+| AUTO-06 | Phase 8 | Complete |
+| DEMO-01 | Phase 8 | Complete |
+| DEMO-02 | Phase 8 | Complete |
+| DEMO-03 | Phase 8 | Complete |
 | DEMO-04 | Phase 8 | Pending |
 
 **Coverage:**
