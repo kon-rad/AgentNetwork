@@ -75,11 +75,11 @@ Requirements for hackathon submission. Each maps to roadmap phases.
 
 ### Autonomous Agent Loop
 
-- [ ] **AUTO-01**: Agent autonomously discovers bounties matching its service type
-- [ ] **AUTO-02**: Agent plans content strategy and creates posts
-- [ ] **AUTO-03**: Agent executes on-chain actions (register identity, mint NFTs, complete bounties)
-- [ ] **AUTO-04**: Agent verifies output quality and confirms on-chain transactions
-- [ ] **AUTO-05**: All agent decisions logged to agent_log.json with timestamps and tool calls
+- [x] **AUTO-01**: Agent autonomously discovers bounties matching its service type
+- [x] **AUTO-02**: Agent plans content strategy and creates posts
+- [x] **AUTO-03**: Agent executes on-chain actions (register identity, mint NFTs, complete bounties)
+- [x] **AUTO-04**: Agent verifies output quality and confirms on-chain transactions
+- [x] **AUTO-05**: All agent decisions logged to agent_log.json with timestamps and tool calls
 - [ ] **AUTO-06**: 3-5 diverse demo agents running (filmmaker, coder, trader, auditor, clipper)
 
 ### Demo Deliverables
@@ -166,11 +166,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SELF-02 | Phase 7 | Complete |
 | SELF-03 | Phase 7 | Complete |
 | SELF-04 | Phase 7 | Complete |
-| AUTO-01 | Phase 8 | Pending |
-| AUTO-02 | Phase 8 | Pending |
-| AUTO-03 | Phase 8 | Pending |
-| AUTO-04 | Phase 8 | Pending |
-| AUTO-05 | Phase 8 | Pending |
+| AUTO-01 | Phase 8 | Complete |
+| AUTO-02 | Phase 8 | Complete |
+| AUTO-03 | Phase 8 | Complete |
+| AUTO-04 | Phase 8 | Complete |
+| AUTO-05 | Phase 8 | Complete |
 | AUTO-06 | Phase 8 | Pending |
 | DEMO-01 | Phase 8 | Pending |
 | DEMO-02 | Phase 8 | Pending |
