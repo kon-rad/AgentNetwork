@@ -1,357 +1,486 @@
 # Architecture Research
 
-**Domain:** AI Agent Marketplace with On-Chain Integrations (Next.js)
-**Researched:** 2026-03-20
-**Confidence:** MEDIUM — Core patterns HIGH confidence from official docs; Rare Protocol/agent.json specifics LOW confidence from single sources
+**Domain:** AI Agent Subscriptions Platform — NanoClaw on VPS + Supabase + Next.js on Railway
+**Researched:** 2026-03-22
+**Confidence:** MEDIUM — Core patterns HIGH confidence from official docs and NanoClaw source; WireGuard Railway outbound details MEDIUM; NanoClaw webapp channel specifics MEDIUM (fork work required)
 
 ## Standard Architecture
 
 ### System Overview
 
-The existing codebase is a clean 4-layer Next.js monolith (Presentation → API → Data Access → Domain). The on-chain integrations add a fifth layer — a **Chain Adapter Layer** — that sits between the API layer and external blockchain networks. This is the critical structural addition for this milestone.
+The v2.0 architecture expands the existing Next.js monolith into a three-node distributed system. Railway hosts the Next.js app (user-facing), a VPS hosts NanoClaw (agent execution), and Supabase is the shared Postgres database and Realtime bus. Communication between Railway and VPS travels through a WireGuard tunnel.
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                      PRESENTATION LAYER                         │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
-│  │Directory │  │  Profile │  │   Feed   │  │Bounties  │        │
-│  │  /page   │  │/agent/id │  │  /feed   │  │/bounties │        │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘        │
-│       └─────────────┴─────────────┴──────────────┘             │
-│  [Web3 Context: WagmiProvider + RainbowKitProvider wraps all]   │
-├────────────────────────────────────────────────────────────────┤
-│                      WEB3 HOOK LAYER (client)                   │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
-│  │useWalletConn │  │useEnsName    │  │useWriteContr │           │
-│  │(RainbowKit)  │  │(wagmi hook)  │  │act (wagmi)   │           │
-│  └──────────────┘  └──────────────┘  └──────────────┘           │
-├────────────────────────────────────────────────────────────────┤
-│                      API LAYER (server)                         │
-│  /api/agents  /api/posts  /api/bounties  /api/follows           │
-│  /api/chain/register  /api/chain/mint  /api/chain/token         │
-├────────────────────────────────────────────────────────────────┤
-│                   CHAIN ADAPTER LAYER (server)                  │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐            │
-│  │ ERC-8004 │ │ Clanker  │ │Filecoin  │ │  x402    │            │
-│  │ adapter  │ │ adapter  │ │ adapter  │ │ middleware│            │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘            │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐                         │
-│  │  Rare    │ │  Self    │ │   ENS    │                          │
-│  │ Protocol │ │ Protocol │ │ resolver │                          │
-│  └──────────┘ └──────────┘ └──────────┘                         │
-├────────────────────────────────────────────────────────────────┤
-│                      DATA ACCESS LAYER                          │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  SQLite (better-sqlite3) — agents, posts, bounties,      │   │
-│  │  follows + new: on_chain_registrations, token_launches    │   │
-│  └──────────────────────────────────────────────────────────┘   │
-├────────────────────────────────────────────────────────────────┤
-│                      EXTERNAL CHAINS                            │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐            │
-│  │   Base   │ │  Base    │ │Filecoin  │ │  Celo    │            │
-│  │ Mainnet  │ │ Sepolia  │ │Mainnet   │ │ Mainnet  │            │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘            │
-│  ┌──────────┐                                                    │
-│  │ Ethereum │  (L1 — ENS resolution only)                       │
-│  │ Mainnet  │                                                    │
-│  └──────────┘                                                    │
-└────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────┐
+│                         BROWSER                                    │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐      │
+│  │ Chat UI      │  │ Observability│  │ Subscription / SIWE  │      │
+│  │ (SSE stream) │  │ Dashboard    │  │ flow                 │      │
+│  └──────┬───────┘  └──────┬───────┘  └────────┬─────────────┘      │
+│         │                 │                    │                   │
+│         │ SSE (HTTP)      │ Supabase           │ wagmi +           │
+│         │                 │ Realtime           │ RainbowKit        │
+└─────────┼─────────────────┼────────────────────┼───────────────────┘
+          │                 │                    │
+┌─────────▼─────────────────▼────────────────────▼───────────────────┐
+│                  RAILWAY — Next.js 16 App                           │
+│                                                                     │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                     API Layer                                  │  │
+│  │  /api/auth/siwe/*   /api/agents/*   /api/chat/[id]/stream     │  │
+│  │  /api/subscriptions/*   /api/chain/*   /api/services/*        │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                     Auth Middleware                            │  │
+│  │  Session cookie (iron-session/jose)                           │  │
+│  │  SIWE signature verification (viem.verifyMessage)             │  │
+│  │  Agent ownership check (wallet_address in Supabase)           │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+│  ┌─────────────────────────┐   ┌───────────────────────────────┐   │
+│  │  Supabase Client        │   │  NanoClaw HTTP Client         │   │
+│  │  @supabase/supabase-js  │   │  (WireGuard tunnel)           │   │
+│  │  Service role key       │   │  Shared secret header         │   │
+│  └───────────┬─────────────┘   └──────────────┬────────────────┘   │
+└──────────────┼──────────────────────────────── ┼────────────────────┘
+               │                                  │
+     WireGuard │ encrypted                        │ HTTP over WireGuard
+     (Railway  │ outbound                         │ 10.0.0.x private IP
+     is client)│                                  │
+               │                    ┌─────────────▼──────────────────┐
+               │                    │  VPS — NanoClaw Server          │
+               │                    │                                 │
+               │                    │  ┌──────────────────────────┐   │
+               │                    │  │  NanoClaw Orchestrator   │   │
+               │                    │  │  (Node.js process)       │   │
+               │                    │  │                          │   │
+               │                    │  │  Webapp HTTP Channel     │   │
+               │                    │  │  (custom fork addition)  │   │
+               │                    │  │                          │   │
+               │                    │  │  Polling loop (2s)       │   │
+               │                    │  │  GroupQueue concurrency  │   │
+               │                    │  │  IPC watcher             │   │
+               │                    │  └──────────────────────────┘   │
+               │                    │                                 │
+               │                    │  ┌──────────────────────────┐   │
+               │                    │  │  Credential Proxy :3001  │   │
+               │                    │  │  MITM — injects real     │   │
+               │                    │  │  ANTHROPIC_API_KEY       │   │
+               │                    │  └──────────────────────────┘   │
+               │                    │                                 │
+               │                    │  ┌──────────────────────────┐   │
+               │                    │  │  Docker per-agent-turn   │   │
+               │                    │  │  containers              │   │
+               │                    │  │  (Claude Agent SDK)      │   │
+               │                    │  └──────────────────────────┘   │
+               │                    │                                 │
+               │                    │  ┌──────────────────────────┐   │
+               │                    │  │  Supabase Client         │   │
+               │                    │  │  (writes agent_events,   │   │
+               │                    │  │   llm_logs, tool_calls)  │   │
+               │                    │  └──────────────────────────┘   │
+               │                    └─────────────────────────────────┘
+               │
+┌──────────────▼──────────────────────────────────────────────────────┐
+│               SUPABASE — Managed Postgres + Realtime                 │
+│                                                                      │
+│  agents | posts | follows | bounties | services                     │
+│  agent_templates | user_sessions | subscriptions                    │
+│  agent_events | llm_logs | tool_call_logs                           │
+│                                                                      │
+│  Realtime publication: agent_events, llm_logs, tool_call_logs       │
+│  RLS: enabled on all tables                                          │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
 | Component | Responsibility | Communicates With |
-|-----------|----------------|-------------------|
-| WagmiProvider + RainbowKitProvider | Global Web3 context, wallet state, chain config | All client components via hooks |
-| useWalletConnection | Expose connected address, chain, sign functions | Presentation components |
-| useEnsName / useEnsAddress | Resolve hex address ↔ ENS name (Ethereum L1) | Profile, directory components |
-| ERC-8004 Adapter | Call `register()` on IdentityRegistry contract, write agentURI to IPFS/Filecoin first | Chain API routes, SQLite |
-| Clanker Adapter | POST to `clanker.world/api/tokens/deploy` with API key, store returned contract address | Chain API routes, SQLite |
-| x402 Middleware | Intercept requests to payment-gated routes, issue 402 with USDC payment details | API routes (`paymentMiddleware()`) |
-| Filecoin Synapse Adapter | Initialize Synapse client, upload agent.json / agent_log.json / media, return CID | ERC-8004 adapter (agentURI), post creation |
-| Rare Protocol Adapter | Deploy ERC-721 collection contract, call mint() per post collected as NFT | Post creation flow, chain API routes |
-| Self Protocol Adapter | Render QR code component, receive ZK proof callback on `/api/self/verify` | Agent operator onboarding page |
-| API Routes (chain/) | Server-side orchestration of multi-step chain operations | Chain adapters, SQLite |
-| SQLite | Persist off-chain state: agent records, on-chain references (tokenAddress, agentId, nftContractAddr) | API routes |
+|-----------|---------------|-------------------|
+| Next.js App Router (Railway) | Presentation, API orchestration, SIWE auth, SSE proxy | Browser, Supabase, NanoClaw |
+| SIWE Auth Layer | EIP-4361 nonce/verify, issue session cookie, validate ownership | wagmi/viem (client), Supabase (server) |
+| SSE Chat Proxy (`/api/chat/[id]/stream`) | Opens HTTP connection to NanoClaw, pipes response as SSE to browser | NanoClaw webapp channel, Browser |
+| Supabase (Next.js side) | Read/write all platform data; service-role for admin ops | Supabase Postgres |
+| NanoClaw Webapp Channel | Receives chat turn trigger from Next.js API, routes message into NanoClaw orchestrator | Next.js API, NanoClaw orchestrator |
+| NanoClaw Orchestrator | Enqueues message, spawns per-turn Docker container, runs Claude Agent SDK, writes results to Supabase | Docker daemon, Credential Proxy, Supabase |
+| Credential Proxy (VPS :3001) | MITM proxy that injects real ANTHROPIC_API_KEY; containers only know placeholder URL | Claude API, Agent Docker containers |
+| Docker Container (per turn) | Isolated execution of one agent turn; Claude Agent SDK runs here with skills mounted | Credential Proxy, IPC directory, agent workspace |
+| WireGuard (Railway client) | Encrypted tunnel — Railway container dials out to VPS WireGuard endpoint on port 51820 | VPS WireGuard server, internal 10.0.0.x range |
+| Supabase Realtime | Pushes `agent_events` / `llm_logs` changes to browser dashboard via WebSocket | Browser observability dashboard |
 
 ## Recommended Project Structure
 
 ```
-src/
-├── app/
-│   ├── api/
-│   │   ├── agents/            # existing
-│   │   ├── posts/             # existing
-│   │   ├── bounties/          # existing
-│   │   ├── follows/           # existing
-│   │   ├── seed/              # existing
-│   │   └── chain/             # NEW: server-side chain operations
-│   │       ├── register/      # ERC-8004 registration
-│   │       ├── token/         # Clanker token deployment
-│   │       ├── mint/          # Rare Protocol NFT mint
-│   │       └── self/
-│   │           └── verify/    # Self Protocol ZK proof callback
-│   ├── agent/[id]/            # existing (add on-chain data display)
-│   ├── feed/                  # existing
-│   ├── bounties/              # existing
-│   └── layout.tsx             # MODIFY: add Web3Providers wrapper
-├── components/
-│   ├── ui/                    # existing UI components
-│   └── web3/                  # NEW: Web3-specific components
-│       ├── ConnectButton.tsx  # RainbowKit ConnectButton wrapper
-│       ├── EnsName.tsx        # Address → ENS name display
-│       ├── SelfQrCode.tsx     # Self Protocol QR flow
-│       └── TxStatus.tsx       # On-chain tx status badge
-├── lib/
-│   ├── db.ts                  # existing (add on_chain_refs table)
-│   ├── types.ts               # existing (extend Agent type)
-│   ├── seed.ts                # existing
-│   └── chain/                 # NEW: chain adapter modules
-│       ├── config.ts          # wagmi config, chain definitions
-│       ├── erc8004.ts         # ERC-8004 registry calls
-│       ├── clanker.ts         # Clanker API client
-│       ├── filecoin.ts        # Synapse SDK wrapper
-│       ├── rare.ts            # Rare Protocol NFT minting
-│       ├── self.ts            # Self Protocol verification
-│       └── ens.ts             # ENS resolution utilities
-├── providers/
-│   └── Web3Providers.tsx      # NEW: WagmiProvider + RainbowKit + QueryClient
-└── middleware.ts              # NEW: x402 paymentMiddleware for /api/bounties/*
+network/                           # monorepo root
+├── app/                           # Next.js app (deployed to Railway)
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── api/
+│   │   │   │   ├── auth/
+│   │   │   │   │   ├── siwe/
+│   │   │   │   │   │   ├── nonce/route.ts    # GET — generate + store nonce
+│   │   │   │   │   │   └── verify/route.ts   # POST — verify SIWE sig, set session
+│   │   │   │   │   └── session/route.ts      # GET — return current session info
+│   │   │   │   ├── agents/                   # existing (migrate to Supabase)
+│   │   │   │   ├── subscriptions/
+│   │   │   │   │   └── route.ts              # POST — create subscription after USDC tx
+│   │   │   │   ├── chat/
+│   │   │   │   │   └── [agentId]/
+│   │   │   │   │       └── stream/route.ts   # POST — forward to NanoClaw, SSE proxy
+│   │   │   │   ├── chain/                    # existing v1.0 chain adapters
+│   │   │   │   └── services/                 # existing
+│   │   │   ├── agent/[id]/
+│   │   │   │   ├── page.tsx                  # existing profile
+│   │   │   │   ├── chat/page.tsx             # NEW: chat + SSE UI
+│   │   │   │   └── observe/page.tsx          # NEW: observability dashboard
+│   │   │   └── subscribe/[templateId]/
+│   │   │       └── page.tsx                  # NEW: subscription checkout
+│   │   ├── components/
+│   │   │   ├── auth/
+│   │   │   │   └── SiweButton.tsx            # RainbowKit + SIWE sign-in flow
+│   │   │   ├── chat/
+│   │   │   │   ├── ChatWindow.tsx            # SSE consumer, message display
+│   │   │   │   └── MessageInput.tsx          # send message, trigger SSE
+│   │   │   └── observe/
+│   │   │       ├── EventFeed.tsx             # Supabase Realtime consumer
+│   │   │       ├── LlmLogEntry.tsx           # single log entry display
+│   │   │       └── TokenUsage.tsx            # token counter
+│   │   └── lib/
+│   │       ├── supabase/
+│   │       │   ├── server.ts                 # createServerClient (service role)
+│   │       │   ├── browser.ts                # createBrowserClient (anon key)
+│   │       │   └── schema.ts                 # TypeScript types for DB tables
+│   │       ├── auth/
+│   │       │   ├── session.ts                # iron-session or jose cookie helpers
+│   │       │   └── siwe.ts                   # nonce generation, SIWE verify helpers
+│   │       ├── nanoclaw/
+│   │       │   └── client.ts                 # HTTP client to NanoClaw via WireGuard
+│   │       ├── chain/                        # existing v1.0 adapters
+│   │       └── wagmi.ts                      # existing wagmi config
+│   └── package.json
+│
+├── agent-server/                  # NanoClaw fork (deployed to VPS)
+│   ├── src/
+│   │   ├── channels/
+│   │   │   ├── webapp/
+│   │   │   │   └── index.ts      # NEW: webapp HTTP channel (receives from Next.js)
+│   │   │   └── index.ts          # barrel import (only webapp channel)
+│   │   ├── index.ts              # orchestrator — existing, minimal changes
+│   │   ├── container-runner.ts   # existing — spawns per-turn Docker containers
+│   │   ├── credential-proxy.ts   # existing — MITM for ANTHROPIC_API_KEY
+│   │   ├── db.ts                 # existing SQLite for internal NanoClaw state
+│   │   └── supabase-logger.ts    # NEW: writes agent_events to Supabase
+│   └── package.json
+│
+├── .github/
+│   └── workflows/
+│       ├── deploy-app.yml        # Railway deploy on push to main (app/ changes)
+│       └── deploy-agent.yml      # VPS SSH deploy on push to main (agent-server/ changes)
+└── package.json                  # pnpm workspace root
 ```
 
 ### Structure Rationale
 
-- **`src/lib/chain/`**: Each external protocol gets its own module. This keeps adapters independently testable, swappable, and debuggable. Failures in one chain don't cascade to others.
-- **`src/app/api/chain/`**: Server-side chain operations that require API keys (Clanker) or private key signing stay server-side. Never expose private keys to client.
-- **`src/providers/`**: Web3 context must be a client component. Extracting it to its own file keeps `layout.tsx` clean (layout is a server component).
-- **`src/components/web3/`**: Web3 UI components that use wagmi hooks are always client components. Isolating them prevents RSC compatibility issues.
-- **`src/middleware.ts`**: x402 middleware runs at the Edge layer before route handlers — this is Next.js's native location for it.
+- **`app/` and `agent-server/` as monorepo packages**: GitHub Actions can detect which package changed and deploy only the affected service. pnpm workspace allows shared type packages if needed.
+- **`lib/supabase/server.ts` vs `lib/supabase/browser.ts`**: Supabase requires different client configurations for server (service role key, full access) vs browser (anon key, RLS-constrained). Never use service role key client-side.
+- **`lib/nanoclaw/client.ts`**: All communication to NanoClaw VPS goes through this single module, which constructs requests with the WireGuard private IP and shared secret header. This makes the networking assumption explicit and mockable.
+- **`channels/webapp/`**: The NanoClaw fork adds only one channel. All messaging platform channels (Telegram, WhatsApp, Slack, Discord, Gmail) are stripped out of the barrel import. This keeps the fork minimal and easy to merge upstream changes into.
+- **`agent-server/src/supabase-logger.ts`**: Agent observability events are written to Supabase directly from the VPS. NanoClaw can call this after each container turn completes (or hook into the IPC result parsing).
 
 ## Architectural Patterns
 
-### Pattern 1: Provider-Wrapped App (Web3 Context)
+### Pattern 1: SIWE Session with Iron-Session Cookie
 
-**What:** WagmiProvider + RainbowKitProvider + QueryClientProvider wrap the entire app in a single client component boundary. All child components (server or client) can access wallet state.
+**What:** On wallet connect, the browser signs a SIWE message (EIP-4361). Next.js verifies the signature server-side with viem and issues an encrypted session cookie (iron-session or jose). All subsequent API calls are authenticated via this cookie, not a wallet signature per request.
 
-**When to use:** Always — this is the required setup for RainbowKit + wagmi in Next.js App Router.
+**When to use:** Any route that requires knowing who the user is. The existing EIP-191 header-per-request approach in `lib/auth.ts` is replaced by this session pattern.
 
-**Trade-offs:** The Providers component must be `"use client"`, but because it wraps children as props, Next.js can still render server components inside it. No RSC functionality is lost.
+**Trade-offs:** More setup than the existing custom EIP-191 approach, but this is the standard SIWE pattern and works correctly with browser state management. Cookie expiry handles session invalidation.
 
 **Example:**
 ```typescript
-// src/providers/Web3Providers.tsx
-'use client'
-import { WagmiProvider } from 'wagmi'
-import { RainbowKitProvider } from '@rainbow-me/rainbowkit'
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
-import { wagmiConfig } from '@/lib/chain/config'
+// app/src/app/api/auth/siwe/nonce/route.ts
+import { NextResponse } from 'next/server'
+import { generateNonce } from 'siwe'
+import { setSessionCookie } from '@/lib/auth/session'
 
-const queryClient = new QueryClient()
-
-export function Web3Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>
-          {children}
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
-  )
+export async function GET() {
+  const nonce = generateNonce()
+  // Store nonce in session cookie (unsigned, pre-auth)
+  const response = NextResponse.json({ nonce })
+  await setSessionCookie(response, { nonce })
+  return response
 }
-```
 
-### Pattern 2: Server-Side Chain Orchestration
+// app/src/app/api/auth/siwe/verify/route.ts
+import { SiweMessage } from 'siwe'
+import { verifyMessage } from 'viem'
 
-**What:** Multi-step chain operations (upload to Filecoin → get CID → register on ERC-8004) run in Next.js API routes (server-side), not in client components. The client triggers via a single POST and receives a tx hash back.
-
-**When to use:** Any operation involving API keys (Clanker), private key signing, or multi-step sequencing. Keeps sensitive keys server-side.
-
-**Trade-offs:** Adds a round-trip but eliminates key exposure. For hackathon, use server-side hot wallet for agent operations; only human-initiated actions (connect wallet, verify identity) happen client-side.
-
-**Example:**
-```typescript
-// src/app/api/chain/register/route.ts
 export async function POST(req: Request) {
-  const { agentId } = await req.json()
-  const agent = getDb().prepare('SELECT * FROM agents WHERE id = ?').get(agentId)
+  const { message, signature } = await req.json()
+  const siweMsg = new SiweMessage(message)
+  const { success, data } = await siweMsg.verify({ signature })
+  if (!success) return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
 
-  // Step 1: Upload agent.json to Filecoin
-  const cid = await uploadToFilecoin(buildAgentManifest(agent))
-  const agentURI = `https://filecoin.cloud/ipfs/${cid}`
-
-  // Step 2: Register on ERC-8004 using server wallet
-  const txHash = await registerOnERC8004(agentURI)
-
-  // Step 3: Persist on-chain reference to SQLite
-  getDb().prepare('UPDATE agents SET erc8004_id = ?, agent_uri = ? WHERE id = ?')
-    .run(txHash, agentURI, agentId)
-
-  return Response.json({ txHash, agentURI })
+  // Issue session cookie with wallet address
+  const response = NextResponse.json({ address: data.address })
+  await setSessionCookie(response, { address: data.address, authenticated: true })
+  return response
 }
 ```
 
-### Pattern 3: Edge Middleware for x402 Payment Gating
+### Pattern 2: NanoClaw Webapp HTTP Channel
 
-**What:** x402's `paymentMiddleware()` wraps selected API routes. The middleware intercepts requests, issues HTTP 402 if no payment header is present, and only forwards to the route handler after USDC payment is verified by the x402 facilitator.
+**What:** The NanoClaw fork replaces all messaging channel modules (Telegram, WhatsApp, etc.) with a single webapp channel. This channel exposes an HTTP endpoint (`POST /webhook/webapp`) that Next.js calls when a user sends a chat message. NanoClaw processes it through the normal orchestrator path (SQLite queueing, Docker container spawn) and returns the result.
 
-**When to use:** For bounty claim/complete endpoints to demonstrate agent-to-agent payment flows. For premium agent service calls.
+**When to use:** Every time a user submits a message in the chat UI.
 
-**Trade-offs:** x402 facilitator adds latency (~200-500ms for verification). For hackathon demo, this is acceptable. The middleware is one function call — minimal code overhead.
+**Trade-offs:** HTTP is synchronous for the request/response cycle. Agent turns can take 10-60 seconds. Use an async response pattern: Next.js POSTs the message, NanoClaw returns `{ turnId }` immediately, and the result arrives via Supabase Realtime or SSE polling. Alternatively, NanoClaw streams the response if the Claude Agent SDK supports streaming output — this becomes the SSE source.
 
 **Example:**
 ```typescript
-// src/middleware.ts
-import { paymentMiddleware } from '@x402/next'
+// agent-server/src/channels/webapp/index.ts
+import express from 'express'
+import { registerChannel } from '../registry'
 
-export const middleware = paymentMiddleware(
-  process.env.PAYMENT_RECIPIENT_ADDRESS!,
-  {
-    '/api/bounties/*/claim': { price: '$0.10', network: 'base-sepolia' },
-    '/api/agents/*/service': { price: '$1.00', network: 'base' },
-  }
-)
+function createWebappChannel() {
+  const app = express()
+  app.post('/webhook/webapp', async (req, res) => {
+    const { agentId, message, turnId } = req.body
+    const secret = req.headers['x-shared-secret']
+    if (secret !== process.env.NANOCLAW_SHARED_SECRET) {
+      return res.status(401).json({ error: 'unauthorized' })
+    }
+    // Insert message into NanoClaw SQLite for orchestrator to pick up
+    await insertIncomingMessage({ agentId, message, turnId })
+    res.json({ turnId, status: 'queued' })
+  })
+  app.listen(3002)
+  return { name: 'webapp', connect: () => {}, /* ...Channel interface */ }
+}
 
-export const config = { matcher: ['/api/bounties/:path*/claim', '/api/agents/:path*/service'] }
+registerChannel('webapp', createWebappChannel)
 ```
 
-### Pattern 4: Optimistic ENS Display
+### Pattern 3: SSE Streaming Chat via Next.js Proxy
 
-**What:** Replace raw hex addresses in UI with ENS names using wagmi's `useEnsName` hook. Resolution always queries Ethereum L1 (chainId: 1), regardless of the user's connected chain.
+**What:** Browser opens an SSE connection to `/api/chat/[agentId]/stream`. Next.js holds this connection open and either: (a) polls Supabase for the turn result and flushes chunks as they arrive, or (b) opens a streaming HTTP connection to NanoClaw and pipes it as SSE. Option (b) is preferred if NanoClaw supports streaming.
 
-**When to use:** Any place wallet addresses are displayed — agent profile headers, bounty creator/claimer fields, transaction references.
+**When to use:** Chat UI — every user message triggers this flow.
 
-**Trade-offs:** ENS resolution requires an Ethereum mainnet RPC endpoint. Add Alchemy or Infura Ethereum endpoint to wagmi config alongside Base endpoints. Resolution can be slow (~300ms); use Suspense boundaries or placeholder shimmer.
+**Trade-offs:** Railway has a 30-second default request timeout on HTTP. Longer agent turns will be cut off. Set `export const dynamic = "force-dynamic"` on the route and configure Railway timeout to 120s. Connection drops require client-side reconnect logic.
 
 **Example:**
 ```typescript
-// src/components/web3/EnsName.tsx
+// app/src/app/api/chat/[agentId]/stream/route.ts
+export const dynamic = 'force-dynamic'
+
+export async function POST(req: Request, { params }: { params: { agentId: string } }) {
+  const { message } = await req.json()
+  const encoder = new TextEncoder()
+  const stream = new TransformStream()
+  const writer = stream.writable.getWriter()
+
+  // Don't await — kick off in background
+  ;(async () => {
+    try {
+      const res = await fetch(`http://10.0.0.2:3002/webhook/webapp`, {
+        method: 'POST',
+        headers: { 'x-shared-secret': process.env.NANOCLAW_SHARED_SECRET! },
+        body: JSON.stringify({ agentId: params.agentId, message }),
+      })
+      // If NanoClaw streams, pipe it; otherwise poll Supabase for result
+      for await (const chunk of res.body!) {
+        await writer.write(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`))
+      }
+    } finally {
+      await writer.close()
+    }
+  })()
+
+  return new Response(stream.readable, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
+  })
+}
+```
+
+### Pattern 4: Supabase Realtime Observability Dashboard
+
+**What:** NanoClaw writes `agent_events`, `llm_logs`, and `tool_call_logs` to Supabase after each container turn. The browser dashboard subscribes to these tables via Supabase Realtime (postgres_changes). Each event appears in the dashboard within ~100ms of being written by the VPS.
+
+**When to use:** The observability page at `/agent/[id]/observe`. Subscribe only to events for the specific agent the user owns.
+
+**Trade-offs:** Tables must be added to the `supabase_realtime` publication. RLS must allow the authenticated user to SELECT their agent's events. Scale concern: at high event rates, RLS checks on each INSERT notification create DB load — acceptable at hackathon scale.
+
+**Example:**
+```typescript
+// app/src/components/observe/EventFeed.tsx
 'use client'
-import { useEnsName } from 'wagmi'
+import { useEffect, useState } from 'react'
+import { createBrowserClient } from '@/lib/supabase/browser'
 
-export function EnsName({ address }: { address: `0x${string}` }) {
-  const { data: ensName } = useEnsName({ address, chainId: 1 })
-  return <span>{ensName ?? `${address.slice(0,6)}...${address.slice(-4)}`}</span>
+export function EventFeed({ agentId }: { agentId: string }) {
+  const [events, setEvents] = useState<AgentEvent[]>([])
+  const supabase = createBrowserClient()
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`agent-events-${agentId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'agent_events',
+        filter: `agent_id=eq.${agentId}`,
+      }, (payload) => {
+        setEvents(prev => [payload.new as AgentEvent, ...prev].slice(0, 200))
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [agentId])
+
+  return <ul>{events.map(e => <LlmLogEntry key={e.id} event={e} />)}</ul>
 }
 ```
+
+### Pattern 5: WireGuard Outbound from Railway Container
+
+**What:** Railway containers can establish outbound WireGuard connections to an external VPS. Railway is the WireGuard client; the VPS is the WireGuard server. The Railway container runs `wg-quick up wg0` at container start using a mounted WireGuard config. After the tunnel is up, all calls to the VPS NanoClaw use the WireGuard private IP (e.g., `10.0.0.2:3002`).
+
+**When to use:** All Next.js → NanoClaw communication.
+
+**Trade-offs:** Railway does not natively support WireGuard kernel module. Use the userspace `wireguard-go` (or the `boringtun` Rust implementation) as a workaround, which runs in user space without kernel module. Add as a Dockerfile step. This is confirmed to work on container platforms lacking kernel module support. Alternatively, expose NanoClaw on a TLS-protected public endpoint with shared secret only — simpler but NanoClaw is then internet-reachable.
+
+### Pattern 6: Agent Ownership via SIWE Session + Supabase
+
+**What:** When a user subscribes (50 USDC payment on Base), the Next.js API creates an `agent` row in Supabase with `owner_wallet = session.address`. Subsequent requests to `/api/chat/[agentId]` check that `session.address === agent.owner_wallet`. This check happens server-side in Next.js, not in NanoClaw.
+
+**When to use:** Any route that modifies or accesses a specific agent. NanoClaw trusts whatever Next.js sends it — ownership enforcement is entirely at the Next.js layer.
 
 ## Data Flow
 
-### Agent Registration Flow (ERC-8004 + Filecoin)
+### Subscription Flow (New User Signs Up)
 
 ```
-User clicks "Register Agent"
-    ↓
-POST /api/chain/register { agentId }
-    ↓
-lib/chain/filecoin.ts → Synapse SDK → upload agent.json
-    ↓ (returns CID)
-lib/chain/erc8004.ts → viem writeContract → IdentityRegistry.register(agentURI)
-    ↓ (returns txHash + agentId)
-SQLite UPDATE agents SET erc8004_id, agent_uri, tx_hash
-    ↓
-Response { txHash, agentURI, erc8004Id }
-    ↓
-UI shows block explorer link
+User visits /subscribe/[templateId]
+    |
+RainbowKit wallet connect
+    |
+GET /api/auth/siwe/nonce -> returns nonce
+    |
+Browser: signMessage(SIWE message with nonce)
+    |
+POST /api/auth/siwe/verify { message, signature }
+    |
+viem.verifyMessage() server-side
+    |
+Session cookie set { walletAddress, authenticated: true }
+    |
+User clicks "Subscribe — 50 USDC"
+    |
+wagmi useWriteContract -> USDC transferFrom on Base
+    | (tx hash returned)
+POST /api/subscriptions { templateId, txHash }
+    |
+Next.js verifies tx on Base (viem readContract or Alchemy)
+    |
+Supabase INSERT agent { owner_wallet, template_id, status: 'provisioning' }
+    |
+Next.js POST -> NanoClaw: /admin/agents/create { agentId, templateId }
+    |
+NanoClaw creates workspace: /workspace/groups/{agentId}/
+NanoClaw writes CLAUDE.md (Soul.md from template)
+NanoClaw creates per-agent .claude/skills/ directory
+    |
+Supabase UPDATE agent { status: 'active' }
+    |
+User redirected to /agent/[agentId]/chat
 ```
 
-### Token Launch Flow (Clanker)
+### Chat Turn Flow
 
 ```
-User clicks "Launch Token" on agent profile
-    ↓
-POST /api/chain/token { agentId }
-    ↓
-lib/chain/clanker.ts → POST clanker.world/api/tokens/deploy (with API key)
-    ↓ (returns contractAddress, requestKey)
-Poll for deployment confirmation (webhook or polling)
-    ↓
-SQLite UPDATE agents SET token_address, token_symbol
-    ↓
-UI displays token ticker + Uniswap link
+User types message in ChatWindow
+    |
+POST /api/chat/[agentId]/stream { message }
+    |
+Next.js: verify session cookie (auth middleware)
+Next.js: verify agent ownership (Supabase lookup)
+    |
+Next.js opens SSE TransformStream to browser
+    |
+Next.js POST -> NanoClaw 10.0.0.2:3002/webhook/webapp
+  { agentId, message, turnId, sharedSecret: header }
+    |
+NanoClaw webapp channel writes message to SQLite
+NanoClaw polling loop picks up message (within 2s)
+GroupQueue spawns Docker container:
+  - Mounts /workspace/groups/{agentId}/ (CLAUDE.md, skills, session)
+  - Sets ANTHROPIC_BASE_URL=http://host.docker.internal:3001 (proxy)
+  - Sets ANTHROPIC_API_KEY=proxy-managed (placeholder)
+    |
+Claude Agent SDK runs inside container
+Credential proxy injects real ANTHROPIC_API_KEY
+Claude processes turn, may call tools
+    |
+Container writes result to /workspace/ipc/{turnId}/result
+IPC watcher detects result file
+    |
+NanoClaw supabase-logger.ts writes:
+  agent_events INSERT { agentId, turnId, event: 'turn_complete', ... }
+  llm_logs INSERT { agentId, turnId, input_tokens, output_tokens, ... }
+  tool_call_logs INSERT { agentId, turnId, tool, args, result, ... }
+    |
+NanoClaw streams/returns result to webapp channel HTTP response
+    |
+Next.js SSE proxy flushes chunks to browser
+    |
+Supabase Realtime simultaneously pushes agent_events INSERT
+-> Observability dashboard updates in real-time
 ```
 
-### NFT Mint Flow (Rare Protocol)
+### Observability Dashboard Flow
 
 ```
-Agent creates post → POST /api/posts
-    ↓
-Post saved to SQLite
-    ↓ (async, can be background)
-lib/chain/rare.ts → mint() on agent's ERC-721 contract
-    ↓ (returns tokenId, txHash)
-SQLite UPDATE posts SET nft_token_id, nft_tx_hash
-    ↓
-Post card shows "Collect" button with NFT metadata
+User visits /agent/[agentId]/observe
+    |
+Server component fetches last 50 agent_events from Supabase (initial load)
+    |
+Client component mounts Supabase Realtime subscription:
+  .on('postgres_changes', { table: 'agent_events', filter: 'agent_id=eq.X' })
+    |
+NanoClaw (VPS) writes new event during any agent turn
+    |
+Supabase Realtime -> WebSocket -> browser dashboard
+EventFeed component prepends new event to list
+LlmLogEntry shows: model, tokens, latency, tool calls
+TokenUsage shows: cumulative token count
 ```
 
-### x402 Payment Flow (Bounty Claim)
+### SIWE Auth Flow
 
 ```
-Agent calls PUT /api/bounties/:id/claim (no payment header)
-    ↓
-x402 middleware intercepts → returns 402 + PaymentRequired JSON
-    ↓
-Agent client (lib/chain/x402-client.ts) reads 402 response
-    ↓
-Agent signs USDC payment payload (EIP-712 or permit2)
-    ↓
-Agent retries request with X-PAYMENT header
-    ↓
-x402 middleware verifies with facilitator → settlement on Base
-    ↓
-Route handler receives request → updates bounty status
-    ↓
-Response includes PAYMENT-RESPONSE header with tx hash
-```
-
-### Self Protocol ZK Verification Flow
-
-```
-Human (agent operator) visits /agent/:id/verify
-    ↓
-SelfQrCode component renders with scope (proof-of-humanity, nationality)
-    ↓
-User scans QR with Self mobile app → generates ZK proof
-    ↓
-Self Protocol calls POST /api/chain/self/verify { proof, publicInputs }
-    ↓
-lib/chain/self.ts → @selfxyz/core verifyProof() on Celo
-    ↓
-SQLite UPDATE agents SET self_verified = true, self_verification_tx
-    ↓
-Agent profile shows "Verified Human Operator" badge
-```
-
-### Wallet Connection Flow (RainbowKit)
-
-```
-User clicks "Connect" in Navbar
-    ↓
-RainbowKit modal opens (supports MetaMask, Trust, Ronin, WalletConnect)
-    ↓
-User selects wallet, approves connection
-    ↓
-wagmi useAccount hook updates globally via WagmiProvider context
-    ↓
-All components reading useAccount() re-render with connected address
-    ↓
-ENS resolution fires for connected address (useEnsName)
-    ↓
-Navbar shows ENS name or truncated address
-```
-
-### ENS Resolution Flow
-
-```
-Component receives walletAddress prop
-    ↓
-useEnsName({ address, chainId: 1 }) fires against Ethereum L1
-    ↓
-Returns ENS name (e.g. "agentsmith.eth") or null
-    ↓
-Display ENS name if resolved, else show truncated hex
-Note: Always set chainId: 1 regardless of user's active chain
+Browser: wallet connected (RainbowKit)
+    |
+GET /api/auth/siwe/nonce
+    | returns { nonce }
+    |
+Browser: siwe.SiweMessage({ domain, address, nonce, ... })
+Browser: wallet.signMessage(message)
+    |
+POST /api/auth/siwe/verify { message, signature }
+    |
+Server: new SiweMessage(message).verify({ signature })
+Server: checks nonce matches stored nonce (replay prevention)
+Server: sets iron-session cookie { walletAddress, expiresAt }
+    |
+All subsequent requests: cookie auto-sent by browser
+Server middleware: reads cookie, validates expiry
 ```
 
 ## Integration Points
@@ -360,114 +489,119 @@ Note: Always set chainId: 1 regardless of user's active chain
 
 | Service | Integration Point | Auth Method | Notes |
 |---------|-------------------|-------------|-------|
-| ERC-8004 IdentityRegistry (Base Sepolia) | `lib/chain/erc8004.ts` | Server hot wallet (viem) | Contract: `0x8004A818BFB912233c491871b3d84c89A494BD9e` |
-| Clanker API | `lib/chain/clanker.ts` | API key (server env var) | REST API, not SDK contract call |
-| Filecoin Synapse SDK | `lib/chain/filecoin.ts` | Private key + RPC (server) | Use `@filoz/synapse-sdk`; mainnet for demo |
-| Rare Protocol | `lib/chain/rare.ts` | Server wallet (viem) | Deploy ERC-721 per agent; ERC-721 standard on Base |
-| Self Protocol | `lib/chain/self.ts` + QR component | None (ZK proof is trustless) | Celo network for verification; QR rendered client-side |
-| ENS | `lib/chain/ens.ts` + wagmi hooks | Ethereum L1 RPC endpoint | Read-only; use `useEnsName` hook or viem `getEnsName()` |
-| x402 Facilitator | `src/middleware.ts` | None (USDC on Base) | Coinbase-hosted facilitator at `x402.org/facilitate` |
-| WalletConnect Cloud | wagmi config (projectId) | WalletConnect projectId | Required for WalletConnect v2 |
+| Supabase Postgres | `lib/supabase/server.ts` (Next.js), `supabase-logger.ts` (NanoClaw) | Service role key (server-only) / anon key (browser) | Service role bypasses RLS; never expose to browser |
+| Supabase Realtime | `lib/supabase/browser.ts` — createBrowserClient | Anon key + RLS | Browser subscribes; RLS restricts to agent owner |
+| NanoClaw VPS | `lib/nanoclaw/client.ts` | Shared secret header + WireGuard IP | Next.js is the only caller; VPS never public |
+| Anthropic API | Inside Docker containers via credential proxy | Proxy-injected ANTHROPIC_API_KEY | Containers never hold real key |
+| Base USDC contract | wagmi `useWriteContract` (browser) | User's wallet signer | Client-side only; server verifies tx hash after |
+| WireGuard | Dockerfile + wg0.conf in Railway container | VPS public key + Railway private key pair | wireguard-go for userspace if kernel module unavailable |
 
 ### Internal Boundaries
 
 | Boundary | Communication | Key Constraint |
 |----------|---------------|----------------|
-| Client components ↔ Web3 hooks | wagmi React hooks (`useAccount`, `useWriteContract`) | Must be in `"use client"` components |
-| Client components ↔ Chain API routes | Fetch / React Query | API routes handle private keys; client only sends agentId |
-| Chain adapters ↔ SQLite | Direct import (server-side only) | Never call SQLite from client |
-| x402 middleware ↔ API routes | HTTP middleware (Edge runtime compatible) | Middleware runs before route handler |
-| Self Protocol QR ↔ Verify endpoint | Self Protocol callback (POST from Self servers) | Endpoint must be publicly reachable (use ngrok for local dev) |
-| Filecoin adapter ↔ ERC-8004 adapter | Sequential function calls within single API route | Filecoin upload must complete before ERC-8004 registration |
+| Browser ↔ Next.js chat | SSE (POST to open stream, `text/event-stream` response) | `force-dynamic`, no Vercel edge buffering |
+| Browser ↔ Supabase Realtime | WebSocket via `@supabase/supabase-js` | Anon key only; RLS enforces ownership |
+| Next.js ↔ NanoClaw | HTTP POST over WireGuard (10.0.0.x) | Shared secret header; NanoClaw not internet-exposed |
+| NanoClaw ↔ Docker containers | Volume mounts + IPC filesystem directory | Container only sees its agent workspace |
+| NanoClaw ↔ Supabase | Direct Supabase client with service role | VPS writes agent_events; no browser involvement |
+| NanoClaw containers ↔ Anthropic API | HTTP via credential proxy :3001 | ANTHROPIC_BASE_URL override in container env |
+| Next.js ↔ Supabase | `@supabase/ssr` server client | Service role for writes; anon for public reads |
+
+## Build Order
+
+Dependencies determine this order. Each item requires the prior to be functionally working.
+
+**1. Supabase Migration (Database Foundation)**
+Replace SQLite with Supabase Postgres. Create schema (existing tables + new: `agent_templates`, `subscriptions`, `user_sessions`, `agent_events`, `llm_logs`, `tool_call_logs`). Enable Realtime publication on `agent_events`, `llm_logs`, `tool_call_logs`. Set up RLS policies. Update all `lib/db.ts` references to `lib/supabase/server.ts`. This is the blocking dependency for everything else.
+
+**2. SIWE Authentication**
+Replace existing EIP-191 per-request auth with SIWE session cookies. Add `siwe` package, nonce store (Supabase or Redis), `/api/auth/siwe/nonce` and `/api/auth/siwe/verify` routes. Update auth middleware to validate session cookie. This unlocks agent ownership enforcement.
+
+**3. Monorepo CI/CD Setup**
+Configure `pnpm-workspace.yaml` with `app/` and `agent-server/` packages. Write GitHub Actions workflows that detect changed packages and deploy to Railway or VPS respectively. Do this before NanoClaw work so all subsequent VPS changes auto-deploy.
+
+**4. NanoClaw Fork — Webapp Channel + VPS Deployment**
+Fork `qwibitai/nanoclaw`. Strip all channels except add the new webapp HTTP channel. Write `channels/webapp/index.ts` implementing the Channel interface. Add `supabase-logger.ts` for writing agent_events. Docker Compose setup for VPS (NanoClaw + credential proxy + WireGuard server). Deploy to VPS.
+
+**5. WireGuard Tunnel**
+Add WireGuard to Railway container Dockerfile (wireguard-go for userspace). Configure peer keys. Test that Next.js can reach `10.0.0.2:3002`. This step can block chat if not working — verify before proceeding.
+
+**6. Subscription + Agent Provisioning Flow**
+USDC payment flow (wagmi), `/api/subscriptions` route that verifies tx on Base and creates agent in Supabase, call NanoClaw to provision agent workspace from template. Requires steps 1, 2, and 4.
+
+**7. Chat UI + SSE Proxy**
+`/api/chat/[agentId]/stream` SSE route, ChatWindow component. Requires steps 4 and 5 (NanoClaw reachable via WireGuard).
+
+**8. Observability Dashboard**
+`/agent/[id]/observe` page with Supabase Realtime subscription. Requires step 1 (agent_events table + Realtime) and step 4 (NanoClaw writing to Supabase).
 
 ## Scaling Considerations
 
 | Scale | Architecture Adjustments |
 |-------|--------------------------|
-| Hackathon demo (5-20 agents) | Current monolith + SQLite is perfect; no changes needed |
-| 0-1K users | Current architecture holds; add connection pooling if SQLite becomes bottleneck |
-| 1K-100K users | Replace SQLite with Postgres (Neon/Supabase); extract chain adapters to background workers (BullMQ); cache ENS resolutions with Redis |
-| 100K+ users | Separate chain service; event-driven architecture; index on-chain state with TheGraph subgraph instead of SQLite |
+| Hackathon demo (1-20 agents) | Single VPS (4GB RAM, ~10-15 concurrent containers), Supabase free tier. WireGuard single peer. |
+| 0-500 subscribers | Current architecture holds. Monitor VPS container concurrency (MAX_CONCURRENT_CONTAINERS). Add VPS RAM (8-16GB) before adding nodes. |
+| 500-5K subscribers | Multiple VPS nodes behind a load balancer. Next.js calls NanoClaw via round-robin or agent affinity routing. Supabase Realtime scales independently. |
+| 5K+ subscribers | Agent affinity routing (each agent always runs on same VPS for session/workspace locality). Consider Supabase Pro for Realtime connection limits. |
 
 ### Scaling Priorities
 
-1. **First bottleneck (hackathon scope):** SQLite write contention if multiple simultaneous on-chain registrations trigger DB updates. Mitigation: WAL mode is already enabled; queue in-memory for demo.
-2. **Second bottleneck (post-hackathon):** ENS resolution latency per page render. Mitigation: batch resolve on server side, cache results with TTL.
+1. **First bottleneck:** VPS RAM / Docker container concurrency. Each agent container uses ~200-400MB. A 4GB VPS handles ~10-15 concurrent turns. Mitigation: increase RAM, raise `MAX_CONCURRENT_CONTAINERS`, queue excess turns in NanoClaw's GroupQueue.
+2. **Second bottleneck:** Supabase Realtime connections. Free tier limits WebSocket connections. Mitigation: upgrade Supabase tier or aggregate events before pushing to Realtime.
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Client-Side Private Key Handling
+### Anti-Pattern 1: Exposing NanoClaw to the Public Internet
 
-**What people do:** Store agent hot wallet private key in `localStorage` or client-side env vars to avoid server complexity.
-**Why it's wrong:** Private keys exposed in browser are trivially extractable. Any on-chain action would be exploitable.
-**Do this instead:** All private key operations in `src/app/api/chain/` server routes using `process.env.AGENT_PRIVATE_KEY`. Client only connects via RainbowKit for human user actions.
+**What people do:** Give NanoClaw a public Railway URL or put it on a public VPS port to simplify Next.js → NanoClaw communication.
+**Why it's wrong:** Any client can submit arbitrary agent turns, execute code inside Docker containers, and consume the shared Anthropic API key. The shared secret provides minimal protection against a determined attacker.
+**Do this instead:** NanoClaw only listens on the WireGuard private interface (10.0.0.2). No firewall hole, no public DNS. Next.js is the only ingress.
 
-### Anti-Pattern 2: Calling Chain Adapters Directly from Client Components
+### Anti-Pattern 2: Using Supabase Service Role Key in the Browser
 
-**What people do:** Import `lib/chain/erc8004.ts` directly into a React component and call `registerOnERC8004()` from the browser.
-**Why it's wrong:** Chain adapter modules import server-only packages (Node.js crypto, file system for keys). Next.js will bundle them client-side and fail or leak secrets.
-**Do this instead:** Chain adapters are server-only. Client components call `/api/chain/*` routes via fetch.
+**What people do:** Use a single Supabase client with service role key for convenience. Set it as `NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY`.
+**Why it's wrong:** Service role bypasses all RLS. Any user can read all agents, all chat logs, all observability data for all users.
+**Do this instead:** Two separate clients: `lib/supabase/server.ts` (service role, server-only) and `lib/supabase/browser.ts` (anon key, RLS-constrained). Never prefix the service role key with `NEXT_PUBLIC_`.
 
-### Anti-Pattern 3: Blocking UI on Chain Confirmation
+### Anti-Pattern 3: Blocking on Agent Turn in the HTTP Request
 
-**What people do:** `await` the entire chain registration flow (upload → register → confirm → update DB) before returning to the user, causing 10-30 second loading states.
-**Why it's wrong:** Terrible UX; transactions can take 12-30 seconds on Base; users abandon.
-**Do this instead:** Return immediately after tx submission with `{ status: 'pending', txHash }`. Poll for confirmation in the background. Show transaction status badge that updates asynchronously.
+**What people do:** POST message to NanoClaw, `await` the full response, then return it in the HTTP response.
+**Why it's wrong:** Agent turns can take 30-90 seconds. Railway's HTTP timeout is 30 seconds by default. Most turns will timeout and the user sees an error.
+**Do this instead:** POST to NanoClaw returns `{ turnId }` immediately (acknowledged, queued). Open a parallel SSE stream to receive the result incrementally. Configure Railway timeout to 120s as a safety net.
 
-### Anti-Pattern 4: One wagmi Config Per Integration
+### Anti-Pattern 4: Per-Request SIWE Signature (Existing Pattern)
 
-**What people do:** Create separate Wagmi/viem clients for each chain adapter (one for Base, one for Celo, one for Ethereum).
-**Why it's wrong:** Multiple WagmiProviders conflict; state is not shared; double-initialization overhead.
-**Do this instead:** Single `lib/chain/config.ts` with all chains configured: `chains: [base, baseSepolia, celo, mainnet]`. Use chain-specific public clients via `getPublicClient({ chainId })`.
+**What people do:** The current `lib/auth.ts` requires a fresh EIP-191 signature on every API request (X-Wallet-Address, X-Signature, X-Timestamp headers).
+**Why it's wrong:** Browser wallets prompt the user to sign on every request. This is unusable for chat (where messages come frequently). Replay prevention via 5-minute window means valid signatures can be replayed within that window.
+**Do this instead:** Sign once with SIWE at login, receive a session cookie, use cookie for all subsequent requests.
 
-### Anti-Pattern 5: ENS Resolution on Non-Mainnet Chain
+### Anti-Pattern 5: NanoClaw Writing Agent Responses Directly to Chat Messages Table
 
-**What people do:** Call `useEnsName({ address })` without specifying `chainId: 1`, inheriting the user's active chain (Base Sepolia).
-**Why it's wrong:** ENS registries live on Ethereum L1. Resolution on any other chain returns nothing.
-**Do this instead:** Always explicitly pass `chainId: 1` to all ENS hooks, regardless of the user's active chain.
+**What people do:** NanoClaw writes chat responses to a Supabase `messages` table; browser polls that table.
+**Why it's wrong:** Creates tight coupling between NanoClaw and the chat schema. Polling adds latency and DB load. No streaming.
+**Do this instead:** NanoClaw returns the response via the webapp HTTP channel (streamed if possible). The SSE proxy in Next.js handles the browser streaming. Separately, NanoClaw writes to `agent_events` for observability only.
 
-### Anti-Pattern 6: Skipping Filecoin Upload Before ERC-8004 Registration
+### Anti-Pattern 6: Single Container for Multiple Agent Turns
 
-**What people do:** Register on ERC-8004 with a temporary `agentURI` (e.g., `https://myapp.com/api/agents/123`) pointing to a mutable API endpoint.
-**Why it's wrong:** agentURI is meant to be an immutable, censorship-resistant reference. Mutable API URLs defeat the purpose of decentralized identity and can be changed post-registration.
-**Do this instead:** Upload `agent.json` to Filecoin Onchain Cloud first, get the immutable CID, then register `ipfs://<CID>` or `https://filecoin.cloud/ipfs/<CID>` as the agentURI.
-
-## Build Order
-
-Based on dependencies between components, build in this sequence:
-
-1. **Web3 Provider Infrastructure** — `lib/chain/config.ts`, `providers/Web3Providers.tsx`, layout.tsx update. Every other Web3 feature depends on this being present.
-
-2. **Wallet Connection** — RainbowKit ConnectButton, `useAccount` integration in Navbar, ENS display. Unlocks human user identity needed to attribute on-chain actions.
-
-3. **Filecoin Storage** — `lib/chain/filecoin.ts` with Synapse SDK. Required before ERC-8004 (agentURI must point to Filecoin-hosted manifest). Also needed for content storage.
-
-4. **ERC-8004 Registration** — `lib/chain/erc8004.ts`, `/api/chain/register` route, `agent.json` manifest generation. Core identity layer for Protocol Labs bounties.
-
-5. **Clanker Token Launch** — `lib/chain/clanker.ts`, `/api/chain/token` route. Depends on agents having identity (ERC-8004) for full demo flow.
-
-6. **x402 Payment Middleware** — `src/middleware.ts`. Depends on wallet connection being present so clients can sign payment payloads.
-
-7. **Rare Protocol NFT Minting** — `lib/chain/rare.ts`, `/api/chain/mint` route. Depends on posts existing and Filecoin (for NFT metadata storage).
-
-8. **Self Protocol Verification** — `lib/chain/self.ts`, SelfQrCode component, verify endpoint. Independent of other integrations; can be added any time after wallet connection.
-
-9. **ENS Name Resolution** — `lib/chain/ens.ts`, EnsName component. Pure display enhancement; no chain dependencies beyond wagmi config including Ethereum mainnet.
+**What people do:** Re-use a running container for multiple agent turns to avoid container startup overhead (~1-3 seconds per turn).
+**Why it's wrong:** This is NanoClaw's core security model — container-per-turn ensures no state leaks between turns, no tool side effects persist, no credential exposure accumulates. Reusing containers breaks isolation.
+**Do this instead:** Accept the 1-3s startup overhead. If latency is critical, use NanoClaw's session persistence (session files are mounted per agent) which already provides continuity without reusing containers.
 
 ## Sources
 
-- [ERC-8004 EIP Specification](https://eips.ethereum.org/EIPS/eip-8004) — HIGH confidence (official EIP)
-- [x402 GitHub — coinbase/x402](https://github.com/coinbase/x402) — HIGH confidence (official repo)
-- [x402-next npm](https://www.npmjs.com/package/@x402/next) — HIGH confidence (official package)
-- [RainbowKit Installation](https://rainbowkit.com/en-US/docs/installation) — HIGH confidence (official docs)
-- [wagmi useEnsName](https://wagmi.sh/react/api/hooks/useEnsName) — HIGH confidence (official docs)
-- [ENS Address Lookup](https://docs.ens.domains/web/reverse/) — HIGH confidence (official docs)
-- [Filecoin Synapse SDK](https://docs.filecoin.cloud/developer-guides/synapse/) — MEDIUM confidence (official docs, architecture inferred from structure)
-- [Clanker v4 Deploy Token](https://clanker.gitbook.io/clanker-documentation/authenticated/deploy-token-v4.0.0) — MEDIUM confidence (official docs, API pattern confirmed)
-- [SuperRare Developer Docs](https://developer.superrare.com/smart-contracts/assets/) — LOW confidence (404 on specific page; pattern inferred from ERC-721 standard + search results)
-- [Self Protocol Docs](https://docs.self.xyz) — LOW confidence (docs confirmed to exist; architecture inferred from ZK flow description)
-- [ERC-8004 DEV community integration guide](https://dev.to/hammertoe/making-services-discoverable-with-erc-8004-trustless-agent-registration-with-filecoin-pin-1al3) — MEDIUM confidence (community source, aligns with EIP)
+- [NanoClaw GitHub — qwibitai/nanoclaw](https://github.com/qwibitai/nanoclaw) — MEDIUM confidence (reviewed architecture via docs and deepwiki)
+- [NanoClaw Docker Sandboxes Docs](https://github.com/qwibitai/nanoclaw/blob/main/docs/docker-sandboxes.md) — MEDIUM confidence (official NanoClaw docs)
+- [NanoClaw DeepWiki Architecture](https://deepwiki.com/openclaw-shi/nanoclaw) — MEDIUM confidence (derived from source analysis)
+- [Supabase Postgres Changes Docs](https://supabase.com/docs/guides/realtime/postgres-changes) — HIGH confidence (official docs)
+- [Supabase Custom JWT / RLS](https://supabase.com/docs/guides/auth/jwts) — HIGH confidence (official docs)
+- [Supabase Realtime with Next.js](https://supabase.com/docs/guides/realtime/realtime-with-nextjs) — HIGH confidence (official docs)
+- [Railway Private Networking](https://docs.railway.com/networking/private-networking) — HIGH confidence (official docs, confirmed WireGuard-based)
+- [SIWE EIP-4361 Spec](https://eips.ethereum.org/EIPS/eip-4361) — HIGH confidence (official EIP)
+- [SSE in Next.js — Upstash Guide](https://upstash.com/blog/sse-streaming-llm-responses) — MEDIUM confidence (community, aligned with official patterns)
+- [Fixing Slow SSE in Next.js and Vercel (Jan 2026)](https://medium.com/@oyetoketoby80/fixing-slow-sse-server-sent-events-streaming-in-next-js-and-vercel-99f42fbdb996) — MEDIUM confidence (recent community, consistent with known issues)
+- [WireGuard userspace (wireguard-go) for Docker](https://blog.topli.ch/posts/wireguard-docker/) — MEDIUM confidence (community, confirms userspace option)
 
 ---
-*Architecture research for: AI Agent Marketplace with On-Chain Integrations*
-*Researched: 2026-03-20*
+*Architecture research for: AI Agent Subscriptions Platform — v2.0 milestone*
+*Researched: 2026-03-22*

@@ -1,205 +1,305 @@
 # Stack Research
 
-**Domain:** AI agent social marketplace with on-chain identity, tokens, NFTs, and payments on Base
-**Researched:** 2026-03-20
-**Confidence:** MEDIUM (core Web3 stack HIGH; niche protocol SDKs LOW-MEDIUM due to rapid evolution)
+**Domain:** AI agent social marketplace — v2.0 milestone additions (Supabase, SIWE, NanoClaw, observability, CI/CD)
+**Researched:** 2026-03-22
+**Confidence:** MEDIUM-HIGH (Supabase/SIWE HIGH; NanoClaw HTTP channel LOW — no existing implementation found)
 
 ---
 
 ## Context: What We're Adding
 
-The existing app is Next.js 16 + React 19 + TypeScript 5 + SQLite + Tailwind CSS 4 + Zustand 5.
-All additions below integrate *into* this existing codebase. Nothing replaces what's there.
+This file covers only the **new v2.0 additions**. The existing v1.0 stack (RainbowKit, wagmi v2, viem, ERC-8004, Clanker, x402, Self Protocol, Filecoin) is documented in the prior STACK.md section above and is **not repeated here**.
+
+Existing confirmed versions (do not change):
+- Next.js 16.2.0, React 19.2.4, TypeScript 5
+- wagmi ^2.19.5, viem ^2.47.5, @tanstack/react-query ^5.91.2
+- @rainbow-me/rainbowkit ^2.2.10
+- tailwindcss ^4, zustand ^5
+
+**Critical constraint inherited from v1.0:** Do NOT upgrade wagmi to v3. RainbowKit 2.x is pinned to wagmi ^2.x.
 
 ---
 
-## Recommended Stack
+## Recommended Stack — New Additions Only
 
-### Wallet Connection Layer
+### 1. Database: Supabase (replacing SQLite)
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| `@rainbow-me/rainbowkit` | 2.2.10 | Wallet connection UI | Most polished wallet picker; supports MetaMask, WalletConnect, Coinbase Wallet, Trust, Ronin out of the box; WalletConnect Cloud integration built in; only option that meets the explicit hackathon requirement for those three wallets |
-| `wagmi` | ^2.x (NOT v3) | React hooks for Ethereum | v3 exists but RainbowKit 2.2.10 is pinned to wagmi ^2.17+; do NOT upgrade to wagmi v3 until RainbowKit releases v3 support (tracked in rainbowkit/discussions#2575) |
-| `viem` | 2.47.4 | Low-level Ethereum TypeScript client | RainbowKit's required peer dep; used directly for contract calls, ENS resolution, and tx construction |
-| `@tanstack/react-query` | ^5.91 | Async state for wagmi hooks | Required wagmi v2 peer dep; v5 is stable and current |
+| `@supabase/supabase-js` | ^2.99.3 | Postgres client, Realtime, Auth | Current stable; 2.x API is stable; Realtime subscriptions built in; single package covers all server/client use cases |
+| `@supabase/ssr` | ^0.8.1 | Cookie-based session helpers for Next.js App Router | Replaces deprecated `@supabase/auth-helpers-nextjs`; provides `createServerClient` and `createBrowserClient` with cookie management; v0.8.1 is latest stable (RC at v0.10.0) |
 
-**Confidence:** HIGH — versions verified against official RainbowKit releases page and npm.
+**Confidence:** HIGH — supabase-js v2.99.3 verified from npm (March 2026). @supabase/ssr v0.8.1 verified from GitHub releases.
 
-**Critical constraint:** RainbowKit 2.x requires wagmi 2.x. Do NOT install wagmi 3.x — as of March 2026, RainbowKit has not shipped wagmi v3 support and the combination will break.
+**Why Supabase over keeping SQLite:**
+- Railway and VPS both need read/write access to the same database — SQLite is single-process only
+- Supabase Realtime eliminates a custom SSE pipeline for the observability dashboard
+- Row Level Security enforces agent ownership at the database layer
+- Free tier (500MB, 50K MAU) sufficient for hackathon; upgrade path is seamless
 
-**WalletConnect Cloud:** A free `projectId` from https://cloud.walletconnect.com is mandatory; every dApp using WalletConnect must have one.
+**Setup pattern for Next.js App Router:**
+```typescript
+// lib/supabase/server.ts — server components, route handlers, server actions
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
----
+export function createClient() {
+  const cookieStore = cookies()
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    { cookies: { getAll: () => cookieStore.getAll(), ... } }
+  )
+}
 
-### On-Chain Identity — ERC-8004
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| Direct viem contract calls | via viem 2.x | Register agents in IdentityRegistry | No mature npm SDK exists; `@agentic-trust/8004-ext-sdk` shows anomalous version metadata (published "14 years ago") and is not trustworthy; `create-8004-agent` is a CLI scaffolder, not a library |
-| `erc-8004-contracts` ABIs | from GitHub | Contract ABI source | Official ABIs at `github.com/erc-8004/erc-8004-contracts` in `/abis` directory |
-
-**Confidence:** MEDIUM — contract addresses verified from official GitHub repo.
-
-**Contract addresses (verified):**
-- Base Sepolia IdentityRegistry: `0x8004A818BFB912233c491871b3d84c89A494BD9e`
-- Base Sepolia ReputationRegistry: `0x8004B663056A597Dffe9eCcC1965A193B7388713`
-- Base Mainnet IdentityRegistry: `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`
-- Base Mainnet ReputationRegistry: `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`
-
-**Implementation pattern:** Pull ABIs from erc-8004-contracts repo, use `viem`'s `writeContract` + `readContract` directly. Agent metadata is IPFS-pinned before the on-chain call; NFT minting on IdentityRegistry serves as agent registration.
-
----
-
-### Token Launch — Clanker
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `clanker-sdk` | 4.2.14 | Deploy ERC-20 + Uniswap V4 pool in one tx | Official SDK from Clanker team; v4 supports Base Sepolia and Base mainnet; pairs viem wallet client for signing |
-
-**Confidence:** HIGH — version and npm existence verified via npm registry.
-
-**Key notes:**
-- Requires a Clanker API key (`x-api-key` header) for authenticated deployments
-- Uses `deployTokenV4()` method for current v4 contracts (v4 contracts were under audit as of late 2025 — verify mainnet readiness before demo)
-- Peer dep: `viem` (already in stack)
-
----
-
-### Payments — x402
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `@x402/next` | 2.3.0 | Next.js middleware for HTTP 402 paywalls | Official Coinbase package; wraps API routes with payment requirements; USDC on Base mainnet; fee-free settlement via Coinbase facilitator |
-| `@x402/fetch` | latest | Client-side fetch with payment headers | Used by agent code when calling paid endpoints |
-
-**Confidence:** HIGH — verified at npmjs.com, coinbase/x402 GitHub confirmed as official Coinbase repo.
-
-**Key notes:**
-- The legacy `x402-next` (without `@x402/` scope) is a community fork; use `@x402/next` from Coinbase
-- Coinbase CDP API keys needed for the hosted facilitator (free tier available)
-- x402 Foundation (Coinbase + Cloudflare) announced September 2025; protocol is now an open standard
-- Payment flow: Server routes wrapped with `x402ResourceServer`; agents pay using `@x402/fetch`
-
----
-
-### ENS Resolution
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `wagmi` (built-in) | ^2.x | `useEnsName`, `useEnsAddress` hooks | ENS resolution is a first-class wagmi feature; no additional package needed; `useEnsName` does reverse lookup (address → name), `useEnsAddress` does forward lookup |
-| `viem` (built-in) | 2.x | `getEnsName`, `getEnsAddress`, normalize | viem's ENS actions work without wagmi if needed in server context |
-
-**Confidence:** HIGH — verified in wagmi and ENS official docs.
-
-**Key notes:**
-- ENS resolution must target Ethereum mainnet (chain ID 1), not Base — configure a separate mainnet transport in wagmi config
-- As of September 2025, wagmi/viem are the only libraries supporting L2 Primary Names
-- Use `normalize()` from viem before passing ENS names to avoid encoding issues
-
----
-
-### NFT Minting — Rare Protocol / SuperRare Partner Track
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `viem` contract writes | via viem 2.x | Mint ERC-721 NFTs on Base | No `@rareprotocol/rare-cli` npm package was found in research; SuperRare's developer tooling is via Transient Labs' ERC721TL contract |
-| Transient Labs ERC721TL | deployed contract | ERC-721 creator contract shown on SuperRare | SuperRare DAO invested in Transient Labs in 2025 to replace legacy minting; ERC721TL tokens display on SuperRare marketplace |
-
-**Confidence:** LOW — "Rare Protocol" as a named npm SDK was not found. The PROJECT.md reference to `@rareprotocol/rare-cli` could not be verified. Recommend validating actual hackathon bounty requirements directly.
-
-**Recommended approach for hackathon:**
-1. Deploy a minimal ERC721 contract on Base Sepolia using an OpenZeppelin template OR use an existing Transient Labs factory contract address
-2. Mint via `viem` `writeContract`
-3. List/display on SuperRare if artist invite obtained (SuperRare requires curator invite for mainstream minting)
-4. Alternative: Use Crossmint or Zora for permissionless ERC-721 deployment on Base if SuperRare invite is not available
-
-**Flag:** Verify with the actual Synthesis hackathon brief whether SuperRare requires specific contract addresses or if any ERC-721 on Base qualifies for the bounty.
-
----
-
-### Decentralized Storage — Filecoin Onchain Cloud
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `@filoz/synapse-sdk` | 0.40.0 | Upload and retrieve files from Filecoin Onchain Cloud | Official FilOzone SDK; v0.40.0 released March 17, 2026; covers storage upload, retrieval, and payment in one SDK |
-
-**Confidence:** MEDIUM — version verified from GitHub releases; mainnet readiness NOT explicitly confirmed in docs.
-
-**Key notes:**
-- Three sub-packages exist: `@filoz/synapse-sdk` (main), `@filoz/synapse-core`, `@filoz/synapse-react`
-- FOC mainnet announced November 2025; Filecoin Foundation confirmed expansion in December 2025; v0.40.0 suggests active development but pre-1.0 API stability
-- Used for: agent content storage, agent execution logs (`agent_log.json`), agent.json manifests
-- Payment is on-chain via FIL or USDFC tokens — ensure wallet has funds on Filecoin network
-- v0.24.0 introduced breaking changes (context-based storage API) — follow current docs, not old tutorials
-
----
-
-### ZK Identity Verification — Self Protocol
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `@selfxyz/qrcode` | latest | QR code component for Self app scanning | Official Self package; handles display, LED state, and verification flow in one React component |
-| `@selfxyz/core` | latest | `SelfAppBuilder`, `getUniversalLink` utilities | Core SDK for configuring the verification scope and deep links |
-| `ethers` | ^6.x | Ethereum address utilities (Self SDK peer dep) | Self docs explicitly list ethers as a requirement alongside the above packages |
-
-**Confidence:** MEDIUM — package names verified from official Self docs and GitHub; versions not pinned in official docs.
-
-**Key notes:**
-- Self Protocol attests on the **Celo blockchain** (not Base) — requires a Celo RPC in wagmi config
-- Proof verifier contract must be deployed on Celo; Self provides a shared verifier
-- Google Cloud and Celo testnet faucet both integrated Self in 2025 — project is active and credible
-- The `SelfQRcodeWrapper` component manages the full verification UX; backend must expose an endpoint for proof submission
-- For hackathon: use Self's shared verifier contract on Celo Alfajores (testnet) for development
-
----
-
-### IPFS/Metadata Pinning (Required by ERC-8004 and NFTs)
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `@pinata/sdk` OR Pinata HTTP API | latest | Pin JSON metadata and images to IPFS | ERC-8004 registration requires metadata at an IPFS URI; create-8004-agent uses Pinata; free tier covers hackathon needs |
-
-**Confidence:** MEDIUM — Pinata is standard and widely used; confirmed in create-8004-agent reference implementation.
-
----
-
-## Full Installation Commands
-
-```bash
-# Wallet connection (RainbowKit + wagmi v2 + viem v2 + TanStack Query v5)
-pnpm add @rainbow-me/rainbowkit wagmi viem@2 @tanstack/react-query
-
-# Token launch
-pnpm add clanker-sdk
-
-# x402 payments
-pnpm add @x402/next @x402/fetch
-
-# Filecoin storage
-pnpm add @filoz/synapse-sdk
-
-# Self Protocol ZK identity
-pnpm add @selfxyz/qrcode @selfxyz/core ethers
-
-# IPFS pinning for metadata
-pnpm add @pinata/sdk
+// lib/supabase/admin.ts — server ONLY, never client bundle
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+export const supabaseAdmin = createSupabaseClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!  // bypasses RLS — keep server-only
+)
 ```
 
-Note: ENS resolution and ERC-8004 contract calls use wagmi/viem directly — no additional packages.
+**CRITICAL:** The `SUPABASE_SERVICE_ROLE_KEY` (service role) bypasses all RLS policies. It must NEVER appear in client bundles or `NEXT_PUBLIC_*` env vars. Only import from server-only files.
+
+**Realtime subscription pattern (browser):**
+```typescript
+const channel = supabase
+  .channel('agent-events')
+  .on('postgres_changes', {
+    event: 'INSERT',
+    schema: 'public',
+    table: 'agent_events',
+    filter: `agent_id=eq.${agentId}`
+  }, (payload) => handleEvent(payload.new))
+  .subscribe()
+```
+
+Note: Realtime for Postgres changes is **disabled by default** on new Supabase projects. Must be explicitly enabled via the Supabase dashboard → Database → Replication.
 
 ---
 
-## Alternatives Considered
+### 2. Authentication: SIWE (Sign-In With Ethereum) + iron-session
 
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| RainbowKit 2.x | Dynamic.xyz, Privy | If you need social login (email/SMS) alongside wallet — not needed for this project |
-| RainbowKit 2.x | ConnectKit | If you want a lighter bundle — but RainbowKit is already the standard on Base ecosystem |
-| wagmi v2 | wagmi v3 | Switch when RainbowKit ships v3 support — check rainbowkit/rainbowkit#2575 |
-| viem direct contract calls for ERC-8004 | `@agentic-trust/8004-ext-sdk` | Only if that package is updated and verified — current npm metadata is suspicious |
-| `@filoz/synapse-sdk` | Lighthouse, Pinata (for IPFS-only) | Lighthouse if you need pure IPFS with simpler API; Pinata for metadata-only pinning (not full content storage) |
-| Self Protocol on Celo | Worldcoin ID, Anon Aadhar | Only if Celo integration is too complex — Self is specifically required for the hackathon bounty |
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `siwe` | ^3.0.0 | EIP-4361 message construction and verification | Official SpruceID library; v3.0.0 removes `validate()` in favor of `verify()`, drops `uri-js`/`valid-url` deps; aligns with current EIP-4361 spec |
+| `iron-session` | ^8.0.1 | Encrypted, stateless, cookie-based session storage | v8 is built for Next.js App Router; `getIronSession(cookies(), config)` works in Server Components, Route Handlers, and Server Actions; no database required for session state |
+
+**Confidence:** HIGH — siwe v3.0.0 verified from GitHub releases (January 2026). iron-session v8.0.1 verified from GitHub releases.
+
+**Why not NextAuth for SIWE:**
+- NextAuth adds complexity for wallet-only auth (no email/password needed)
+- SIWE + iron-session is the minimal pattern recommended in wagmi docs and SpruceID blog
+- iron-session sessions are stateless (encrypted cookie) — no session table in Supabase needed
+- Agent ownership can be stored directly in the session: `{ address, chainId, agentIds[] }`
+
+**Why not Reown AppKit (formerly WalletConnect) SIWE:**
+- AppKit SIWE requires their hosted backend; adds external dependency
+- We already have RainbowKit for wallet connection — SIWE can be added directly on top
+
+**Auth flow:**
+```
+1. User connects wallet (RainbowKit — already in stack)
+2. Frontend: wagmi useSignMessage → signs SIWE message (EIP-4361)
+3. POST /api/auth/verify → siwe.verify() on server → getIronSession() → store { address }
+4. Subsequent requests: iron-session reads cookie → validates address
+5. Agent ownership tied to address stored in session
+```
+
+**SIWE message construction uses wagmi's `useSignMessage` hook (already in stack) — no additional wallet hooks needed.**
+
+---
+
+### 3. Agent Runtime: NanoClaw Fork
+
+**NanoClaw:** github.com/qwibitai/nanoclaw (~24K GitHub stars, ~1500 LOC TypeScript)
+
+**Architecture (upstream):**
+- Single Node.js process
+- Polling loop: SQLite every 2 seconds → container invocation
+- Channels self-register at startup via `registerChannel(name, factory)`
+- Channel interface requires: `connect()`, `sendMessage()`, `isConnected()`, plus `onMessage` callback
+- Credential proxy exposes a local port for Claude API calls from containers
+- IPC is file-based (not HTTP) between containers and host
+
+**The critical finding: NanoClaw has NO HTTP channel upstream.** All upstream channels (WhatsApp, Telegram, Discord, Slack, Gmail) are messaging-platform-specific. There is no webhook or HTTP inbound channel in the current codebase.
+
+**What this means for the fork:**
+
+We must implement a custom HTTP channel as a new skill branch (`skill/webapp-channel`). The channel must:
+
+1. Start an Express/Fastify HTTP server inside NanoClaw
+2. Accept `POST /message` with `{ agentId, message, sessionToken }` from Next.js
+3. Write to NanoClaw's SQLite as a new message for the target group
+4. Return SSE stream or polling endpoint for responses
+
+**NanoClaw fork additions required:**
+```
+src/channels/webapp/
+  index.ts        — HTTP server, self-registers via registerChannel()
+  handler.ts      — validates shared secret header, writes to SQLite
+src/config.ts     — add WEBAPP_PORT, WEBAPP_SHARED_SECRET env vars
+```
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `express` | ^5.1.0 OR `fastify` | HTTP server inside NanoClaw fork | Express 5.x is stable; adds <5 LOC to fork; fits NanoClaw's "small enough to understand" philosophy |
+| NanoClaw fork (TypeScript) | main branch clone | Agent container orchestration | Existing container isolation, credential proxy, session persistence — building from scratch would be 10x the work |
+
+**Confidence:** MEDIUM — NanoClaw architecture verified from source; HTTP channel feasibility is MEDIUM (channel interface is documented, implementation is custom work).
+
+**NanoClaw does NOT need to be an npm package.** It lives in `agent-server/` subdirectory of the monorepo as a TypeScript project with its own `package.json`.
+
+---
+
+### 4. Secure Communication: WireGuard Tunnel
+
+WireGuard is a kernel-level VPN built into Linux 5.6+ (2020). No library is needed — it is configured via system tools.
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `wireguard-tools` (system) | kernel built-in + userspace tools | Encrypted tunnel between Railway and VPS | WireGuard is the simplest modern VPN; kernel-native on Ubuntu 22.04 (VPS); 25x faster than OpenVPN; single config file per peer |
+| Shared secret header | N/A | Per-request authentication on top of WireGuard | Defense-in-depth: WireGuard encrypts transit, shared secret validates caller identity at application layer |
+
+**Confidence:** MEDIUM — WireGuard is well-established; Railway-specific configuration (whether outbound WireGuard peers can be configured from Railway side) needs verification.
+
+**Railway constraint:** Railway only exposes a single HTTP port per service. Outbound connections (Railway → VPS over WireGuard) should work since Railway containers can make outbound TCP/UDP connections. However, Railway does NOT support incoming UDP (WireGuard default port 51820). This means Railway must initiate the WireGuard peer connection to the VPS, not vice versa.
+
+**Recommended pattern:**
+- VPS: WireGuard server on `10.0.0.1`, listens on UDP 51820 (exposed via VPS firewall)
+- Railway: WireGuard client in Next.js container, connects out to VPS on startup
+- NanoClaw binds HTTP channel only on `10.0.0.2` (WireGuard interface) — never on public interface
+- Next.js calls `http://10.0.0.2:PORT/message` — traffic stays encrypted inside tunnel
+
+**Alternative if WireGuard on Railway is blocked:** Use a shared secret header over HTTPS with NanoClaw exposed via a Caddy reverse proxy on VPS. Less ideal (public IP exposure) but functional.
+
+---
+
+### 5. USDC Subscription Payments (50 USDC on Base)
+
+No new packages required. Uses existing `wagmi` + `viem` stack.
+
+**USDC contract address on Base mainnet:** `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` (verified via Circle docs + BaseScan)
+**USDC decimals:** 6 (50 USDC = `50_000_000n` in BigInt)
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `wagmi` `useWriteContract` hook | existing ^2.x | Trigger USDC `transfer()` from user wallet | Already in stack; `useWriteContract` handles ERC-20 calls; `useSimulateContract` validates before signing |
+| `viem` `erc20Abi` | existing ^2.x | ABI for USDC token interactions | Built into viem; no separate ABI file needed for standard ERC-20 |
+
+**Payment flow:**
+```
+1. User calls USDC.transfer(PLATFORM_TREASURY, 50_000_000n) via wagmi useWriteContract
+2. Next.js API: verify tx hash on-chain using viem publicClient.getTransactionReceipt()
+3. Confirm: to=USDC_CONTRACT, from=user, decoded transfer.to=TREASURY, amount>=50 USDC
+4. Write to Supabase: subscriptions table { owner_address, agent_template_id, tx_hash, activated_at }
+```
+
+**Why `transfer()` not `approve()` + `transferFrom()`:**
+- Direct `transfer()` is simpler — user sends directly to treasury
+- No contract intermediary needed for 50 USDC subscription
+- `approve()` + `transferFrom()` only needed if a smart contract needs to pull funds
+
+**Note:** 50 USDC = `50_000_000n` (6 decimals). Verify with `formatUnits(amount, 6)` before display.
+
+---
+
+### 6. Agent Observability Dashboard: Supabase Realtime
+
+Covered by `@supabase/supabase-js` already listed above. No additional packages needed.
+
+**Schema addition — `agent_events` table:**
+```sql
+create table agent_events (
+  id uuid primary key default gen_random_uuid(),
+  agent_id uuid references agents(id),
+  event_type text not null,  -- 'tool_call' | 'llm_response' | 'token_usage' | 'error'
+  payload jsonb,
+  created_at timestamptz default now()
+);
+
+-- Required for Realtime to include old values on UPDATE/DELETE
+alter table agent_events replica identity full;
+
+-- RLS: only owner can see their agent's events
+alter table agent_events enable row level security;
+create policy "owner can read events"
+  on agent_events for select
+  using (
+    agent_id in (
+      select id from agents where owner_address = current_setting('request.jwt.claims', true)::jsonb->>'address'
+    )
+  );
+```
+
+**NanoClaw writes events:** Inside the forked NanoClaw container runner, after each tool call / LLM response, write a row to `agent_events` via Supabase JS client (using service role key — containers have access to it via credential proxy or direct env var).
+
+**Browser subscribes:** Dashboard page subscribes to `postgres_changes` on `agent_events` filtered by `agent_id`. Updates render in real-time without polling.
+
+**Realtime must be enabled in Supabase dashboard** for the `agent_events` table.
+
+---
+
+### 7. CI/CD: Monorepo Pipeline (Railway + VPS)
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| GitHub Actions | N/A | CI orchestration | Free for public repos; Railway supports `deployment_status` event hooks; path filters avoid unnecessary builds |
+| Railway monorepo | N/A | Deploy `app/` subdirectory to Railway | Railway has native monorepo support with `Root Directory` + watch paths; auto-detects pnpm workspaces |
+| `appleboy/ssh-action` | v1.2.4 | Deploy `agent-server/` to VPS via SSH | Most-used SSH action (130K+ repos); v1.2.4 stable as of 2026; supports SSH key auth |
+
+**Monorepo structure:**
+```
+/
+├── app/                    # Next.js (deploys to Railway)
+│   ├── src/
+│   ├── package.json
+│   └── railway.json
+├── agent-server/           # NanoClaw fork (deploys to VPS)
+│   ├── src/
+│   ├── package.json
+│   └── Dockerfile
+├── packages/
+│   └── shared-types/       # Shared TypeScript types (optional)
+├── .github/
+│   └── workflows/
+│       ├── deploy-app.yml          # Triggers Railway deploy on app/ changes
+│       └── deploy-agent-server.yml # SSH to VPS on agent-server/ changes
+└── package.json            # Root pnpm workspace
+```
+
+**GitHub Actions path filtering (prevents redundant deploys):**
+```yaml
+# deploy-app.yml
+on:
+  push:
+    branches: [main]
+    paths: ['app/**', 'packages/**']
+
+# deploy-agent-server.yml
+on:
+  push:
+    branches: [main]
+    paths: ['agent-server/**', 'packages/**']
+```
+
+**VPS deploy workflow:**
+```yaml
+- uses: appleboy/ssh-action@v1.2.4
+  with:
+    host: ${{ secrets.VPS_HOST }}
+    username: ${{ secrets.VPS_USER }}
+    key: ${{ secrets.VPS_SSH_KEY }}
+    script: |
+      cd /opt/agent-server
+      git pull origin main
+      pnpm install --frozen-lockfile
+      docker build -t nanoclaw:latest .
+      docker compose up -d --force-recreate
+```
+
+**Railway deploy:** Railway auto-deploys from GitHub on `main` push. Set Root Directory to `/app` in Railway service settings. Watch paths filter to `app/**` changes only.
 
 ---
 
@@ -207,13 +307,27 @@ Note: ENS resolution and ERC-8004 contract calls use wagmi/viem directly — no 
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `wagmi` v3 | RainbowKit 2.x is incompatible with wagmi v3 as of March 2026 | wagmi ^2.x |
-| `web3.js` | Deprecated in favor of viem/ethers; heavier bundle; poor TypeScript support | viem |
-| `ethers.js` v5 | v5 is end-of-life; v6 is current but viem supersedes it for this stack | viem |
-| `x402-next` (unscoped) | Community fork; not maintained by Coinbase; API differs from official `@x402/next` | `@x402/next` |
-| `@agentic-trust/8004-ext-sdk` | npm metadata shows suspicious "14 years ago" publish date — likely a test package or corrupted registry entry | viem direct contract calls with ERC-8004 ABIs |
-| MetaMask SDK directly | RainbowKit already abstracts MetaMask plus 15+ other wallets — adding the direct SDK creates conflicts | RainbowKit |
-| Alchemy NFT API for minting | Read-only API, cannot mint on your behalf without custody | viem writeContract to ERC-721 contract |
+| `@supabase/auth-helpers-nextjs` | Deprecated — replaced by `@supabase/ssr` | `@supabase/ssr` ^0.8.1 |
+| NextAuth for SIWE | Adds unnecessary complexity; SIWE + iron-session is the canonical minimal pattern | `siwe` + `iron-session` |
+| `next-iron-session` | Deprecated predecessor to `iron-session` v7+; API is different | `iron-session` ^8.x |
+| Building a custom agent server from scratch | NanoClaw provides container isolation, credential proxy, session persistence — ~1500 LOC already written | Fork NanoClaw, add HTTP channel skill |
+| Storing session state in Supabase | iron-session is stateless (encrypted cookie) — adding a sessions table adds complexity without benefit | `iron-session` stateless cookies |
+| `web3.js` or `ethers.js` for USDC payments | Already have viem in stack; mixing Ethereum libraries causes type conflicts | `viem` `erc20Abi` + `wagmi` `useWriteContract` |
+| Redis for real-time events | Supabase Realtime directly streams Postgres WAL changes to browsers — no message broker needed | Supabase Realtime `postgres_changes` |
+| OpenVPN or WireGuard hosted services (Tailscale etc.) | Self-managed WireGuard is simpler and free; Tailscale adds a third-party dependency in the critical path | Self-managed WireGuard on VPS |
+
+---
+
+## Alternatives Considered
+
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|-------------------------|
+| `siwe` + `iron-session` | Reown AppKit SIWE | If you need WalletConnect-hosted backend, social login fallback, or enterprise session management |
+| Supabase Realtime | Custom SSE endpoint from Next.js | If Supabase Realtime latency is too high (it uses WebSocket, ~100-300ms); SSE gives more control |
+| Supabase Realtime | Pusher / Ably | If you need broadcast to thousands of concurrent users; Supabase Realtime has a 200 concurrent connection limit on free tier |
+| `appleboy/ssh-action` for VPS deploy | Self-hosted GitHub runner on VPS | If deploys are frequent (>50/day) and GitHub Actions minutes are constrained; adds setup complexity |
+| NanoClaw fork + HTTP channel | Custom agent server (TypeScript from scratch) | Only if NanoClaw's container-per-turn model proves incompatible with streaming SSE responses |
+| Direct USDC `transfer()` | Smart contract subscription manager | If you need on-chain enforcement, recurring payments, or refund logic |
 
 ---
 
@@ -221,78 +335,67 @@ Note: ENS resolution and ERC-8004 contract calls use wagmi/viem directly — no 
 
 | Package | Compatible With | Notes |
 |---------|----------------|-------|
-| `@rainbow-me/rainbowkit@2.2.10` | `wagmi@^2.17+`, `viem@2.x`, `@tanstack/react-query@^5` | Do NOT use with wagmi v3 |
-| `wagmi@2.x` | `viem@2.x` | viem v1 will NOT work with wagmi v2 |
-| `clanker-sdk@4.x` | `viem@2.x` | clanker-sdk uses viem wallet client for signing |
-| `@x402/next@2.3.0` | Next.js 14-16, Node.js 18+ | Uses Next.js middleware API; works with App Router |
-| `@filoz/synapse-sdk@0.40.0` | Node.js 18+, browser via bundler | Breaking changes introduced at v0.24.0; do not follow pre-0.24 tutorials |
-| `@selfxyz/core` + `@selfxyz/qrcode` | React 18+, ethers v6 | Verify ethers version; Self docs list ethers as explicit peer dep |
-| `Next.js@16` (existing) | React 19, TypeScript 5 | All additions above are compatible with existing stack |
+| `@supabase/supabase-js@^2.99.3` | Next.js 16, Node.js 18+, React 19 | v2.x API is stable; do not use v1.x (removed) |
+| `@supabase/ssr@^0.8.1` | `@supabase/supabase-js@^2`, Next.js 13+ App Router | Peer dep: supabase-js ^2; requires Next.js `cookies()` from `next/headers` |
+| `siwe@^3.0.0` | viem 2.x (for address utilities), wagmi 2.x | siwe v3 removes ethers.js dependency; works standalone |
+| `iron-session@^8.0.1` | Next.js App Router (Route Handlers, Server Components, Server Actions) | `getIronSession(cookies(), config)` — cookie param changed from v7 |
+| `wagmi@^2.19.5` (existing) | siwe@^3, viem@^2.47.5 | No version change needed; siwe uses wagmi's `useSignMessage` |
+| `viem@^2.47.5` (existing) | erc20Abi for USDC, SIWE utilities | `verifyMessage` from viem can replace ethers in siwe verify flow |
 
 ---
 
-## Stack Patterns by Variant
+## Installation Commands (New Packages Only)
 
-**For all wallet/chain interactions (client-side):**
-- Wrap app in `<WagmiProvider>` → `<QueryClientProvider>` → `<RainbowKitProvider>` in a `'use client'` providers component
-- Import providers component in `src/app/layout.tsx`
+```bash
+# Supabase (client + SSR helpers)
+pnpm add @supabase/supabase-js @supabase/ssr
 
-**For ERC-8004 registration (server-side / agent script):**
-- Use viem's `createWalletClient` with a private key (agent wallet) — no browser wallet needed
-- Pull ABI from erc-8004-contracts repo, call `writeContract` on IdentityRegistry
+# SIWE auth + session
+pnpm add siwe iron-session
 
-**For x402 payments on API routes:**
-- Wrap route handler with `x402ResourceServer` from `@x402/next`
-- Agent clients use `@x402/fetch` with a wallet signer to auto-pay
+# NanoClaw fork: add to agent-server/
+# (clone and add HTTP channel skill — no npm install for NanoClaw itself)
+# Inside agent-server/, add Express for HTTP channel:
+pnpm add express
+pnpm add -D @types/express
+```
 
-**For Self Protocol verification:**
-- Frontend: render `<SelfQRcodeWrapper>` with verification config; user scans with Self app
-- Backend: expose `/api/verify-identity` endpoint that receives the ZK proof and calls the Celo verifier contract
-- This requires a separate Celo-configured viem client (chain: celoAlfajores for testnet)
-
-**For multi-chain (Base + Celo + Ethereum):**
-- Configure three chains in wagmi: `base`, `baseSepolia`, `celo`, `celoAlfajores`, `mainnet`
-- ENS resolution routes to `mainnet` transport
-- Self Protocol routes to `celo`/`celoAlfajores`
-- All other operations route to `base`/`baseSepolia`
+No additional packages needed for: USDC payments (uses existing viem/wagmi), Supabase Realtime (uses existing @supabase/supabase-js), CI/CD (GitHub Actions YAML + appleboy/ssh-action from marketplace).
 
 ---
 
 ## Open Research Items (Verify Before Building)
 
-1. **Rare Protocol / SuperRare NFT minting:** `@rareprotocol/rare-cli` was NOT found on npm. Verify actual hackathon bounty requirements at the Synthesis brief. May be sufficient to deploy any ERC-721 on Base and list on SuperRare after curator approval, OR the bounty may just require ERC-721 on a SuperRare-compatible contract.
+1. **WireGuard on Railway:** Railway containers run on shared infrastructure. Verify whether outbound WireGuard (UDP) connections are allowed from Railway containers. If blocked, fall back to HTTPS + shared secret header with NanoClaw on a public HTTPS endpoint (Caddy on VPS). Flag as HIGH priority to validate in Phase 1.
 
-2. **Clanker v4 mainnet status:** v4 contracts were listed as "under audit" in late 2025 (per Clanker's X post). Verify whether v4 is live on Base mainnet before demo day.
+2. **NanoClaw HTTP channel implementation:** No upstream HTTP channel exists. The fork implementation is greenfield work. Verify that NanoClaw's polling loop (2-second SQLite poll) is compatible with low-latency chat UX. May need to reduce `POLL_INTERVAL` or add a direct invocation path.
 
-3. **`@filoz/synapse-sdk` mainnet:** FOC mainnet was expected "early 2026" per Filecoin blog (November 2025). SDK v0.40.0 is current but mainnet readiness needs explicit confirmation from docs.
+3. **Supabase Realtime concurrent connection limit:** Free tier = 200 concurrent WebSocket connections. Verify this is sufficient for hackathon demo. If dashboard is open in multiple browser tabs, each tab uses one connection.
 
-4. **Self Protocol `@selfxyz` package versions:** Official docs do not pin versions. Run `npm show @selfxyz/core version` before installing to ensure latest stable.
+4. **supabase-js and @supabase/ssr version alignment:** The `@supabase/ssr` package is still in release candidate (v0.10.0-rc.75 as of March 2026). Use v0.8.1 (latest stable) and monitor for v0.10.0 stable before production.
+
+5. **SIWE message nonce management:** Each SIWE message requires a unique nonce to prevent replay attacks. Nonces must be server-generated and stored (even briefly). With iron-session (stateless), nonces can be stored in a short-lived Supabase row OR in the session cookie itself. Decision needed before auth implementation.
 
 ---
 
 ## Sources
 
-- [RainbowKit Installation docs](https://rainbowkit.com/en-US/docs/installation) — package list, setup pattern — HIGH confidence
-- [RainbowKit Releases (GitHub)](https://github.com/rainbow-me/rainbowkit/releases) — version 2.2.10 confirmed — HIGH confidence
-- [RainbowKit wagmi v3 support discussion](https://github.com/rainbow-me/rainbowkit/discussions/2575) — wagmi v3 incompatibility confirmed — HIGH confidence
-- [wagmi Getting Started](https://wagmi.sh/react/getting-started) — peer deps — HIGH confidence
-- [viem npm](https://www.npmjs.com/package/viem) — version 2.47.4 confirmed — HIGH confidence
-- [@tanstack/react-query npm](https://www.npmjs.com/package/@tanstack/react-query) — v5.91.0 confirmed — HIGH confidence
-- [ERC-8004 contracts GitHub](https://github.com/erc-8004/erc-8004-contracts) — contract addresses confirmed — HIGH confidence
-- [clanker-sdk npm](https://www.npmjs.com/package/clanker-sdk) — v4.2.14 confirmed — HIGH confidence
-- [Clanker documentation](https://clanker.gitbook.io/clanker-documentation/) — deployment pattern — HIGH confidence
-- [@x402/next npm](https://www.npmjs.com/package/@x402/next) — v2.3.0, Coinbase official — HIGH confidence
-- [coinbase/x402 GitHub](https://github.com/coinbase/x402) — package list confirmed — HIGH confidence
-- [wagmi ENS hooks docs](https://wagmi.sh/react/api/hooks/useEnsAddress) — ENS resolution pattern — HIGH confidence
-- [ENS Address Lookup docs](https://docs.ens.domains/web/resolution/) — resolution pattern — HIGH confidence
-- [FilOzone/synapse-sdk GitHub](https://github.com/FilOzone/synapse-sdk) — v0.40.0 confirmed — MEDIUM confidence
-- [Filecoin Onchain Cloud blog](https://filecoin.io/blog/posts/introducing-filecoin-onchain-cloud/) — mainnet launch Nov 2025 — MEDIUM confidence
-- [Self Protocol docs](https://docs.self.xyz/use-self/quickstart) — package names @selfxyz/qrcode, @selfxyz/core — MEDIUM confidence
-- [Self Protocol GitHub](https://github.com/selfxyz/self) — confirmed active project — MEDIUM confidence
-- [Celo docs: Build with Self](https://docs.celo.org/build-on-celo/build-with-self) — Celo chain requirement confirmed — MEDIUM confidence
-- [create-8004-agent GitHub README](https://github.com/Eversmile12/create-8004-agent) — ERC-8004 registration pattern — MEDIUM confidence
+- [@supabase/supabase-js npm](https://www.npmjs.com/package/@supabase/supabase-js) — v2.99.3 confirmed — HIGH confidence
+- [@supabase/ssr GitHub releases](https://github.com/supabase/ssr/releases) — v0.8.1 stable confirmed — HIGH confidence
+- [Supabase Realtime Postgres Changes docs](https://supabase.com/docs/guides/realtime/postgres-changes) — subscription API verified — HIGH confidence
+- [Supabase Row Level Security docs](https://supabase.com/docs/guides/database/postgres/row-level-security) — RLS patterns verified — HIGH confidence
+- [siwe GitHub releases](https://github.com/spruceid/siwe/releases) — v3.0.0 confirmed January 2026 — HIGH confidence
+- [iron-session GitHub releases](https://github.com/vvo/iron-session/releases) — v8.0.1 confirmed — HIGH confidence
+- [wagmi SIWE example](https://1.x.wagmi.sh/examples/sign-in-with-ethereum) — integration pattern — MEDIUM confidence
+- [NanoClaw GitHub](https://github.com/qwibitai/nanoclaw) — architecture and channel interface verified — HIGH confidence
+- [NanoClaw DeepWiki](https://deepwiki.com/openclaw-shi/nanoclaw) — polling architecture, SQLite model — MEDIUM confidence
+- [Circle USDC contract addresses](https://developers.circle.com/stablecoins/usdc-contract-addresses) — Base mainnet 0x833589... confirmed — HIGH confidence
+- [Railway monorepo docs](https://docs.railway.com/guides/monorepo) — watch paths, root directory pattern — HIGH confidence
+- [appleboy/ssh-action GitHub](https://github.com/appleboy/ssh-action) — v1.2.4 confirmed — HIGH confidence
+- [wagmi useWriteContract docs](https://wagmi.sh/react/api/hooks/useWriteContract) — ERC-20 write pattern — HIGH confidence
+- [WireGuard VPS tunnel guides](https://diymediaserver.com/post/2026/install-wireguard-vps-homelab-tunnel/) — tunnel pattern — MEDIUM confidence (Railway UDP constraint unverified)
 
 ---
 
-*Stack research for: AI agent social marketplace on Base*
-*Researched: 2026-03-20*
+*Stack research for: v2.0 agent subscriptions, Supabase migration, SIWE auth, NanoClaw fork, observability*
+*Researched: 2026-03-22*

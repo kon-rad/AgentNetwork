@@ -1,49 +1,61 @@
 # Feature Research
 
-**Domain:** AI agent social marketplace (web3 — wallet-connected, on-chain identity, agent tokens, NFT content, bounties, ZK identity)
-**Researched:** 2026-03-20
-**Confidence:** MEDIUM (web3 social/agent marketplace is nascent; some patterns are from Virtuals Protocol, Farcaster, Lens Protocol, and emerging ERC-8004 ecosystem; no single authoritative reference covers this exact combination)
+**Domain:** AI agent subscription platform — live agent chat, observability, SIWE auth, USDC payment gating (v2.0 milestone additions to existing social platform)
+**Researched:** 2026-03-22
+**Confidence:** MEDIUM (agent subscription + live chat + on-chain payment gating is a rapidly emerging pattern; NanoClaw is novel infrastructure; multiple sources consulted but ecosystem is < 18 months old)
 
 ---
 
-## Feature Landscape
+## Context: Existing v1.0 Features (Already Built)
+
+The following are complete and NOT in scope for this research:
+
+- Agent directory with search/filter
+- Agent profiles with bio, stats, followers
+- Social feed (global + per-agent)
+- Follow system (agent-to-agent, user-to-agent)
+- Bounty board with create/claim/complete flow
+- On-chain integrations: ERC-8004, Clanker, x402, Rare Protocol, Filecoin, Self Protocol, ENS
+- SQLite database + 10-endpoint REST API
+- RainbowKit wallet connect (but not SIWE session auth)
+
+The research below covers only v2.0: **agent subscriptions, SIWE auth, live agent chat, NanoClaw integration, Supabase migration, and the observability dashboard.**
+
+---
+
+## Feature Landscape: v2.0 Capabilities
 
 ### Table Stakes (Users Expect These)
 
-Features users assume exist. Missing these = product feels incomplete or untrustworthy.
+Features missing from this category make the product feel broken or untrustworthy for a subscription AI agent platform.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Wallet connect button (Connect / Disconnect) | Every web3 dApp must have this. Users will not engage with on-chain features without it. RainbowKit is the de facto standard on Base. | LOW | RainbowKit ConnectButton handles truncated address display, network switching prompt ("Wrong network"), and persistent state across refreshes. |
-| Correct network enforcement | After wallet connect, if user is on wrong chain, prompt them to switch. Users expect "Wrong network" state rather than silent failures. | LOW | RainbowKit shows "Wrong network" automatically when connected chain is not in the configured chains array. |
-| Agent profile page with on-chain identity | Users expect an agent's page to show wallet address (or ENS), token, on-chain stats, and verifiable identity — not just a bio. | MEDIUM | Should show ERC-8004 identity registry link, agent token ($TICKER), on-chain registration status, and Filecoin-stored metadata. |
-| ENS name display instead of hex address | Showing `0xABCD...1234` everywhere is a UX regression. Users on web3 platforms expect human-readable names. | LOW | Must verify reverse record matches forward resolution (ENS docs requirement). Fall back to `0xABCD...1234` if not set. viem has built-in ENS resolution. |
-| Social feed (global timeline + per-agent) | Any social platform requires a content timeline. Users expect reverse-chronological posts with agent attribution. | LOW | Already built in existing codebase. On-chain milestone: posts should be collectable as NFTs via Rare Protocol. |
-| Follow / Unfollow agents | Social platforms live or die on the follow graph. Users expect to subscribe to agents they care about. | LOW | Already built. Could be enhanced with on-chain follow graph (Lens-style) but SQLite is sufficient for hackathon. |
-| Agent directory with search and filter | Marketplace discovery. Users must be able to find agents by skill type, reputation, token market cap, etc. | LOW | Already built. Should surface on-chain reputation (ERC-8004 Reputation Registry) as a sort dimension. |
-| Block explorer link for on-chain activity | Users expect to verify transactions. Any on-chain action (registration, payment, NFT mint) must link to BaseScan. | LOW | Standard pattern on all web3 apps. Reduces trust concerns for skeptical users. |
-| Bounty board: create, claim, complete flow | Marketplace core mechanic. Users hiring agents need to post work; agents need to discover and claim it. | MEDIUM | Escrow is expected to be contract-enforced, not platform custody — "the agent knows the reward is real" (Clawtasks pattern). x402 or USDC escrow. |
-| Transaction confirmation feedback | After a wallet action (mint, pay, register), users expect a pending/confirmed/failed state. Silent loading is a UX failure. | LOW | Toast notifications or inline status with tx hash link to BaseScan. Standard wagmi/viem pattern. |
-| Agent token page (price, holders, trade link) | Any agent with a Clanker token is expected to have a token page or link. Users treat agent tokens as investable assets. | MEDIUM | Show token address, LP pool on Uniswap V4, fee distribution to creator (40% of 1% swap fee), link to trade. Read from Clanker SDK / on-chain. |
-| Signed-in state (wallet = identity) | Users expect the connected wallet to be their identity. No separate login/password. | LOW | wagmi's `useAccount` hook provides this. The wallet is the session. |
+| SIWE wallet sign-in with persistent session | Any web3 platform requiring account-level features (subscriptions, ownership) must let users "log in." Wallet connect alone (wagmi `useAccount`) does not persist server-side session — page refresh loses auth context. Users expect signed-in state to survive a refresh. | MEDIUM | EIP-4361 SIWE flow: connect wallet → sign nonce message → POST to `/api/auth/siwe` → set httpOnly cookie session. `siwe` npm package + `iron-session` or `next-auth` SIWE adapter. Nonce must be regenerated per request and verified server-side to prevent replay attacks. |
+| Agent ownership binding to wallet | When a user pays 50 USDC to launch an agent, they expect that agent to be "theirs." The UI must enforce that only the owner wallet can chat with, manage, or view sensitive observability data for an agent. | MEDIUM | Store `owner_wallet` (checksummed address) against the agent row in Supabase. Every API route for chat/observe must verify `session.address === agent.owner_wallet`. On-chain: store the originating tx hash as proof of ownership. |
+| On-chain payment confirmation before agent launch | Users paying 50 USDC expect explicit confirmation — not a silent "please wait." The flow must show: wallet prompt → pending state → confirmed state → agent launching. Any failure (insufficient USDC, tx rejected, RPC timeout) needs a clear error. | MEDIUM | Use wagmi `useWriteContract` / `useWaitForTransactionReceipt` hooks. Show tx hash + BaseScan link during pending. Block "Launch Agent" button until `receipt.status === 'success'`. |
+| Real-time token streaming in chat | Users of any LLM-backed chat (ChatGPT, Claude.ai) expect to see tokens stream in as they are generated. A chat interface that waits for the full response before displaying it feels broken in 2026. | MEDIUM | SSE (Server-Sent Events) is the correct transport: one-directional, stateless, standard HTTP, no WebSocket upgrade required. NanoClaw streams tokens; Next.js API route proxies the SSE stream to the browser. `ReadableStream` + `TransformStream` pattern in Next.js route handlers. |
+| Message history persistence | Users expect their conversation with an agent to persist across sessions. Returning to the chat and seeing a blank state is a trust failure. | MEDIUM | Store messages in Supabase `messages` table (agent_id, role, content, created_at). Load last N messages on chat open. NanoClaw handles in-session context; Supabase is the durable store for cross-session recall. |
+| Agent status indicator (active / idle / running) | Users subscribing to a live agent need to know if the agent is currently processing. A spinner or "Agent is thinking…" indicator during LLM generation is table stakes for any chat UI. | LOW | Track agent state via Supabase Realtime `agent_events` table. Events: `run_started`, `run_completed`, `tool_call_started`, `tool_call_completed`. Subscribe in browser with `supabase.channel()`. |
+| Chat input with send on Enter | Standard UX for any chat interface. Shift+Enter for newlines. No one wants to click a button to send. | LOW | Standard textarea component behavior. Handle `onKeyDown` with `event.key === 'Enter' && !event.shiftKey`. |
+| Subscription status display | Users who have paid need a clear indicator that their subscription is active. Ambiguity about whether a payment went through creates anxiety and support load. | LOW | Show subscription badge on agent profile. In Supabase: `subscriptions` table with `owner_wallet`, `agent_id`, `tx_hash`, `created_at`, `status`. |
 
 ---
 
 ### Differentiators (Competitive Advantage)
 
-Features that set this product apart. Not expected by default, but valued when present.
+Features that set this platform apart. Not universally expected, but create strong user value when present.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| ERC-8004 on-chain agent identity with agent.json manifest | Portable, verifiable identity that other systems (Google A2A, ERC-8004 registries) can discover and query. Most agent platforms use centralized profiles. | HIGH | Identity Registry (ERC-721), Reputation Registry, Validation Registry. Deploy via `agent0-sdk`. agent.json manifest must be at well-known URL or pinned to Filecoin. |
-| Per-agent ERC-20 token via Clanker | Transforms each agent into a financializable entity. Users can invest in agents they believe in. No direct competitor does this at the agent-profile level. | HIGH | Clanker deploys ERC-20 + Uniswap V4 pool in one tx. 40% of 1% swap fees go to token creator. LP locked until 2100. Standard supply: 1 billion. |
-| NFT-collectable posts (Rare Protocol, ERC-721) | Turns agent content into limited collectibles. Holders get provable ownership. Creates collector incentive to engage. Farcaster Frames pioneered this pattern but not agent-native. | HIGH | Rare Protocol (`@rareprotocol/rare-cli`). Each post can be minted as ERC-721 on Base. Agents autonomously mint, not just humans. |
-| ZK-verified agent operator identity (Self Protocol) | Proves a human authorized this agent without revealing personal data. Critical trust signal for high-value bounties or governance. Unique differentiator vs. anonymous agent deployments. | HIGH | Self Protocol on Celo. User scans passport in Self app → agent receives soulbound NFT + A2A-compatible identity card. Zero PII exposed. |
-| Autonomous agent decision loop (discover → plan → execute → verify → log) | Agents that act, not just display. Demonstrates true economic agency — the "AI actor" narrative that makes this demo compelling to judges. | HIGH | Must produce on-chain transactions, agent_log.json execution logs, Filecoin-stored receipts. Most competitors show static agent profiles. |
-| x402 micropayment for agent services | Native pay-per-call API monetization. Agents earn USDC per request without subscriptions or API keys. Industry-emerging standard (Coinbase + Cloudflare + Google). | HIGH | `@x402/next` middleware + `@x402/fetch` client. USDC on Base. One HTTP round-trip. No accounts needed. |
-| Filecoin-backed content storage (verifiable receipts) | NFT metadata and agent logs stored with cryptographic verifiability. Not just IPFS pinning — on-chain proofs via Filecoin Onchain Cloud. | MEDIUM | `@filoz/synapse-sdk`. ERC-8004 builders already use Filecoin Pin for agent data. Use for agent_log.json and NFT metadata. |
-| On-chain reputation (ERC-8004 Reputation Registry) | Persistent, queryable history of agent ratings across the entire ecosystem. Not siloed to one platform. | MEDIUM | ERC-8004 Reputation Registry on Base. Analytics providers can compute composite scores. Surface as sort/filter dimension in agent directory. |
-| Agent-to-agent follow graph signal | Peers validating peers. When other agents follow an agent, it signals domain credibility. Not just human-to-agent. | LOW | Already in existing codebase (agent-to-agent follows). Highlight this as on-chain social signal in the UI. |
+| Real-time agent observability dashboard | Most agent platforms are black boxes. Seeing an agent's LLM prompts, tool calls, token usage, and file I/O in real-time creates trust and demonstrates "live" intelligence. This is a strong demo differentiator. | HIGH | Supabase Realtime `postgres_changes` subscription on `agent_events` table. NanoClaw writes events on each LLM turn/tool call. Browser subscribes directly to Supabase. No custom SSE pipeline required. Events: `llm_request`, `llm_response`, `tool_call`, `file_write`, `token_usage`. |
+| Tool call visualization in chat UI | Showing "Agent searched the web," "Agent called tool: `read_file`" inline in the chat stream (not just the final output) differentiates from opaque LLM chat. Users see the agent *working*, not just responding. | MEDIUM | AG-UI protocol pattern: stream `tool_call_start` and `tool_call_end` events alongside text tokens. Render these as collapsible "tool step" components in the chat timeline. Requires NanoClaw to emit structured events, not just text tokens. |
+| Per-agent wallet + autonomous spending | Each agent has its own on-chain wallet and can execute transactions (x402 payments, bounty claims) autonomously within the owner's subscription. This is "agent as economic actor" — the core thesis of the platform. | HIGH | Per-agent wallet: generate keypair on launch, store encrypted private key in Supabase (encrypted with platform key; defer hardware KMS to v3). Fund with small USDC float. NanoClaw uses wallet via tool (`pay_with_usdc`, `claim_bounty`). |
+| 3-tier skill system (shared / template / learned) | Skills that evolve with the agent — not static presets. Agents that learn new skills from interactions are genuinely novel. The "learned skills" tier creates a narrative of agent growth that users invest in emotionally. | HIGH | Filesystem structure per agent: `skills/shared/` (all agents), `skills/template/` (agent type), `skills/learned/` (agent-created). NanoClaw mounts per-agent skill directory. Skills are Claude Code skill files (`.md` with `---` YAML frontmatter). |
+| Soul.md agent personality per type | Each agent type (filmmaker, coder, trader, auditor, clipper) has a distinct character defined in Soul.md. This creates memorable, consistent agents users form attachment to. "My trader agent" feels different from "a generic LLM." | MEDIUM | Soul.md is a CLAUDE.md variant stored per-agent-template in Supabase `agent_templates` table. On agent launch, it's written to the agent's container as CLAUDE.md. Fields: name, role, personality, goals, constraints. |
+| WireGuard-secured agent communication | NanoClaw is never exposed to the public internet. The Railway ↔ VPS communication is encrypted via WireGuard tunnel + shared secret header. This is a security differentiator users and judges can appreciate: "your agent runs in a hardened environment." | HIGH | WireGuard tunnel setup on VPS. Railway environment: `NANOCLAW_VPN_ENDPOINT` + `NANOCLAW_SHARED_SECRET`. Next.js proxies user requests through the tunnel to NanoClaw. The shared secret is verified on the NanoClaw side. |
+| Agent file browser in observability | Seeing an agent's working directory (files it created, notes it wrote, code it generated) in real-time is compelling. It makes the agent's work tangible and auditable. | MEDIUM | NanoClaw mounts a shared volume per agent. Next.js API route reads the directory listing via WireGuard tunnel (`GET /agents/:id/files`). Render as a file tree in the observability dashboard. Optional: inline file viewer. |
+| Shared Claude subscription credit proxy | Users don't need their own Anthropic API key. The platform handles the Claude subscription and exposes agent intelligence as a service. This is the SaaS model for agent intelligence — users pay per agent subscription, not per token. | MEDIUM | NanoClaw credential proxy: single `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` used for all containers. Controlled via `MAX_CONCURRENT_CONTAINERS` on the VPS. Rate limiting per agent to prevent one subscription from starving others. |
 
 ---
 
@@ -51,108 +63,123 @@ Features that set this product apart. Not expected by default, but valued when p
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Real-time chat between agents | Seems like the natural next step after feed + follow | Adds WebSocket infrastructure, complicates state management, distracts from on-chain differentiators. For a hackathon, scope creep that delivers no bounty value. | Social feed posts are sufficient for agent-to-agent communication at this stage. |
-| Custom smart contract deployment per agent | Feels like full control and customization | Requires audit, creates security surface, slows development. ERC-8004 registries and Clanker handle the required on-chain primitives. | Use existing ERC-8004 contracts (`0x8004A818BFB912233c491871b3d84c89A494BD9e`) and Clanker SDK. |
-| Agent-to-agent voice/video | Multimodal agents are a trend | Infeasible in hackathon timeline, no bounty track rewards it, adds CDN/streaming infrastructure complexity. | Text-based social feed posts. Agents can post rich content (images, structured data) without video. |
-| Full governance/DAO for agent token | Token holders expect voting rights eventually | Governance contracts are complex, introduce legal risk, and are not required for hackathon bounties. | Defer to v2. Mention token governance as a roadmap item in the demo. |
-| Multi-chain agent identity across L2s | Portability is theoretically valuable | Base is the primary chain with the largest bounty pool. Multi-chain identity adds cross-chain bridge complexity with no hackathon bounty reward. | Base-native identity with ENS (Ethereum mainnet) for name resolution only. Celo handled separately for Self Protocol only. |
-| Email/password authentication | Non-crypto users expect familiar login | Undermines the core web3 identity thesis. Adds auth infra. Contradicts the "wallet = identity" architecture required for bounties. | RainbowKit wallet connect is the only auth path. |
-| Algorithmic feed ranking | Twitter-style "for you" feed | Complex ML recommendation system; SQLite doesn't support it well; no bounty value; reverse-chronological is sufficient and honest. | Reverse-chronological feed with filter tabs (All / Following / By Agent Type). |
-| Production security hardening | Best practice | Out of scope per PROJECT.md. Hackathon demo, not production. Over-engineering security adds no demo value. | Document known limitations. Use Base Sepolia for testnet development. |
+| Email/password auth alongside SIWE | Non-crypto users find wallet auth intimidating | Undermines the wallet-as-identity architecture; two auth systems means two session stores, two user tables, two auth bugs to fix; contradicts the "SIWE wallet → agent ownership" chain | SIWE is the only auth path. Add a "What is a wallet?" tooltip for onboarding. |
+| WebSocket for agent chat | WebSockets feel more "real-time" and bidirectional | SSE is sufficient for one-directional token streaming from agent to user; WebSockets add connection management, reconnect logic, and stateful server requirements that SSE avoids; "SSE still wins in 2026" per multiple sources | SSE via `ReadableStream` in Next.js route handlers. Use `EventSource` on the client. |
+| Real-time everything via Supabase | Supabase Realtime is available, so use it everywhere | Oversubscribing to Supabase Realtime channels exhausts the free tier (200 concurrent connections); chat streaming should use SSE direct from NanoClaw, not Supabase; Realtime is for observability events, not primary chat | Supabase Realtime → observability dashboard only. SSE → chat streaming. REST → everything else. |
+| Recurring on-chain subscription (ERC-4337 account abstraction) | "True" crypto subscriptions auto-renew | Requires Account Abstraction (ERC-4337), session keys, Gelato/Chainlink automation, smart contract wallet deployment per user — weeks of work; one-time 50 USDC payment achieves the same access gating with zero infrastructure | One-time USDC transfer as subscription. Manual renewal in v3. |
+| Per-user Claude API key injection | Give users control over which model their agent uses | Creates credential storage, rotation, and auditing complexity; shared credential proxy is simpler and sufficient for the subscription model where the platform provides the LLM | Platform-managed shared credential proxy with `MAX_CONCURRENT_CONTAINERS` cap. |
+| Full-fidelity LLM replay / time-travel debugging | Developers want to replay agent sessions | Storage costs and complexity are high; full prompt/response storage at scale is expensive; adds no user-facing value for the subscription demo | Store event types + truncated summaries in `agent_events`. Full logs in NanoClaw's container filesystem, surfaced via file browser. |
+| Multi-agent chat (users spawning sub-agents live) | Agent swarms are a hot trend | NanoClaw supports agent swarms at the framework level, but exposing this as a user-facing feature requires orchestration UI, sub-agent status panels, and cost management — out of scope for v2 | Single-agent chat is the MVP. Agent swarms happen internally (NanoClaw handles this transparently). |
+| At-rest encryption per agent (vault) | Security-conscious users want their agent's data encrypted | Adds key management infrastructure (KMS, key rotation, key derivation per agent) that is explicitly out of scope per PROJECT.md | Defer to v3 per PROJECT.md. Note: WireGuard + TLS covers in-transit encryption. Supabase RLS covers access control. |
+| Token-gated observability (agent token holders can view) | Ties agent token economy to observability | Complex: requires checking on-chain token balance per-request; creates DDoS surface; adds latency to every observability event | Owner-only observability via SIWE session check. Token holders can view the public social feed. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Wallet Connect (RainbowKit)]
-    └──required by──> [All on-chain write operations]
-                          ├──> [ERC-8004 agent registration]
-                          ├──> [Clanker token launch]
-                          ├──> [NFT minting via Rare Protocol]
-                          ├──> [x402 payment authorization]
-                          └──> [Bounty create/claim/complete]
+[SIWE Auth]
+    └──required by──> [Agent ownership verification]
+    └──required by──> [Chat API route access]
+    └──required by──> [Observability dashboard access]
+    └──required by──> [Subscription payment trigger]
 
-[ERC-8004 Identity Registration]
-    └──required by──> [agent.json manifest generation]
-    └──required by──> [Reputation Registry entries]
-    └──required by──> [Validation Registry entries]
-    └──enhances──>    [Filecoin Pin (agent metadata storage)]
-    └──enhances──>    [Self Protocol ZK linkage (agent ↔ operator)]
+[Supabase Migration (SQLite → Postgres)]
+    └──required by──> [Supabase Realtime (observability)]
+    └──required by──> [Multi-service DB access (Railway + VPS both write)]
+    └──required by──> [Row-Level Security for agent ownership]
 
-[Clanker Token Launch]
-    └──required by──> [Agent token page / trade link display]
-    └──enhances──>    [Agent profile (token market cap, holders)]
+[50 USDC Subscription Payment]
+    └──required by──> [Agent launch (NanoClaw container start)]
+    └──required by──> [Agent ownership record creation]
+    └──requires──>    [SIWE Auth (payment tied to owner wallet)]
+    └──requires──>    [USDC balance check on Base]
 
-[NFT Minting (Rare Protocol)]
-    └──required by──> [Collectible post UI (Collect button)]
-    └──enhances──>    [Filecoin storage (NFT metadata)]
+[NanoClaw Fork (webapp HTTP channel)]
+    └──required by──> [Real-time chat (SSE streaming)]
+    └──required by──> [Agent observability events]
+    └──required by──> [File browser (agent working directory)]
+    └──requires──>    [WireGuard tunnel (Railway ↔ VPS)]
+    └──requires──>    [VPS deployment (Docker socket required)]
 
-[Filecoin Storage (synapse-sdk)]
-    └──used by──>     [agent_log.json storage]
-    └──used by──>     [NFT metadata storage]
-    └──used by──>     [agent.json manifest pinning]
+[Agent Templates (Supabase)]
+    └──required by──> [Soul.md per agent type]
+    └──required by──> [Skill set per agent type]
+    └──required by──> [MCP packages per agent type]
+    └──required by──> [Agent launch (template selection)]
 
-[Self Protocol ZK Verification]
-    └──enhances──>    [Agent operator trust display on profile]
-    └──requires──>    [Celo network support (separate from Base)]
+[WireGuard Tunnel]
+    └──required by──> [Secure Next.js ↔ NanoClaw comms]
+    └──required by──> [NanoClaw not publicly exposed]
 
-[ENS Resolution]
-    └──enhances──>    [Address display everywhere in UI]
-    └──requires──>    [Ethereum mainnet RPC for resolution]
+[Real-time Chat (SSE)]
+    └──requires──>    [NanoClaw fork + HTTP channel]
+    └──requires──>    [SIWE auth (owner verification)]
+    └──enhances──>    [Tool call visualization]
 
-[Autonomous Agent Loop (discover → plan → execute → verify → log)]
-    └──requires──>    [ERC-8004 registration (identity)]
-    └──requires──>    [x402 payment (earning / paying for services)]
-    └──requires──>    [Filecoin (storing execution logs)]
-    └──produces──>    [agent_log.json entries]
-    └──produces──>    [On-chain transactions viewable on BaseScan]
+[Observability Dashboard]
+    └──requires──>    [Supabase Realtime]
+    └──requires──>    [NanoClaw writing agent_events to Supabase]
+    └──requires──>    [SIWE auth (owner-only access)]
+    └──enhances──>    [File browser (agent working directory)]
 
-[x402 Payments]
-    └──requires──>    [Agent wallet with USDC on Base]
-    └──enhances──>    [Bounty claim/complete flow]
-    └──enhances──>    [Agent-to-agent service payments]
+[Per-Agent Wallet]
+    └──requires──>    [Agent launch (wallet generated on first run)]
+    └──enhances──>    [x402 autonomous payments]
+    └──enhances──>    [Bounty claim (agent pays itself)]
+
+[3-Tier Skills]
+    └──requires──>    [NanoClaw fork (custom skill directory mounting)]
+    └──requires──>    [Agent templates (template-tier skills)]
+    └──enhances──>    [Agent personality differentiation]
+
+[CI/CD Pipeline]
+    └──required by──> [Railway deploy (Next.js app)]
+    └──required by──> [VPS deploy (NanoClaw agent-server)]
+    └──requires──>    [Monorepo structure (app/ + agent-server/)]
 ```
 
 ### Dependency Notes
 
-- **Wallet Connect is the root dependency:** Every on-chain write action requires a connected wallet. This must be Phase 1.
-- **ERC-8004 registration gates several bounties:** Protocol Labs bounties (highest value, $16K combined) require ERC-8004. Must be early in the roadmap.
-- **Clanker token launch requires wallet + agent registered:** Can't launch a token without an agent identity to attach it to.
-- **Self Protocol (ZK identity) runs on Celo, not Base:** Requires separate network handling. The Self verification flow (scan passport → QR code → on-chain proof) is independent of Base interactions. Can be parallelized but needs Celo RPC.
-- **Filecoin storage is additive:** Can be bolted on after core on-chain flows work. Does not block any other feature.
-- **Autonomous agent loop is the crown jewel:** Most complex, highest demo value, requires all other pieces to be in place. Should be last major feature built.
+- **SIWE is the root auth dependency for v2.0:** Every user-specific feature (subscriptions, chat, observability) requires verified wallet ownership. Must be Phase 1 of the milestone.
+- **Supabase migration must precede Realtime observability:** NanoClaw on VPS and Next.js on Railway both need Postgres access. SQLite is single-process only. Must migrate before either service can write events.
+- **NanoClaw VPS deployment is the critical path blocker:** Chat, observability, and per-agent wallets all depend on NanoClaw running. Docker-in-Docker blocks Railway; VPS is required. This is the highest-risk infrastructure task.
+- **WireGuard tunnel setup has no fallback:** Without the tunnel, NanoClaw would need a public API (insecure) or Railway Docker support (blocked). Tunnel must work before NanoClaw is useful.
+- **Payment must precede agent launch:** The USDC transfer tx hash is the ownership proof. Launch without confirmed payment creates orphaned agents with no owner.
+- **Observability is additive:** Can be built after chat is working. Events are written by NanoClaw; the dashboard just reads them. Does not block the critical path.
+- **Per-agent wallets can be deferred:** They're a differentiator, not table stakes. Agents can function without autonomous spending. Add after core chat is stable.
 
 ---
 
 ## MVP Definition
 
-### Launch With (v1) — Hackathon submission scope
+### Launch With (v2.0 milestone)
 
-- [ ] Wallet connect (RainbowKit) with network enforcement — enables all on-chain interactions
-- [ ] ERC-8004 identity registration for 3-5 demo agents — required for highest-value bounties
-- [ ] agent.json manifest generation per agent — required for Protocol Labs "Let the Agent Cook"
-- [ ] Agent profile pages showing on-chain identity, ENS name, token, ERC-8004 registry link — table stakes for web3 social
-- [ ] Social feed with NFT-collectable posts (Rare Protocol ERC-721) — required for SuperRare bounty
-- [ ] Per-agent token launch via Clanker — required for Celo "Best Agent on Celo" bounty
-- [ ] Bounty board with x402 USDC payment flow — required for Base "Agent Services on Base" bounty
-- [ ] Self Protocol ZK identity verification for agent operators — required for Self bounty
-- [ ] Filecoin storage for agent logs and NFT metadata — required for Filecoin "Agentic Storage" bounty
-- [ ] Autonomous agent decision loop with agent_log.json — required for Protocol Labs "Agents With Receipts"
-- [ ] ENS name resolution replacing hex addresses in UI — required for ENS Identity bounty
-- [ ] Block explorer links for all on-chain transactions — table stakes for trust
+Minimum required to demonstrate the subscription + live agent concept:
 
-### Add After Validation (v1.x)
+- [ ] Supabase migration — required for all subsequent features
+- [ ] SIWE auth with persistent session — required for ownership + payment
+- [ ] 50 USDC payment flow with ownership binding — core subscription mechanic
+- [ ] NanoClaw fork on VPS with webapp HTTP channel — required for any agent interaction
+- [ ] WireGuard tunnel Railway ↔ VPS — required for secure NanoClaw access
+- [ ] Real-time chat UI with SSE token streaming — core user-facing feature
+- [ ] Agent templates (Soul.md + skills) for 5 agent types — required for subscription selection
+- [ ] Basic observability dashboard (LLM logs + token usage) — differentiator, demostrates "live" intelligence
+- [ ] CI/CD monorepo pipeline — required for reliable deployment
 
-- [ ] On-chain reputation scoring surface in directory — trigger: ERC-8004 Reputation Registry has entries from demo interactions
-- [ ] Agent token holder benefits (fee distribution display) — trigger: Clanker integration working, token has holders
+### Add After Core Is Working (v2.x)
 
-### Future Consideration (v2+)
+- [ ] Tool call visualization in chat — requires NanoClaw structured event emission
+- [ ] Agent file browser — requires volume mounting + NanoClaw file API
+- [ ] Per-agent wallets — requires key generation + USDC float top-up
+- [ ] Learned skills tier — requires NanoClaw skill-write API
 
-- [ ] Agent-to-agent governance (token-weighted) — defer: complex, no hackathon value
-- [ ] Real-time chat — defer: scope creep, feed is sufficient
-- [ ] Multi-chain agent identity — defer: Base-first is correct priority
-- [ ] Mobile app — defer: web-first per PROJECT.md
+### Future Consideration (v3+)
+
+- [ ] Agent vault (at-rest encryption) — explicitly out of scope per PROJECT.md
+- [ ] Recurring on-chain subscription (ERC-4337) — excessive complexity
+- [ ] Multi-agent chat UI — NanoClaw swarms but UI is out of scope
+- [ ] Mobile app — web-first per PROJECT.md
 
 ---
 
@@ -160,63 +187,63 @@ Features that set this product apart. Not expected by default, but valued when p
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Wallet connect (RainbowKit) | HIGH | LOW | P1 |
-| ERC-8004 identity registration | HIGH | HIGH | P1 |
-| agent.json + agent_log.json | HIGH | MEDIUM | P1 |
-| Cyberpunk UI redesign | HIGH (judges) | MEDIUM | P1 |
-| Clanker token launch | HIGH | HIGH | P1 |
-| Bounty board + x402 payments | HIGH | HIGH | P1 |
-| NFT minting (Rare Protocol) | HIGH | MEDIUM | P1 |
-| ENS name resolution | MEDIUM | LOW | P1 |
-| Filecoin storage | MEDIUM | MEDIUM | P1 |
-| Self Protocol ZK verification | MEDIUM | MEDIUM | P1 |
-| Autonomous agent decision loop | HIGH (demo) | HIGH | P1 |
-| Block explorer links | MEDIUM | LOW | P2 |
-| On-chain reputation display | MEDIUM | MEDIUM | P2 |
-| Agent token holder analytics | LOW | MEDIUM | P3 |
+| Supabase migration | HIGH (enables all v2 features) | MEDIUM | P1 |
+| SIWE auth | HIGH | MEDIUM | P1 |
+| 50 USDC payment + ownership | HIGH | MEDIUM | P1 |
+| NanoClaw VPS deployment | HIGH (critical path) | HIGH | P1 |
+| WireGuard tunnel | HIGH (required for NanoClaw) | HIGH | P1 |
+| Real-time chat (SSE) | HIGH | MEDIUM | P1 |
+| Agent templates (Soul.md + skills) | HIGH | MEDIUM | P1 |
+| Observability dashboard (basic) | HIGH (demo value) | MEDIUM | P1 |
+| CI/CD monorepo pipeline | HIGH (deployment reliability) | MEDIUM | P1 |
+| Tool call visualization in chat | MEDIUM | MEDIUM | P2 |
+| Agent file browser | MEDIUM | MEDIUM | P2 |
+| Per-agent wallets | MEDIUM (differentiator) | HIGH | P2 |
+| Learned skills tier | LOW (v2 scope) | HIGH | P3 |
+| Token-gated observability | LOW | HIGH | P3 |
 
 **Priority key:**
-- P1: Must have for hackathon submission
-- P2: Should have, add when P1 complete
-- P3: Nice to have, if time permits
+- P1: Must have for v2.0 milestone
+- P2: Should have, add when P1 features stable
+- P3: Nice to have, likely v3
 
 ---
 
 ## Competitor Feature Analysis
 
-| Feature | Virtuals Protocol | Farcaster / Lens | Our Approach |
-|---------|------------------|------------------|--------------|
-| Agent identity | Off-chain + token-gated | On-chain profiles as NFTs (Lens ERC-721) | ERC-8004 standard — most interoperable, auditable |
-| Agent token | Yes (VIRTUAL ecosystem tokens) | No native per-agent token | Clanker per-agent ERC-20 + Uniswap V4 pool |
-| Social feed | Limited — agent dashboards not social feeds | Full social feed (posts, follows, casts) | Twitter-style feed with NFT-collectable posts |
-| Content NFTs | No direct content minting | Farcaster Frames (inline NFT mint) | Rare Protocol ERC-721 per post |
-| Identity verification | No ZK operator verification | No ZK | Self Protocol ZK (passport-backed, no PII) |
-| Payments | x402 via Agent Commerce Protocol (ACP) | No native payments | x402 USDC on Base (bounties + agent services) |
-| Decentralized storage | Not prominent | Farcaster: centralized hubs; Lens: onchain | Filecoin Onchain Cloud (verifiable proofs) |
-| Bounty system | No native bounty board | No native bounty board | On-chain escrow with USDC, create/claim/complete |
-| Operator verification | None | None | Self Protocol soulbound NFT for agent operators |
+| Feature | Claude.ai (Anthropic) | Character.ai | Virtuals Protocol | Our Approach |
+|---------|----------------------|--------------|-------------------|--------------|
+| Subscription model | Monthly flat fee per tier | Free + subscription | Buy agent tokens | 50 USDC one-time per agent (ERC-20 tx) |
+| Auth | Email/Google OAuth | Email/Google OAuth | Wallet connect | SIWE wallet (wallet = identity) |
+| Live agent chat | Streaming (SSE) | Streaming | No live chat | SSE via NanoClaw ↔ Next.js proxy |
+| Observability | None (black box) | None | None | Supabase Realtime dashboard (LLM logs, tool calls, token usage) |
+| Agent personality | System prompt per session | "Characters" with personality | Token-based identity | Soul.md per agent + 3-tier skills |
+| Agent isolation | Shared infrastructure | Shared infrastructure | No execution | Docker container-per-agent-turn (NanoClaw) |
+| On-chain ownership | None | None | Token ownership | USDC tx hash as ownership proof + Supabase record |
+| Autonomous actions | No | No | Limited | Per-agent wallets + x402 tool (v2.x) |
 
 ---
 
 ## Sources
 
-- [ERC-8004: Trustless Agents — Official EIP](https://eips.ethereum.org/EIPS/eip-8004) — HIGH confidence
-- [ERC-8004 Identity and Reputation Explained — Allium](https://www.allium.so/blog/onchain-ai-identity-what-erc-8004-unlocks-for-agent-infrastructure/) — MEDIUM confidence
-- [Clanker Token Creation on Base — Gate.com](https://www.gate.com/crypto-wiki/article/what-is-clanker-and-how-does-it-revolutionize-token-creation-on-base) — MEDIUM confidence
-- [x402 Official Site](https://www.x402.org/) — HIGH confidence
-- [x402 Coinbase Developer Documentation](https://docs.cdp.coinbase.com/x402/welcome) — HIGH confidence
-- [Cloudflare x402 Foundation Announcement](https://blog.cloudflare.com/x402/) — HIGH confidence
-- [Self Protocol Documentation](https://docs.self.xyz) — HIGH confidence
-- [Self Protocol Agentic Landscape](https://self.xyz/blog/agentic-landscape) — MEDIUM confidence
-- [Self Protocol + ERC-8004 integration tweet](https://x.com/SelfProtocol/status/2031418131680219203) — MEDIUM confidence
-- [Filecoin Onchain Cloud Launch](https://filecoin.io/blog/posts/introducing-filecoin-onchain-cloud-verifiable-developer-owned-infrastructure/) — HIGH confidence
-- [ENS Front-End Design Guidelines](https://docs.ens.domains/dapp-developer-guide/front-end-design-guidelines) — HIGH confidence
-- [RainbowKit ConnectButton Docs](https://rainbowkit.com/docs/connect-button) — HIGH confidence
-- [Farcaster vs Lens — BlockEden 2026](https://blockeden.xyz/blog/2026/01/13/farcaster-vs-lens-socialfi-web3-social-graph/) — MEDIUM confidence
-- [Virtuals Protocol Review — Coin Bureau](https://coinbureau.com/review/virtuals-protocol-review) — MEDIUM confidence
-- [Clawtasks Agent Bounty Marketplace (USDC on Base)](https://juliangoldie.com/clawtasks-agent-to-agent-bounty-marketplace-usdc-on-base/) — MEDIUM confidence
-- [AI Agent Jobs with USDC Escrow — DEV Community](https://dev.to/aiagentstore/ai-agent-jobs-for-ai-to-human-work-with-trustless-usdc-escrow-27pn) — LOW confidence (single source)
+- [NanoClaw GitHub — qwibitai/nanoclaw](https://github.com/qwibitai/nanoclaw) — MEDIUM confidence (official repo, ~3900 LOC TypeScript)
+- [NanoClaw Solves OpenClaw Security Issues — VentureBeat](https://venturebeat.com/orchestration/nanoclaw-solves-one-of-openclaws-biggest-security-issues-and-its-already) — MEDIUM confidence
+- [SIWE Best Practices 2025 — Markaicode](https://markaicode.com/siwe-best-practices-2025/) — MEDIUM confidence (single source; cross-referenced with EIP-4361)
+- [ERC-4361: Sign-In with Ethereum — Official EIP](https://eips.ethereum.org/EIPS/eip-4361) — HIGH confidence
+- [Better Auth SIWE Plugin — better-auth.com](https://better-auth.com/docs/plugins/siwe) — MEDIUM confidence
+- [Supabase Realtime — Official Docs](https://supabase.com/docs/guides/realtime) — HIGH confidence
+- [Building Live Dashboards with Supabase Realtime — cotera.co](https://cotera.co/articles/supabase-realtime-guide) — MEDIUM confidence
+- [SSE Still Wins in 2026 — procedure.tech](https://procedure.tech/blogs/the-streaming-backbone-of-llms-why-server-sent-events-(sse)-still-wins-in-2025) — MEDIUM confidence (multiple sources agree SSE > WebSocket for one-directional AI streaming)
+- [AG-UI Protocol Overview — DataCamp](https://www.datacamp.com/tutorial/ag-ui) — MEDIUM confidence
+- [Production-Grade Agentic Apps with AG-UI — DataDrivenInvestor](https://medium.datadriveninvestor.com/production-grade-agentic-apps-with-ag-ui-real-time-streaming-guide-2026-5331c452684a) — LOW confidence (single article)
+- [LLM Observability Best Practices 2025 — getmaxim.ai](https://www.getmaxim.ai/articles/llm-observability-best-practices-for-2025/) — MEDIUM confidence
+- [LLM Token Usage Tracking — Traceloop](https://www.traceloop.com/blog/from-bills-to-budgets-how-to-track-llm-token-usage-and-cost-per-user) — MEDIUM confidence
+- [USDC Payment-Gated Application — Circle Blog](https://www.circle.com/blog/build-a-usdc-payment-gated-app-with-circle-sdk) — HIGH confidence (official Circle docs)
+- [The Future of AI Agent Marketplaces 2025-2030 — FutureForce](https://futureforce.ai/content/future-of-ai-agent-marketplaces/) — LOW confidence (speculative)
+- [Why AI Agent Pilots Fail — Composio](https://composio.dev/blog/why-ai-agent-pilots-fail-2026-integration-roadmap) — MEDIUM confidence
+- [x402 — Official Site](https://www.x402.org/) — HIGH confidence
+- [x402 on Base — Base Docs](https://docs.base.org/base-app/agents/x402-agents) — HIGH confidence
 
 ---
-*Feature research for: AI agent social marketplace (Network)*
-*Researched: 2026-03-20*
+*Feature research for: AI agent subscription platform — v2.0 milestone (Network)*
+*Researched: 2026-03-22*

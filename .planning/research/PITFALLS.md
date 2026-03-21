@@ -336,3 +336,379 @@ Viem + Wagmi are generally webpack-5-safe; the main risk is from `@filoz/synapse
 ---
 *Pitfalls research for: AI Agent Marketplace + Web3 Social (Network / Synthesis Hackathon)*
 *Researched: 2026-03-20*
+
+---
+---
+
+# v2.0 Pitfalls: Agent Subscriptions & Live Agents Platform
+
+**Domain:** Multi-service agent platform — SQLite→Supabase migration, NanoClaw fork, WireGuard tunnels, SIWE auth, Docker agent isolation, SSE streaming, Realtime observability, monorepo CI/CD
+**Researched:** 2026-03-22
+**Confidence:** MEDIUM — infrastructure pitfalls from official docs are HIGH; NanoClaw-specific and Railway+WireGuard combination findings are MEDIUM (limited post-mortems for this exact stack)
+
+---
+
+## Critical Pitfalls (v2.0)
+
+### Pitfall V2-1: Supabase Connection Pool Exhaustion in Serverless Next.js
+
+**What goes wrong:**
+Railway deploys Next.js as a serverless-style environment where each request may spawn a new module instance. Each instance opens its own Postgres connection. Under moderate load (20+ concurrent users), the free-tier Supabase Postgres hits its 60 concurrent direct connection limit. All new requests fail with `too many connections` or hang indefinitely.
+
+**Why it happens:**
+Supabase free tier allows 60 direct Postgres connections. Supavisor (the connection pooler) uses transaction mode on port 6543 — but developers default to the direct connection string on port 5432. Creating one Supabase client per request module instance (not per application instance) multiplies connections rapidly.
+
+**How to avoid:**
+- Always use the Supavisor pooler connection string (port `6543`, transaction mode) — never the direct port `5432` in Next.js API routes
+- Create one Supabase client singleton per process — do not instantiate inside route handlers
+- The pooler URL format is: `postgres://[user].[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres`
+- For Drizzle ORM: configure with `{ prepare: false }` when using transaction mode (prepared statements are not supported in transaction pooling)
+
+**Warning signs:**
+- Console errors: `remaining connection slots are reserved`, `FATAL: too many connections`
+- API routes succeed locally but fail under Railway load
+- Supabase dashboard shows connection count near maximum during normal usage
+
+**Phase to address:** Supabase Migration phase — establish pooler-only client pattern before any other DB code is written
+
+---
+
+### Pitfall V2-2: SQLite Boolean/Integer Schema Mismatch After Migration
+
+**What goes wrong:**
+SQLite stores booleans as integers (0/1) and has no strict type enforcement. After migrating to Postgres, existing data and query logic that relied on SQLite's implicit coercions breaks silently. Queries like `WHERE is_active = true` may return 0 rows if data was stored as `1`. JSON columns stored as TEXT in SQLite need explicit casting in Postgres.
+
+**Why it happens:**
+SQLite is type-flexible — any value can go in any column. Postgres enforces strict typing. The migration moves data but not the semantic assumptions baked into the application code.
+
+**How to avoid:**
+1. Audit every SQLite column type against what Postgres expects before running migration
+2. Explicitly cast boolean columns during migration: `SELECT CASE WHEN is_active = 1 THEN TRUE ELSE FALSE END`
+3. Use `pgloader` or write a TypeScript migration script that explicitly maps each column — do not use `pg_dump` from SQLite (incompatible format)
+4. Test every read query against the migrated Postgres data before switching production traffic
+5. For JSON/TEXT columns: use Postgres `jsonb` type and add a migration step to cast existing data
+
+**Warning signs:**
+- Queries return unexpected empty results after migration
+- Filter operations on boolean columns return wrong row counts
+- `JSON.parse()` errors in API routes that previously worked fine
+
+**Phase to address:** Supabase Migration phase — write and run migration scripts against a test Supabase project before any feature work in v2.0
+
+---
+
+### Pitfall V2-3: Supabase RLS Blocks NanoClaw Server-Side Writes
+
+**What goes wrong:**
+NanoClaw (running on VPS) writes agent events to Supabase using the service role key. If Row Level Security is enabled on `agent_events` (or any table NanoClaw writes to) without a policy that permits service role access, all writes from NanoClaw will fail with permission denied — even though the service role key bypasses RLS by default in the Supabase client.
+
+**Why it happens:**
+There are two RLS bypass modes: Supabase `service_role` key bypasses RLS by default when using the Supabase JS client. But if NanoClaw connects via direct Postgres URL (not the Supabase client), it connects as a regular `postgres` role — not the `service_role` — and RLS policies apply. Developers assume "service role = bypass always" but this only applies to the Supabase SDK's auth header approach, not direct psql connections.
+
+**How to avoid:**
+- In NanoClaw, use the Supabase JS client (`@supabase/supabase-js`) with the service role key — not a raw Postgres connection string
+- If direct Postgres access is required, use `SET LOCAL ROLE service_role` before writes, or add an explicit `FOR ALL USING (true)` policy for the service role
+- Test with RLS enabled from day one on a staging Supabase project before shipping
+
+**Warning signs:**
+- Agent events missing from Supabase dashboard despite NanoClaw logs showing successful writes
+- `permission denied for table agent_events` errors in NanoClaw logs
+- No errors from the JS client but rows not appearing (silent failure when using anon key instead of service role)
+
+**Phase to address:** Supabase Migration phase — establish NanoClaw → Supabase write path and verify with RLS enabled before building the observability dashboard
+
+---
+
+### Pitfall V2-4: SIWE Session Remains Valid After Wallet Switch
+
+**What goes wrong:**
+A user signs in with wallet A, then switches their active wallet to wallet B in MetaMask. The SIWE session cookie still shows wallet A as authenticated. All subsequent actions (launching an agent, claiming ownership) execute against wallet A's identity — potentially charging or crediting the wrong user.
+
+**Why it happens:**
+SIWE sessions are cookie-based (iron-session). Once signed, the session persists until expiry. The browser wallet and the server session become decoupled — the server has no mechanism to detect that the connected wallet changed.
+
+**How to avoid:**
+1. Subscribe to wagmi's `useAccount` `onConnect`/`onDisconnect` events; when the connected address changes from the session address, call `/api/auth/logout` immediately
+2. On every authenticated API request, verify the JWT/session wallet address matches the `X-Wallet-Address` header sent by the client
+3. Set a short session TTL (e.g., 24 hours) and re-verify on sensitive actions (agent launch, payment)
+4. Use iron-session with nonce tracking: store the nonce server-side and invalidate it on logout (prevent session cookie replay)
+
+**Warning signs:**
+- Console logs showing wallet address differs from session address
+- Agent actions attributed to a different user than the currently displayed wallet
+- Users who "logged out" via wallet disconnect still show as authenticated in API calls
+
+**Phase to address:** SIWE Auth phase — implement wallet change detection before building any ownership-gated features
+
+---
+
+### Pitfall V2-5: WireGuard Tunnel Breaks After Railway Redeploy (Dynamic IP Change)
+
+**What goes wrong:**
+Railway assigns a new internal IP to the Next.js service container on every redeploy. The WireGuard peer config on the VPS hardcodes Railway's IP as the allowed peer. After redeploy, the WireGuard handshake fails — NanoClaw and Next.js can no longer communicate. The app appears up (HTTP 200) but all agent actions silently fail.
+
+**Why it happens:**
+WireGuard peer configurations use static IP addresses in `AllowedIPs`. Railway does not guarantee a static IP for its service containers. On redeploy, the container gets a new IP that is not in the VPS's WireGuard allowed peers list.
+
+**How to avoid:**
+- Use Railway's static outbound IP feature (available on Pro plan) and pin that IP in the WireGuard config
+- Alternative: instead of IP-pinning, use DNS-based peer resolution with `PersistentKeepalive = 25` and a dynamic DNS record pointing to Railway's current IP — but this adds complexity
+- Recommended for simplicity: configure NanoClaw's HTTP endpoint to require a shared secret header rather than relying solely on WireGuard IP filtering. Double-auth means WireGuard failure is non-catastrophic.
+- Test tunnel connectivity explicitly in CI — deploy a health check that calls NanoClaw via the tunnel and fails the deploy if it doesn't respond
+
+**Warning signs:**
+- Agent chat requests return 502 or timeout after a Railway redeploy
+- `wg show` on the VPS shows 0 bytes received from the Railway peer after deployment
+- Application logs show Next.js route handler executing but NanoClaw never receiving the request
+
+**Phase to address:** Infrastructure / WireGuard Setup phase — build the connectivity health check before any feature work that relies on the tunnel
+
+---
+
+### Pitfall V2-6: SSE Streaming Cut Off by Railway's Default Proxy Timeout
+
+**What goes wrong:**
+Agent chat responses stream via SSE from NanoClaw through Next.js to the browser. Railway's reverse proxy closes idle HTTP connections after ~60 seconds. Long agent runs (research tasks, code generation) that take >60 seconds between output tokens cause the SSE connection to drop mid-stream. The browser receives an incomplete response or a connection reset error.
+
+**Why it happens:**
+Railway (like most PaaS proxies) enforces idle connection timeouts to prevent resource leaks. SSE connections are long-lived HTTP/1.1 responses with chunked encoding. Without keepalive pings, the proxy treats the connection as idle and terminates it.
+
+**How to avoid:**
+1. Send SSE keepalive comments every 15-25 seconds: write `: keepalive\n\n` to the response stream while the agent is thinking
+2. In the Next.js streaming route, set explicit headers: `Connection: keep-alive`, `Cache-Control: no-cache`, `X-Accel-Buffering: no`
+3. Handle reconnection on the client: the browser's `EventSource` API reconnects automatically on connection drop, but implement a message ID sequence so the client can request replay from where it left off
+4. Verify Railway's current timeout value — it may be configurable per service
+
+**Warning signs:**
+- Agent responses that take >60s arrive cut off or trigger a browser connection error
+- Browser devtools Network tab shows SSE connection closing unexpectedly mid-stream
+- `ERR_INCOMPLETE_CHUNKED_ENCODING` in browser console for long agent runs
+
+**Phase to address:** NanoClaw Integration / Real-Time Chat phase — build keepalive from the start, test with an agent that deliberately takes 90 seconds
+
+---
+
+### Pitfall V2-7: Agent Container State Lost on NanoClaw Process Restart
+
+**What goes wrong:**
+NanoClaw maintains per-agent session state (conversation history, learned skills, in-progress tasks) in memory or in ephemeral container file paths. When the NanoClaw process on the VPS restarts (due to deployment, crash, or VPS reboot), all in-flight agent sessions are lost. Users' active chat sessions drop mid-conversation with no recovery path.
+
+**Why it happens:**
+Docker containers are ephemeral by design. Files written inside a container at runtime disappear when the container stops. NanoClaw's session persistence depends on how the fork is configured — if session data is only in memory or in the container's writable layer, it does not survive process restart.
+
+**How to avoid:**
+1. Configure NanoClaw to write session state (conversation history, current task state) to a path mounted as a Docker volume — not inside the container filesystem
+2. Write a session checkpoint to Supabase `agent_sessions` table on every tool call completion, not just on graceful shutdown
+3. On NanoClaw startup, check Supabase for any sessions that were `in_progress` and either resume them or mark them as `interrupted`
+4. Mount `/var/nanoclaw/sessions/<agent_id>/` as a named Docker volume: `docker run -v nanoclaw_sessions:/var/nanoclaw/sessions ...`
+
+**Warning signs:**
+- Agent chat sessions drop after VPS maintenance without warning
+- Users report losing chat history
+- `agent_sessions` table shows sessions stuck in `in_progress` state after a restart
+
+**Phase to address:** NanoClaw Infrastructure phase — define the session persistence strategy before building the chat UI
+
+---
+
+### Pitfall V2-8: Claude API Key Leaked Through Agent's .env File Access
+
+**What goes wrong:**
+NanoClaw runs Claude agents in Docker containers with `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` injected via environment variable. Claude Code (running inside the container) can read its own environment — including the API key — and output it in response to a prompt injection attack. A malicious agent instruction (via user input or a tool result) extracts the shared credential and exfiltrates it.
+
+**Why it happens:**
+Claude Code automatically reads `.env` files and has access to its own process environment. CVEs CVE-2025-59536 and CVE-2026-21852 (patched in 2025-2026) demonstrated that ANTHROPIC_BASE_URL redirection and malicious project files can cause Claude Code to leak API keys. The shared credential architecture means one extraction compromises all agents.
+
+**How to avoid:**
+1. Use the credential proxy pattern: NanoClaw containers should have NO API key in their environment. Instead, set `ANTHROPIC_BASE_URL` to point to a proxy running on the VPS host. The proxy injects the real API key into outgoing requests.
+2. Run container with `--network none` and expose only the proxy Unix socket: `docker run --network none -v /var/run/nanoclaw-proxy.sock:/var/run/proxy.sock ...`
+3. The proxy enforces an allowlist: only `api.anthropic.com` is reachable
+4. Rotate the API key regularly; alert on API usage spikes that indicate leakage
+
+**Warning signs:**
+- Unexpected Anthropic API usage in billing dashboard
+- Agent conversations that appear to contain key-shaped strings
+- NanoClaw logs showing outbound requests to non-Anthropic hosts from a container
+
+**Phase to address:** NanoClaw Security phase (part of NanoClaw fork work) — build the proxy before deploying any live agents
+
+---
+
+### Pitfall V2-9: Supabase Realtime Channel Fragmentation Exhausts 200 Connection Limit
+
+**What goes wrong:**
+Each browser tab subscribed to the observability dashboard opens one Supabase Realtime connection. With N agents and M users watching the dashboard, connections multiply as M × N if each agent has its own Realtime channel. At 200 concurrent connections (free tier limit), new subscribers are rejected. This can happen with as few as 20 users watching an active 10-agent deployment.
+
+**Why it happens:**
+Supabase Realtime free tier allows 200 concurrent peak connections. The default pattern of "one channel per agent" means a single dashboard page for 10 agents opens 10 connections per browser tab. 20 users = 200 connections = limit hit.
+
+**How to avoid:**
+1. Multiplex: subscribe to a single `agent_events` channel filtered by the current user's agents using Postgres Changes filter `filter: 'owner_wallet=eq.${address}'` — one connection per user regardless of how many agents they own
+2. Use `broadcast` (not Postgres Changes) for high-frequency events (token counts, progress ticks) — broadcast is more efficient for write-heavy workloads
+3. Move to Supabase Pro ($25/month) to get 500 concurrent connections if multiplexing isn't enough
+4. Implement connection pooling on the client: one shared Supabase client for the entire browser session
+
+**Warning signs:**
+- Realtime subscriptions silently fail for new users while existing users retain connections
+- Supabase dashboard shows concurrent connections approaching 200
+- Observability dashboard shows stale data for some agents but live data for others
+
+**Phase to address:** Observability Dashboard phase — design the channel topology before building the UI
+
+---
+
+### Pitfall V2-10: Monorepo CI/CD Deploys Both Targets on Every Commit
+
+**What goes wrong:**
+Without path-based filtering, every GitHub push triggers both Railway (Next.js app) and VPS (NanoClaw agent-server) deployments — even when only one changed. This doubles deploy time, risks unnecessary NanoClaw restarts that drop active agent sessions, and exhausts Railway build minutes.
+
+**Why it happens:**
+GitHub Actions workflow files default to triggering on all pushes to the branch. Without `paths` filters or the `dorny/paths-filter` action, all jobs run unconditionally.
+
+**How to avoid:**
+1. Use `dorny/paths-filter` to conditionally run deploy jobs:
+   ```yaml
+   - uses: dorny/paths-filter@v3
+     id: changes
+     with:
+       filters: |
+         app:
+           - 'app/**'
+         agent-server:
+           - 'agent-server/**'
+   ```
+2. Gate each deploy job on its corresponding filter output: `if: steps.changes.outputs.app == 'true'`
+3. For Railway: configure "Watch Paths" in the Railway dashboard to `app/**` so Railway also ignores agent-server changes natively
+4. NanoClaw deploys should require a manual approval gate or be off-hours — a mid-session deploy drops all active agent containers
+
+**Warning signs:**
+- Deploy logs show NanoClaw restarting after a frontend-only CSS change
+- Users lose active chat sessions after unrelated code pushes
+- Railway build minutes depleting faster than expected
+
+**Phase to address:** CI/CD Pipeline phase — configure path filtering before the first production deployment
+
+---
+
+## Technical Debt Patterns (v2.0)
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Use direct Postgres URL (port 5432) instead of Supavisor pooler | Simpler connection string | Connection exhaustion under Railway concurrency | Dev/testing only; never production |
+| Skip credential proxy, inject API key directly into NanoClaw containers | Simpler setup | Single prompt injection can leak the shared API key for all agents | Never |
+| Store NanoClaw session state only in memory | No extra infra to set up | All active sessions lost on any process restart or VPS maintenance | Single-user dev demos only |
+| One Supabase Realtime channel per agent | Simpler subscription code | Exhausts 200-connection free tier with ~10 concurrent users | Never in multi-user production |
+| Trigger all CI/CD jobs on every push | Simpler workflow file | NanoClaw restarts on frontend changes, dropping active sessions | Never once users are active |
+| Use iron-session without nonce revocation on logout | Simpler auth code | Session cookies remain valid after logout (replay attack) | Never |
+
+---
+
+## Integration Gotchas (v2.0)
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Supabase + Next.js serverless | Instantiate client inside route handler | Create singleton client outside handler; use pooler port 6543 |
+| NanoClaw → Supabase writes | Use raw Postgres URL (bypasses service role pattern) | Use Supabase JS client with service role key; RLS is bypassed correctly |
+| SIWE + iron-session | Never re-verify wallet address after sign-in | Check session wallet vs connected wallet on every sensitive action |
+| WireGuard + Railway | Assume Railway IP is stable across redeploys | Use Railway static IP (Pro) or add shared-secret defense layer |
+| SSE + Railway proxy | Omit keepalive pings for long agent runs | Send `: keepalive\n\n` every 15-25s; set `X-Accel-Buffering: no` header |
+| Docker volumes + NanoClaw | Let session state default to container ephemeral storage | Mount named volume for session data; checkpoint to Supabase on each tool call |
+| Claude credential proxy | Pass `ANTHROPIC_API_KEY` directly to container env | Set `ANTHROPIC_BASE_URL` to host proxy; container never sees real key |
+| Supabase Realtime + observability | Open one channel per agent per user | Multiplex: one channel per user with `owner_wallet=eq.${address}` filter |
+| GitHub Actions monorepo | Run all jobs on every push | Use `dorny/paths-filter` to gate app vs agent-server deploy jobs |
+
+---
+
+## Performance Traps (v2.0)
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Postgres RLS policy with no index on `owner_wallet` column | `agent_events` queries slow as event volume grows | Add index: `CREATE INDEX ON agent_events (owner_wallet)` | ~10,000 rows in agent_events |
+| Supabase Realtime Postgres Changes for high-frequency events (token count ticks) | Messages per second limit (100 free / 500 pro) hit, events dropped | Use Broadcast channel for high-frequency; Postgres Changes only for state transitions | >5 agents streaming simultaneously |
+| Rendering full agent event log in the browser without pagination | Dashboard freezes with thousands of log rows | Paginate or virtualize the event list; only fetch last N events | ~500 events per agent session |
+| NanoClaw spawning concurrent containers without MAX_CONCURRENT_CONTAINERS limit | VPS OOM kills containers mid-run | Set `MAX_CONCURRENT_CONTAINERS` to stay within VPS RAM budget (~10-12 on 4GB VPS) | 13+ concurrent agents on 4GB VPS |
+
+---
+
+## Security Mistakes (v2.0)
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| NanoClaw container has access to Docker socket | Any agent achieving code execution can launch arbitrary containers or escape to host | Never mount `/var/run/docker.sock` into agent containers; NanoClaw orchestrator manages Docker, agents run inside containers with no Docker access |
+| ANTHROPIC_API_KEY in NanoClaw container environment | Prompt injection extracts key; one breach = all agents compromised | Use credential proxy; container env should only contain `ANTHROPIC_BASE_URL` pointing to proxy |
+| WireGuard tunnel as sole security layer between Railway and NanoClaw | WireGuard misconfiguration or Railway IP change = open NanoClaw to internet | Defense in depth: WireGuard + shared secret header (`X-NanoClaw-Secret`) verified in NanoClaw request handler |
+| Supabase service role key exposed in client-side code | Full DB access without RLS | Service role key only in server-side env vars; client uses anon key with RLS policies |
+| SIWE session not invalidated on wallet disconnect | User believes they logged out but session cookie remains valid | Call `/api/auth/logout` on `disconnect` event; server-side nonce invalidation |
+| Agent container running as root | Container escape grants root on VPS host | Run NanoClaw agent containers with `--user 1000:1000` and `--cap-drop ALL` |
+
+---
+
+## "Looks Done But Isn't" Checklist (v2.0)
+
+- [ ] **Supabase Migration:** All rows migrated — but verify boolean columns are actual Postgres `boolean` type (not `integer`), and run a row count comparison between SQLite and Supabase
+- [ ] **Connection Pooler:** Supabase client created — but verify the connection string uses port `6543` (Supavisor) not `5432` (direct)
+- [ ] **RLS Enabled:** Policies written — but verify NanoClaw server-side writes succeed with a test event insert using the service role key
+- [ ] **SIWE Auth:** Login flow works — but verify that changing wallet in MetaMask invalidates the current session (not just updates the displayed address)
+- [ ] **WireGuard Tunnel:** `wg show` shows connection — but verify connectivity survives a Railway redeploy by triggering one during testing
+- [ ] **SSE Streaming:** Short messages stream correctly — but verify a 90-second agent run delivers all tokens without connection drop
+- [ ] **Agent Container:** Agent runs successfully — but verify that stopping and restarting NanoClaw preserves session state (or at least marks sessions as interrupted in Supabase)
+- [ ] **Credential Proxy:** Proxy is running — but verify the container environment does NOT contain `ANTHROPIC_API_KEY` (only `ANTHROPIC_BASE_URL`)
+- [ ] **CI/CD Split Deploy:** Path filters configured — but verify that a change to `app/` does not trigger the `agent-server` deploy job (check GitHub Actions logs)
+- [ ] **Realtime Dashboard:** One user's dashboard works — but verify with 5 simultaneous browser tabs that Supabase connection count stays manageable
+
+---
+
+## Recovery Strategies (v2.0)
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Connection pool exhaustion in production | MEDIUM | Switch connection string to port 6543 pooler; redeploy; no data loss |
+| SQLite boolean data broken in Postgres | HIGH | Write a data repair migration; re-test all query paths; 2-4 hour fix |
+| WireGuard tunnel down after Railway redeploy | MEDIUM | Reconfigure WireGuard peer on VPS with new Railway IP; if using static IP, check Railway billing; 30-60 min |
+| Active agent sessions lost on NanoClaw restart | MEDIUM | Implement session checkpoint-to-Supabase; for immediate recovery, acknowledge sessions as lost and prompt users to restart |
+| API key leaked via prompt injection | HIGH | Rotate key immediately in Anthropic dashboard; audit all API usage; implement credential proxy architecture; 2-4 hours + audit |
+| Supabase Realtime limit hit | LOW | Upgrade to Pro ($25/month) or refactor to multiplex channels; 1-2 hour fix |
+| SSE connections dropped at 60s | MEDIUM | Add keepalive ping to streaming route; redeploy; 30-min fix |
+
+---
+
+## Pitfall-to-Phase Mapping (v2.0)
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| Supabase connection pool exhaustion | Supabase Migration | Load test with 20 concurrent requests; connection count stays below 30 in Supabase dashboard |
+| SQLite→Postgres type mismatches | Supabase Migration | Row count parity check; boolean column audit; all existing API tests pass against Supabase |
+| RLS blocks NanoClaw writes | Supabase Migration | Insert a test agent_event from NanoClaw server with RLS enabled; verify it appears in dashboard |
+| SIWE wallet switch decoupling | SIWE Auth phase | Switch wallet in MetaMask during active session; verify session invalidated |
+| WireGuard IP volatility | Infrastructure / WireGuard Setup | Trigger a Railway redeploy; verify tunnel reconnects within 60 seconds |
+| SSE proxy timeout | NanoClaw Integration / Chat UI | Run a 90-second agent task; all tokens arrive in browser |
+| Agent session loss on restart | NanoClaw Infrastructure | Restart NanoClaw; verify sessions marked interrupted in Supabase |
+| Credential proxy bypass | NanoClaw Security (fork work) | `docker inspect` agent container — `ANTHROPIC_API_KEY` must not appear in env |
+| Realtime channel exhaustion | Observability Dashboard | Open 20 browser tabs; Supabase dashboard shows connection count; no silent failures |
+| Monorepo deploy cross-contamination | CI/CD Pipeline | Push a frontend-only change; confirm agent-server deploy job skipped in GitHub Actions |
+
+---
+
+## Sources (v2.0)
+
+- [Supabase Realtime Limits (official docs)](https://supabase.com/docs/guides/realtime/limits) — HIGH confidence (200 concurrent free, 500 pro, verified)
+- [Supabase Connection Pooling + "Too Many Connections"](https://needthisdone.com/blog/supabase-connection-pooling-production-nextjs) — MEDIUM confidence
+- [Supabase RLS Performance Best Practices (official)](https://supabase.com/docs/guides/troubleshooting/rls-performance-and-best-practices-Z5Jjwv) — HIGH confidence
+- [Supabase Common Mistakes](https://hrekov.com/blog/supabase-common-mistakes) — MEDIUM confidence
+- [Claude Agent SDK Secure Deployment (official Anthropic docs)](https://platform.claude.com/docs/en/agent-sdk/secure-deployment) — HIGH confidence (credential proxy pattern, container flags)
+- [Check Point Research: CVE-2025-59536 / CVE-2026-21852 — Claude Code API key exfiltration](https://research.checkpoint.com/2026/rce-and-api-token-exfiltration-through-claude-code-project-files-cve-2025-59536/) — HIGH confidence (patched, but architecture lesson stands)
+- [Knostic: Claude/.env secret leakage](https://www.knostic.ai/blog/claude-cursor-env-file-secret-leakage) — MEDIUM confidence
+- [SIWE session management — login.xyz official docs](https://docs.login.xyz/sign-in-with-ethereum/quickstart-guide/implement-sessions) — HIGH confidence (nonce invalidation pattern)
+- [wagmi SIWE best practices discussion](https://github.com/wevm/wagmi/discussions/1989) — MEDIUM confidence (wallet switch decoupling)
+- [iron-session security notes](https://github.com/vvo/iron-session) — MEDIUM confidence (stateless sessions, nonce replay)
+- [Railway Docker-in-Docker blocked (community confirmation)](https://station.railway.com/feedback/docker-in-docker-d07c4730) — MEDIUM confidence
+- [Railway Monorepo deployment guide (official)](https://docs.railway.com/guides/monorepo) — HIGH confidence (path filtering, watch paths)
+- [dorny/paths-filter GitHub Actions pattern](https://blog.logrocket.com/creating-separate-monorepo-ci-cd-pipelines-github-actions/) — MEDIUM confidence
+- [SSE nginx configuration and proxy timeout patterns](https://oneuptime.com/blog/post/2025-12-16-server-sent-events-nginx/view) — MEDIUM confidence
+- [Docker volumes and ephemeral container storage](https://docs.docker.com/engine/storage/) — HIGH confidence
+- [Docker container security — cap-drop, non-root user](https://docs.docker.com/engine/security/) — HIGH confidence
+- [Docker network isolation pitfalls](https://hexshift.medium.com/docker-network-isolation-pitfalls-that-put-your-applications-at-risk-b60356a14033) — MEDIUM confidence
+
+---
+*v2.0 pitfalls research for: Agent Subscriptions & Live Agents Platform (NanoClaw + Supabase + WireGuard + SIWE)*
+*Researched: 2026-03-22*
