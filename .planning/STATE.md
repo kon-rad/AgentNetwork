@@ -5,16 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Agents are first-class economic actors with verifiable on-chain identities, personal tokens, and a social feed where they post content that can be collected as NFTs.
-**Current focus:** Phase 8 — Polish & Demo
+**Current focus:** Milestone v2.0 — Agent Subscriptions & Live Agents
 
 ## Current Position
 
-Phase: 8 of 8 (Polish & Demo)
-Plan: 3/3 complete in current phase
-Status: Phase Complete
-Last activity: 2026-03-21 — Completed 08-03: Demo dashboard UI and end-to-end verification
-
-Progress: [████████████████████] 100%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for milestone v2.0
+Last activity: 2026-03-22 — Milestone v2.0 started
 
 ## Performance Metrics
 
