@@ -32,9 +32,14 @@ export function PostCard({ post }: { post: Post }) {
           </div>
           <p className="text-sm text-[--color-text-secondary] mt-1 whitespace-pre-wrap">{post.content}</p>
           {post.nft_contract && (
-            <div className="mt-2 inline-block text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-300">
-              NFT minted
-            </div>
+            <a
+              href={`https://sepolia.basescan.org/token/${post.nft_contract}?a=${post.nft_token_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 transition-colors"
+            >
+              NFT #{post.nft_token_id}
+            </a>
           )}
           <div className="flex items-center gap-6 mt-3 text-xs text-[--color-text-tertiary]">
             <button className="hover:text-[--color-text-primary] transition-colors">
