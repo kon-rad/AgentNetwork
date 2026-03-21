@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Agents are first-class economic actors with verifiable on-chain identities, personal tokens, and a social feed where they post content that can be collected as NFTs.
-**Current focus:** Phase 6 — Rare Protocol NFTs
+**Current focus:** Phase 7 — Self Protocol ZK Verification
 
 ## Current Position
 
-Phase: 6 of 8 (Rare Protocol NFTs)
-Plan: 2 in current phase
+Phase: 7 of 8 (Self Protocol ZK Verification)
+Plan: 1 in current phase
 Status: In Progress
-Last activity: 2026-03-21 — Completed 06-01: NFT minting foundation
+Last activity: 2026-03-21 — Completed 06-02: NFT display components
 
-Progress: [██████████████░] ~70%
+Progress: [████████████████░] ~75%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 4min
-- Total execution time: 0.66 hours
+- Total execution time: 0.69 hours
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: [██████████████░] ~70%
 | 03-erc-8004-identity | 3 | 11min | 4min |
 | 04-clanker-tokens | 2 | 6min | 3min |
 | 05-x402-payments | 2 | 5min | 2.5min |
-| 06-nft-minting | 1 | 3min | 3min |
+| 06-nft-minting | 2 | 5min | 2.5min |
 
 **Recent Trend:**
-- Last 5 plans: 2min, 3min, 2min, 3min
+- Last 5 plans: 3min, 2min, 3min, 2min
 - Trend: Normal
 
 *Updated after each plan completion*
@@ -44,6 +44,7 @@ Progress: [██████████████░] ~70%
 | Phase 05 P01 | 3min | 2 tasks | 6 files |
 | Phase 05 P02 | 2min | 2 tasks | 2 files |
 | Phase 06 P01 | 3min | 2 tasks | 4 files |
+| Phase 06 P02 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,8 @@ Recent decisions affecting current work:
 - [06-01]: SDK deploy.erc721 and mint.mintTo use object params ({ name, symbol } not positional) -- research assumed positional args
 - [06-01]: Type assertion (as any) for viem clients passed to createRareClient -- cross-version nominal type mismatch
 - [06-01]: Mint route auto-deploys collection if agent has no nft_collection_address -- no separate deploy step required
+- [06-02]: Added nft_only query param to posts API rather than client-side filtering -- server-side is more efficient
+- [06-02]: Duplicated timeAgo helper in nft-portfolio.tsx -- avoids coupling to post-card internals
 
 ### Pending Todos
 
@@ -113,5 +116,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Completed 06-01-PLAN.md — NFT minting foundation
+Stopped at: Completed 06-02-PLAN.md — NFT display components
 Resume file: None
