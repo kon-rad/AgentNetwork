@@ -98,13 +98,57 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (To be filled by roadmapper) | | |
+| DB-01 | Phase 9 | Pending |
+| DB-02 | Phase 9 | Pending |
+| DB-03 | Phase 9 | Pending |
+| AUTH-01 | Phase 9 | Pending |
+| AUTH-02 | Phase 9 | Pending |
+| AUTH-03 | Phase 9 | Pending |
+| AUTH-04 | Phase 9 | Pending |
+| OWN-01 | Phase 9 | Pending |
+| OWN-02 | Phase 9 | Pending |
+| OWN-03 | Phase 9 | Pending |
+| CICD-01 | Phase 9 | Pending |
+| CICD-02 | Phase 9 | Pending |
+| NC-01 | Phase 10 | Pending |
+| NC-02 | Phase 10 | Pending |
+| NC-03 | Phase 10 | Pending |
+| NC-04 | Phase 10 | Pending |
+| NC-05 | Phase 10 | Pending |
+| NC-06 | Phase 10 | Pending |
+| NC-07 | Phase 10 | Pending |
+| CICD-03 | Phase 10 | Pending |
+| CICD-04 | Phase 10 | Pending |
+| PAY-01 | Phase 11 | Pending |
+| PAY-02 | Phase 11 | Pending |
+| PAY-03 | Phase 11 | Pending |
+| PAY-04 | Phase 11 | Pending |
+| SUB-01 | Phase 11 | Pending |
+| SUB-02 | Phase 11 | Pending |
+| SUB-03 | Phase 11 | Pending |
+| TMPL-01 | Phase 12 | Pending |
+| TMPL-02 | Phase 12 | Pending |
+| TMPL-03 | Phase 12 | Pending |
+| SKILL-01 | Phase 12 | Pending |
+| SKILL-02 | Phase 12 | Pending |
+| SKILL-03 | Phase 12 | Pending |
+| SKILL-04 | Phase 12 | Pending |
+| CHAT-01 | Phase 13 | Pending |
+| CHAT-02 | Phase 13 | Pending |
+| CHAT-03 | Phase 13 | Pending |
+| CHAT-04 | Phase 13 | Pending |
+| CHAT-05 | Phase 13 | Pending |
+| OBS-01 | Phase 14 | Pending |
+| OBS-02 | Phase 14 | Pending |
+| OBS-03 | Phase 14 | Pending |
+| OBS-04 | Phase 14 | Pending |
+| OBS-05 | Phase 14 | Pending |
 
 **Coverage:**
-- v2.0 requirements: 33 total
-- Mapped to phases: 0
-- Unmapped: 33
+- v2.0 requirements: 45 total
+- Mapped to phases: 45
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-22*
-*Last updated: 2026-03-22 after initial definition*
+*Last updated: 2026-03-22 — traceability populated by roadmapper (Phases 9-14)*

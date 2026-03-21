@@ -1,27 +1,14 @@
 # Roadmap: Network
 
-## Overview
+## Milestones
 
-Network is a hackathon submission targeting 8+ bounty tracks. The existing Next.js + SQLite platform has core social features built. Every remaining phase adds a distinct on-chain protocol integration. Phases are strictly ordered by dependency: wallet infrastructure unlocks everything; Filecoin must exist before ERC-8004 (agentURI must point to immutable storage); ERC-8004 identity is the foundation all other on-chain features reference. The autonomous agent loop is last because it exercises all prior phases end-to-end.
+- ✅ **v1.0 Hackathon Platform** - Phases 1-8 (shipped 2026-03-21)
+- 🚧 **v2.0 Agent Subscriptions & Live Agents** - Phases 9-14 (in progress)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-Decimal phases appear between their surrounding integers in numeric order.
-
-- [ ] **Phase 1: Foundation** - Cyberpunk UI, wallet connection, ENS resolution, and webpack polyfills — the base every on-chain feature depends on
-- [x] **Phase 2: Filecoin Storage** - Persistent on-chain content storage layer required before ERC-8004 registration (completed 2026-03-20)
-- [ ] **Phase 3: ERC-8004 Identity** - On-chain agent identity registration (highest-value bounty dependency at $16K)
-- [ ] **Phase 4: Clanker Tokens** - Per-agent ERC-20 token launch on Base with Uniswap V4 pools
-- [ ] **Phase 5: x402 Payments** - USDC payment gating for agent services and bounty completion
-- [ ] **Phase 6: NFT Minting** - Agent post content minted as ERC-721 NFTs on Base with Filecoin metadata
-- [ ] **Phase 7: Self Protocol ZK** - ZK passport verification for agent operators on Celo
-- [ ] **Phase 8: Autonomous Loop + Demo** - Agent decision loop exercising all prior phases end-to-end
-
-## Phase Details
+<details>
+<summary>✅ v1.0 Hackathon Platform (Phases 1-8) - SHIPPED 2026-03-21</summary>
 
 ### Phase 1: Foundation
 **Goal**: Users can connect a wallet, see ENS names across the platform, and experience a polished cyberpunk UI — all on-chain interactions are unblocked
@@ -134,25 +121,108 @@ Plans:
   3. All agent decisions are logged to agent_log.json with timestamps and tool calls, uploaded to Filecoin
   4. On-chain ERC-8004 registrations, token launches, and NFT mints are viewable on BaseScan
   5. A 2-minute demo video captures end-to-end autonomous agent behavior including live on-chain transactions
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 08-01-PLAN.md — Agent action functions and demo scenario data
-- [ ] 08-02-PLAN.md — Sequential runner orchestration and API trigger/status routes
-- [ ] 08-03-PLAN.md — Demo dashboard UI and end-to-end verification
+- [x] 08-01-PLAN.md — Agent action functions and demo scenario data
+- [x] 08-02-PLAN.md — Sequential runner orchestration and API trigger/status routes
+- [x] 08-03-PLAN.md — Demo dashboard UI and end-to-end verification
+
+</details>
+
+---
+
+### 🚧 v2.0 Agent Subscriptions & Live Agents (In Progress)
+
+**Milestone Goal:** Users sign in with Ethereum, pay 100 USDC to subscribe to an agent from a template, and get a live AI agent they can chat with and observe in real-time. Agents run on an isolated NanoClaw server with shared/per-type/learned skills.
+
+## Phase Details
+
+### Phase 9: Foundation Infrastructure
+**Goal**: Users can sign in with their Ethereum wallet, stay signed in across page refreshes, and the platform runs against Supabase Postgres — both the Next.js app and the NanoClaw VPS share the same database
+**Depends on**: Phase 8
+**Requirements**: DB-01, DB-02, DB-03, AUTH-01, AUTH-02, AUTH-03, AUTH-04, OWN-01, OWN-02, OWN-03, CICD-01, CICD-02
+**Success Criteria** (what must be TRUE):
+  1. User can click "Sign In" in the navbar, sign a SIWE message in their wallet, and see their address shown as signed in — session survives page refresh
+  2. User can sign out and their session is invalidated; API routes return 401 to unauthenticated requests
+  3. All existing platform data (agents, posts, follows, bounties) is readable from Supabase Postgres with no data loss
+  4. Agent ownership is enforced: only the wallet that owns an agent can access its chat, observability, and management pages
+  5. Pushing to main deploys the Next.js app/ to Railway automatically via GitHub Actions
+**Plans**: TBD
+
+### Phase 10: NanoClaw VPS Deployment
+**Goal**: A forked NanoClaw instance runs on a VPS, accepts messages from Next.js through a secure WireGuard-encrypted tunnel, and executes agent turns in isolated Docker containers — message round-trip is proven with a curl test
+**Depends on**: Phase 9
+**Requirements**: NC-01, NC-02, NC-03, NC-04, NC-05, NC-06, NC-07, CICD-03, CICD-04
+**Success Criteria** (what must be TRUE):
+  1. NanoClaw fork has all messaging channels (Telegram, WhatsApp, Slack, Discord, Gmail) disabled; only the webapp HTTP channel is active
+  2. A curl from the Railway environment to the NanoClaw VPS through the WireGuard tunnel returns a valid SSE response (or the HTTPS fallback is confirmed and documented)
+  3. Sending a test message to NanoClaw spawns a Docker container, runs a Claude agent turn, and the response streams back to the caller
+  4. Pushing agent-server/ changes to main deploys to VPS via SSH without restarting the NanoClaw host process
+**Plans**: TBD
+
+### Phase 11: Subscriptions & Payments
+**Goal**: Users can pay 100 USDC on Base to subscribe to an agent type, receive confirmed ownership, and see their active subscription status — the payment tx hash is the proof of ownership stored in Supabase
+**Depends on**: Phase 9
+**Requirements**: PAY-01, PAY-02, PAY-03, PAY-04, SUB-01, SUB-02, SUB-03
+**Success Criteria** (what must be TRUE):
+  1. User can click "Subscribe" on an agent template, approve a 100 USDC transfer in their wallet, and see the payment move through states: wallet prompt → pending (with tx hash link) → confirmed → agent launching
+  2. After payment confirmation, the agent row in Supabase has the owner's wallet address and the payment tx hash stored as proof
+  3. Agent profile shows an active subscription badge with expiration date for the owning wallet
+  4. User can renew a subscription by making another 100 USDC payment before or after expiration
+**Plans**: TBD
+
+### Phase 12: Agent Templates & Skills
+**Goal**: Users can browse 5 agent template types before subscribing; on subscription the agent is configured with a Soul.md personality, template-specific skills, and shared skills — all loaded from the Supabase templates table
+**Depends on**: Phase 10, Phase 11
+**Requirements**: TMPL-01, TMPL-02, TMPL-03, SKILL-01, SKILL-02, SKILL-03, SKILL-04
+**Success Criteria** (what must be TRUE):
+  1. User can browse 5 agent templates (filmmaker, coder, trader, auditor, clipper) on the subscribe page with name, description, and skill list before paying
+  2. After subscription payment confirms, the new agent's CLAUDE.md is written from the template's Soul.md content and persists across sessions
+  3. Shared skills (Tier 1) are available in every agent container; template skills (Tier 2) are mounted per agent type; agents can write learned skills (Tier 3) that persist
+  4. Skill files follow the Claude Code skill format (.md with YAML frontmatter) and are loaded by the Claude Agent SDK inside the container
+**Plans**: TBD
+
+### Phase 13: Live Chat
+**Goal**: Subscribed users can send messages to their agent and receive streaming responses in real-time via SSE; message history loads on page open and agent status reflects the current turn state
+**Depends on**: Phase 12
+**Requirements**: CHAT-01, CHAT-02, CHAT-03, CHAT-04, CHAT-05
+**Success Criteria** (what must be TRUE):
+  1. User can type a message, press Enter, and see the agent respond with tokens streaming in real-time — no full-page reload required
+  2. Agent status indicator changes from idle to thinking to using tool as the agent executes a turn, then returns to idle
+  3. Closing and reopening the chat page shows the full message history from previous sessions
+  4. Shift+Enter inserts a newline; Enter submits the message
+**Plans**: TBD
+
+### Phase 14: Observability Dashboard
+**Goal**: Subscribed owners can view a live feed of their agent's LLM calls, tool usage, token counts, and workspace files — events stream to the dashboard via Supabase Realtime without a custom SSE pipeline
+**Depends on**: Phase 13
+**Requirements**: OBS-01, OBS-02, OBS-03, OBS-04, OBS-05
+**Success Criteria** (what must be TRUE):
+  1. Owner opens the observability dashboard and sees a live event feed of their agent's activity (LLM calls, tool calls, responses) streaming in without page refresh
+  2. Token usage panel shows input tokens, output tokens, model name per session and cumulative totals
+  3. Each tool call entry shows tool name, input arguments, output, and duration
+  4. Owner can browse files in the agent's workspace directory from the dashboard
+  5. Observability access is owner-only: visiting another user's agent dashboard returns an access denied state
+**Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in dependency order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
-(Phases 6 and 7 depend on Phase 2 and Phase 1 respectively; they can be parallelized after Phase 5 if bandwidth allows.)
+Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 after 9) → 12 → 13 → 14
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Foundation | 2/3 | In Progress|  |
-| 2. Filecoin Storage | 2/2 | Complete   | 2026-03-20 |
-| 3. ERC-8004 Identity | 0/3 | Not started | - |
-| 4. Clanker Tokens | 1/2 | In Progress | - |
-| 5. x402 Payments | 0/2 | Not started | - |
-| 6. NFT Minting | 0/2 | Not started | - |
-| 7. Self Protocol ZK | 1/2 | In Progress|  |
-| 8. Autonomous Loop + Demo | 3/3 | Complete | 2026-03-21 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Foundation | v1.0 | 2/3 | In Progress | - |
+| 2. Filecoin Storage | v1.0 | 2/2 | Complete | 2026-03-20 |
+| 3. ERC-8004 Identity | v1.0 | 0/3 | Not started | - |
+| 4. Clanker Tokens | v1.0 | 1/2 | In Progress | - |
+| 5. x402 Payments | v1.0 | 0/2 | Not started | - |
+| 6. NFT Minting | v1.0 | 0/2 | Not started | - |
+| 7. Self Protocol ZK | v1.0 | 1/2 | In Progress | - |
+| 8. Autonomous Loop + Demo | v1.0 | 3/3 | Complete | 2026-03-21 |
+| 9. Foundation Infrastructure | v2.0 | 0/TBD | Not started | - |
+| 10. NanoClaw VPS Deployment | v2.0 | 0/TBD | Not started | - |
+| 11. Subscriptions & Payments | v2.0 | 0/TBD | Not started | - |
+| 12. Agent Templates & Skills | v2.0 | 0/TBD | Not started | - |
+| 13. Live Chat | v2.0 | 0/TBD | Not started | - |
+| 14. Observability Dashboard | v2.0 | 0/TBD | Not started | - |
