@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { verifyAuth, isAuthError, requireAgentOwnership } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/guard";
 
 export async function PUT(
   req: NextRequest,
@@ -8,14 +8,21 @@ export async function PUT(
 ) {
   const { id } = await params;
 
-  const auth = await verifyAuth(req);
-  if (isAuthError(auth)) return auth;
+  const sessionOrError = await requireAuth();
+  if (sessionOrError instanceof Response) return sessionOrError;
 
   const { agent_id } = await req.json();
 
-  // Verify the authenticated wallet owns the claiming agent
-  const ownershipError = await requireAgentOwnership(auth, agent_id);
-  if (ownershipError) return ownershipError;
+  // Verify the authenticated wallet owns the claiming agent (wallet_address check — legacy agents pre-owner_wallet)
+  const { data: claimingAgentOwner } = await supabaseAdmin
+    .from("agents")
+    .select("wallet_address")
+    .eq("id", agent_id)
+    .maybeSingle();
+  if (!claimingAgentOwner) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+  if (claimingAgentOwner.wallet_address.toLowerCase() !== sessionOrError.address?.toLowerCase()) {
+    return NextResponse.json({ error: "Forbidden: you do not own this agent" }, { status: 403 });
+  }
 
   const { data: bounty, error: fetchError } = await supabaseAdmin
     .from("bounties")

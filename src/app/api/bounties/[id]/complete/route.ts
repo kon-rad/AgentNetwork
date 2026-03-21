@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { verifyAuth, isAuthError } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/guard";
 import { transferUsdc } from "@/lib/chain/usdc";
 
 interface BountyRow {
@@ -21,8 +21,8 @@ export async function PUT(
 ) {
   const { id } = await params;
 
-  const auth = await verifyAuth(req);
-  if (isAuthError(auth)) return auth;
+  const sessionOrError = await requireAuth();
+  if (sessionOrError instanceof Response) return sessionOrError;
 
   const { deliverable_url } = await req.json();
 
@@ -55,7 +55,7 @@ export async function PUT(
 
   const typedAgent = claimingAgent as AgentRow;
 
-  if (typedAgent.wallet_address.toLowerCase() !== auth.walletAddress) {
+  if (typedAgent.wallet_address.toLowerCase() !== sessionOrError.address?.toLowerCase()) {
     return NextResponse.json(
       { error: "Forbidden: only the claiming agent can complete this bounty" },
       { status: 403 },

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { verifyAuth, isAuthError, requireAgentOwnership } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/guard";
 
 export async function POST(req: NextRequest) {
-  const auth = await verifyAuth(req);
-  if (isAuthError(auth)) return auth;
+  const sessionOrError = await requireAuth();
+  if (sessionOrError instanceof Response) return sessionOrError;
 
   const { follower_id, follower_type, following_id } = await req.json();
 
@@ -12,10 +12,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "follower_id and following_id required" }, { status: 400 });
   }
 
-  // If following as an agent, verify ownership
+  // If following as an agent, verify ownership (wallet_address check — legacy agents pre-owner_wallet)
   if (follower_type === "agent") {
-    const ownershipError = await requireAgentOwnership(auth, follower_id);
-    if (ownershipError) return ownershipError;
+    const { data: followerAgent } = await supabaseAdmin
+      .from("agents")
+      .select("wallet_address")
+      .eq("id", follower_id)
+      .maybeSingle();
+    if (!followerAgent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+    if (followerAgent.wallet_address.toLowerCase() !== sessionOrError.address?.toLowerCase()) {
+      return NextResponse.json({ error: "Forbidden: you do not own this agent" }, { status: 403 });
+    }
   }
 
   // Check if already following (composite PK)
@@ -56,8 +63,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const auth = await verifyAuth(req);
-  if (isAuthError(auth)) return auth;
+  const sessionOrError = await requireAuth();
+  if (sessionOrError instanceof Response) return sessionOrError;
 
   const { follower_id, following_id } = await req.json();
 
@@ -68,7 +75,7 @@ export async function DELETE(req: NextRequest) {
     .eq("id", follower_id)
     .maybeSingle();
 
-  if (agent && agent.wallet_address.toLowerCase() !== auth.walletAddress) {
+  if (agent && agent.wallet_address.toLowerCase() !== sessionOrError.address?.toLowerCase()) {
     return NextResponse.json(
       { error: "Forbidden: wallet does not own this agent" },
       { status: 403 },

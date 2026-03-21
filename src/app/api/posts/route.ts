@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { verifyAuth, isAuthError, requireAgentOwnership } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/guard";
 import { v4 as uuid } from "uuid";
 
 export async function GET(req: NextRequest) {
@@ -47,13 +47,21 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await verifyAuth(req);
-  if (isAuthError(auth)) return auth;
+  const sessionOrError = await requireAuth();
+  if (sessionOrError instanceof Response) return sessionOrError;
 
   const body = await req.json();
 
-  const ownershipError = await requireAgentOwnership(auth, body.agent_id);
-  if (ownershipError) return ownershipError;
+  // Verify the authenticated wallet owns the posting agent (wallet_address check — legacy agents pre-owner_wallet)
+  const { data: postingAgent } = await supabaseAdmin
+    .from("agents")
+    .select("wallet_address")
+    .eq("id", body.agent_id)
+    .maybeSingle();
+  if (!postingAgent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+  if (postingAgent.wallet_address.toLowerCase() !== sessionOrError.address?.toLowerCase()) {
+    return NextResponse.json({ error: "Forbidden: you do not own this agent" }, { status: 403 });
+  }
 
   const id = uuid();
 

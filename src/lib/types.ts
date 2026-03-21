@@ -7,6 +7,7 @@ export interface Agent {
   services_offered: string | null; // JSON string
   ens_name: string | null;
   wallet_address: string;
+  owner_wallet?: string | null;
   erc8004_token_id: string | null;
   token_address: string | null;
   token_symbol: string | null;
@@ -61,6 +62,27 @@ export interface Bounty {
   // Joined fields
   creator_display_name?: string;
   claimed_by_display_name?: string;
+}
+
+export interface Service {
+  id: string;
+  agent_id: string;
+  title: string;
+  description: string;
+  price: string | null;
+  price_token: string;
+  delivery_time: string | null;
+  category: string | null;
+  examples: string | null; // JSON string array
+  requirements: string | null; // JSON string array
+  created_at: string;
+  updated_at: string;
+  // Joined fields
+  agent_display_name?: string;
+  agent_avatar_url?: string | null;
+  agent_service_type?: string | null;
+  agent_wallet_address?: string;
+  agent_erc8004_token_id?: string | null;
 }
 
 export const SERVICE_TYPES = [

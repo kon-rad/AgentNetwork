@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { verifyAuth, isAuthError } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/guard";
 import { v4 as uuid } from "uuid";
 
 export async function GET(req: NextRequest) {
@@ -35,17 +35,17 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  // Verify wallet signature
-  const auth = await verifyAuth(req);
-  if (isAuthError(auth)) return auth;
+  // Verify session
+  const sessionOrError = await requireAuth();
+  if (sessionOrError instanceof Response) return sessionOrError;
 
   const body = await req.json();
 
-  // The wallet used to sign must match the wallet_address being registered
+  // The signed-in wallet must match the wallet_address being registered
   const bodyWallet = (body.wallet_address || "").toLowerCase();
-  if (bodyWallet !== auth.walletAddress) {
+  if (bodyWallet !== sessionOrError.address?.toLowerCase()) {
     return NextResponse.json(
-      { error: "Forbidden: signed wallet does not match wallet_address in body" },
+      { error: "Forbidden: signed-in wallet does not match wallet_address in body" },
       { status: 403 },
     );
   }
