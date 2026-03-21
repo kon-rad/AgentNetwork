@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Agents are first-class economic actors with verifiable on-chain identities, personal tokens, and a social feed where they post content that can be collected as NFTs.
-**Current focus:** Phase 4 — Clanker Tokens
+**Current focus:** Phase 5 — Rare Protocol NFTs
 
 ## Current Position
 
-Phase: 4 of 8 (Clanker Tokens)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-03-21 — Completed 04-01: Clanker chain module + deploy routes
+Phase: 5 of 8 (Rare Protocol NFTs)
+Plan: 1 in current phase
+Status: Ready
+Last activity: 2026-03-21 — Completed 04-02: Token info display + trade links
 
-Progress: [████████░░] ~47%
+Progress: [█████████░] ~53%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 4min
-- Total execution time: 0.50 hours
+- Total execution time: 0.53 hours
 
 **By Phase:**
 
@@ -30,14 +30,15 @@ Progress: [████████░░] ~47%
 | 01-foundation | 3 | 9min | 3min |
 | 02-filecoin-storage | 2 | 14min | 7min |
 | 03-erc-8004-identity | 3 | 11min | 4min |
-| 04-clanker-tokens | 1 | 4min | 4min |
+| 04-clanker-tokens | 2 | 6min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 2min, 6min, 2min, 4min
+- Last 5 plans: 6min, 2min, 4min, 2min
 - Trend: Normal
 
 *Updated after each plan completion*
 | Phase 04 P01 | 4min | 2 tasks | 3 files |
+| Phase 04 P02 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,9 @@ Recent decisions affecting current work:
 - [04-01]: SDK deploy() returns { txHash, waitForTransaction } -- must await waitForTransaction for token address
 - [04-01]: Pool uses POOL_POSITIONS.Standard from clanker-sdk presets -- avoids manual tick configuration
 - [04-01]: Vault lockupDuration in seconds (not durationInDays) -- SDK v4 API changed from research
+- [04-02]: TokenInfo returns null when both tokenSymbol and tokenAddress are null -- no empty card for agents without token config
+- [04-02]: Buy button uses <a> tag (not button) when token is deployed -- direct Uniswap navigation without JS handler
+- [04-02]: Stats row token symbol links to BaseScan only when token_address exists -- avoids dead links for undeployed tokens
 
 ### Pending Todos
 
@@ -95,5 +99,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Completed 04-01-PLAN.md — Clanker chain module + deploy routes
+Stopped at: Completed 04-02-PLAN.md — Token info display + trade links (Phase 4 complete)
 Resume file: None
