@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 9 of 14 (Foundation Infrastructure)
-Plan: 2 of TBD in current phase
+Plan: 3 of TBD in current phase
 Status: In progress
-Last activity: 2026-03-22 — 09-02 complete (All API routes migrated to Supabase; db.ts deleted)
+Last activity: 2026-03-22 — 09-03 complete (SIWE auth implemented; requireAuth/requireOwnership guards; navbar Sign In)
 
-Progress: [████████░░░░░░░░░░░░] ~43% (v1.0 done; 09-01, 09-02 complete)
+Progress: [████████░░░░░░░░░░░░] ~45% (v1.0 done; 09-01, 09-02, 09-03 complete)
 
 ## Performance Metrics
 
@@ -37,6 +37,7 @@ Progress: [████████░░░░░░░░░░░░] ~43% (v
 | 08-autonomous-loop | 3 | 6min | 2min |
 
 *Updated after each plan completion*
+| Phase 09-foundation-infrastructure P03 | 8 | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -56,6 +57,9 @@ Recent decisions affecting v2.0 work:
 - [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
 - [09-02]: requireAgentOwnership() is now async — all callers must await it
 - [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
 
 ### Pending Todos
 
@@ -70,5 +74,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: Completed 09-02-PLAN.md — All API routes migrated to Supabase, db.ts deleted; ready for 09-03 (SIWE auth)
+Stopped at: Completed 09-03-PLAN.md — SIWE auth implemented; requireAuth()/requireOwnership() guards ready; navbar Sign In button added; ready for next 09 plan
 Resume file: None

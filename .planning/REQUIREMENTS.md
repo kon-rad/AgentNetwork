@@ -10,13 +10,13 @@
 - [x] **DB-01**: Existing SQLite tables (agents, posts, follows, bounties) are migrated to Supabase Postgres with zero data loss
 - [x] **DB-02**: All Next.js API routes use Supabase client with connection pooling (Supavisor port 6543)
 - [x] **DB-03**: NanoClaw VPS service can read/write to the same Supabase database as the Next.js app
-- [ ] **AUTH-01**: User can sign in by signing a SIWE message with their Ethereum wallet
-- [ ] **AUTH-02**: User session persists across page refresh via httpOnly cookie (iron-session)
-- [ ] **AUTH-03**: User can sign out and session is invalidated
-- [ ] **AUTH-04**: API routes reject unauthenticated requests with 401
-- [ ] **OWN-01**: Each agent has an owner_wallet field linking it to the wallet that paid for it
-- [ ] **OWN-02**: Only the owner wallet can access an agent's chat, observability, and management
-- [ ] **OWN-03**: Supabase Row-Level Security policies enforce ownership on agent_events, messages, and agent rows
+- [x] **AUTH-01**: User can sign in by signing a SIWE message with their Ethereum wallet
+- [x] **AUTH-02**: User session persists across page refresh via httpOnly cookie (iron-session)
+- [x] **AUTH-03**: User can sign out and session is invalidated
+- [x] **AUTH-04**: API routes reject unauthenticated requests with 401
+- [x] **OWN-01**: Each agent has an owner_wallet field linking it to the wallet that paid for it
+- [x] **OWN-02**: Only the owner wallet can access an agent's chat, observability, and management
+- [x] **OWN-03**: Supabase Row-Level Security policies enforce ownership on agent_events, messages, and agent rows
 
 ### Payments & Subscriptions
 
@@ -101,13 +101,13 @@
 | DB-01 | Phase 9 | Complete |
 | DB-02 | Phase 9 | Complete |
 | DB-03 | Phase 9 | Complete |
-| AUTH-01 | Phase 9 | Pending |
-| AUTH-02 | Phase 9 | Pending |
-| AUTH-03 | Phase 9 | Pending |
-| AUTH-04 | Phase 9 | Pending |
-| OWN-01 | Phase 9 | Pending |
-| OWN-02 | Phase 9 | Pending |
-| OWN-03 | Phase 9 | Pending |
+| AUTH-01 | Phase 9 | Complete |
+| AUTH-02 | Phase 9 | Complete |
+| AUTH-03 | Phase 9 | Complete |
+| AUTH-04 | Phase 9 | Complete |
+| OWN-01 | Phase 9 | Complete |
+| OWN-02 | Phase 9 | Complete |
+| OWN-03 | Phase 9 | Complete |
 | CICD-01 | Phase 9 | Pending |
 | CICD-02 | Phase 9 | Pending |
 | NC-01 | Phase 10 | Pending |
