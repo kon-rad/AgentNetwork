@@ -1,10 +1,9 @@
 import 'server-only'
 import { SelfBackendVerifier, DefaultConfigStore, AllIds } from '@selfxyz/core'
 
-// Shared config constants -- used by BOTH frontend and backend to prevent config mismatch
-export const SELF_SCOPE = 'network-agents'
-export const SELF_DISCLOSURES = { minimumAge: 18 }
-export const SELF_MOCK_PASSPORT = true // dev/hackathon mode
+// Import shared config for local use and re-export so existing backend imports keep working
+import { SELF_SCOPE, SELF_DISCLOSURES, SELF_MOCK_PASSPORT } from './self-config'
+export { SELF_SCOPE, SELF_DISCLOSURES, SELF_MOCK_PASSPORT }
 
 /**
  * Verify a Self Protocol ZK proof using backend verification.
