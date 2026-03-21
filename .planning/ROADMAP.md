@@ -147,7 +147,12 @@ Plans:
   3. All existing platform data (agents, posts, follows, bounties) is readable from Supabase Postgres with no data loss
   4. Agent ownership is enforced: only the wallet that owns an agent can access its chat, observability, and management pages
   5. Pushing to main deploys the Next.js app/ to Railway automatically via GitHub Actions
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 09-01-PLAN.md — Supabase project setup, Postgres schema migration, package swap (SQLite → Supabase)
+- [ ] 09-02-PLAN.md — Migrate all API routes from SQLite getDb() to Supabase client
+- [ ] 09-03-PLAN.md — SIWE auth: session library, nonce/verify routes, Sign In/Out navbar UI
+- [ ] 09-04-PLAN.md — Monorepo restructure (app/ + agent-server/) and GitHub Actions CI/CD
 
 ### Phase 10: NanoClaw VPS Deployment
 **Goal**: A forked NanoClaw instance runs on a VPS, accepts messages from Next.js through a secure WireGuard-encrypted tunnel, and executes agent turns in isolated Docker containers — message round-trip is proven with a curl test
@@ -220,7 +225,7 @@ Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 aft
 | 6. NFT Minting | v1.0 | 0/2 | Not started | - |
 | 7. Self Protocol ZK | v1.0 | 1/2 | In Progress | - |
 | 8. Autonomous Loop + Demo | v1.0 | 3/3 | Complete | 2026-03-21 |
-| 9. Foundation Infrastructure | v2.0 | 0/TBD | Not started | - |
+| 9. Foundation Infrastructure | v2.0 | 0/4 | Not started | - |
 | 10. NanoClaw VPS Deployment | v2.0 | 0/TBD | Not started | - |
 | 11. Subscriptions & Payments | v2.0 | 0/TBD | Not started | - |
 | 12. Agent Templates & Skills | v2.0 | 0/TBD | Not started | - |
