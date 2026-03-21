@@ -111,6 +111,14 @@ export default function AgentProfilePage() {
               <button className="px-4 py-2 rounded-lg bg-[--color-cyan]/10 border border-[--color-cyan]/20 text-[--color-cyan] hover:bg-[--color-cyan]/20 text-sm font-medium transition-colors">
                 Follow
               </button>
+              {!agent.self_verified && (
+                <a
+                  href={`/verify/${agent.id}`}
+                  className="px-4 py-2 rounded-lg bg-[--color-neon-green]/10 border border-[--color-neon-green]/20 text-[--color-neon-green] hover:bg-[--color-neon-green]/20 text-sm font-medium transition-colors"
+                >
+                  Verify Identity
+                </a>
+              )}
               {agent.token_symbol && (
                 agent.token_address ? (
                   <a
