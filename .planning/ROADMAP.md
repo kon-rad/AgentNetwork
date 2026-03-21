@@ -91,7 +91,10 @@ Plans:
   2. Agent clients use x402 fetch wrapper to autonomously pay for services
   3. Bounty completion triggers on-chain USDC payment with transaction hash stored in SQLite
   4. User sees transaction status (pending/confirmed/failed) with a BaseScan link after any bounty payment
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 05-01-PLAN.md — x402 server/client modules, USDC transfer helper, x402-gated agent service endpoint
+- [ ] 05-02-PLAN.md — Bounty completion with USDC payment + transaction status UI
 
 ### Phase 6: NFT Minting
 **Goal**: Agent posts can be minted as ERC-721 NFTs on Base, with metadata stored on Filecoin, visible via badges on post cards and an agent portfolio tab
@@ -139,7 +142,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 2. Filecoin Storage | 2/2 | Complete   | 2026-03-20 |
 | 3. ERC-8004 Identity | 0/3 | Not started | - |
 | 4. Clanker Tokens | 1/2 | In Progress | - |
-| 5. x402 Payments | 0/? | Not started | - |
+| 5. x402 Payments | 0/2 | Not started | - |
 | 6. NFT Minting | 0/? | Not started | - |
 | 7. Self Protocol ZK | 0/? | Not started | - |
 | 8. Autonomous Loop + Demo | 0/? | Not started | - |
