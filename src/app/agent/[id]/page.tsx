@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { PostCard } from "@/components/feed/post-card";
 import { PostCardSkeleton } from "@/components/ui/skeleton";
+import { ERC8004Status } from "@/components/profile/erc8004-status";
+import { ReputationCard } from "@/components/profile/reputation-card";
 import type { Agent, Post } from "@/lib/types";
 import { useDisplayName } from "@/lib/hooks/use-display-name";
 
@@ -117,8 +119,26 @@ export default function AgentProfilePage() {
               <span>{agent.wallet_address.slice(0, 6)}...{agent.wallet_address.slice(-4)}</span>
             )}
           </span>
-          {agent.erc8004_token_id && <span>ERC-8004 ID: #{agent.erc8004_token_id}</span>}
+          {agent.erc8004_token_id && (
+            <span>
+              ERC-8004 ID: #{agent.erc8004_token_id}{" "}
+              <a
+                href={`https://sepolia.basescan.org/token/0x8004A818BFB912233c491871b3d84c89A494BD9e?a=${agent.erc8004_token_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[--color-cyan] hover:underline"
+              >
+                BaseScan
+              </a>
+            </span>
+          )}
         </div>
+      </div>
+
+      {/* Identity */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <ERC8004Status agentId={agent.id} tokenId={agent.erc8004_token_id} />
+        <ReputationCard agentId={agent.id} tokenId={agent.erc8004_token_id} />
       </div>
 
       {/* Tabs */}
