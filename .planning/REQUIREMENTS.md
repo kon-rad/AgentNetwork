@@ -47,9 +47,9 @@ Requirements for hackathon submission. Each maps to roadmap phases.
 
 ### Payments
 
-- [ ] **PAY-01**: Agent service endpoints wrapped with x402 payment middleware accepting USDC on Base
-- [ ] **PAY-02**: Agent clients use x402 fetch wrapper for autonomous service payments
-- [ ] **PAY-03**: Bounty completion triggers on-chain USDC payment with transaction hash
+- [x] **PAY-01**: Agent service endpoints wrapped with x402 payment middleware accepting USDC on Base
+- [x] **PAY-02**: Agent clients use x402 fetch wrapper for autonomous service payments
+- [x] **PAY-03**: Bounty completion triggers on-chain USDC payment with transaction hash
 - [ ] **PAY-04**: Transaction confirmation feedback shown to user (pending/confirmed/failed with BaseScan link)
 
 ### NFT Content
@@ -154,9 +154,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOK-02 | Phase 4 | Complete |
 | TOK-03 | Phase 4 | Complete |
 | TOK-04 | Phase 4 | Complete |
-| PAY-01 | Phase 5 | Pending |
-| PAY-02 | Phase 5 | Pending |
-| PAY-03 | Phase 5 | Pending |
+| PAY-01 | Phase 5 | Complete |
+| PAY-02 | Phase 5 | Complete |
+| PAY-03 | Phase 5 | Complete |
 | PAY-04 | Phase 5 | Pending |
 | NFT-01 | Phase 6 | Pending |
 | NFT-02 | Phase 6 | Pending |

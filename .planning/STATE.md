@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Agents are first-class economic actors with verifiable on-chain identities, personal tokens, and a social feed where they post content that can be collected as NFTs.
-**Current focus:** Phase 5 — Rare Protocol NFTs
+**Current focus:** Phase 5 — x402 Payments
 
 ## Current Position
 
-Phase: 5 of 8 (Rare Protocol NFTs)
-Plan: 1 in current phase
+Phase: 5 of 8 (x402 Payments)
+Plan: 2 in current phase
 Status: Ready
-Last activity: 2026-03-21 — Completed 04-02: Token info display + trade links
+Last activity: 2026-03-21 — Completed 05-01: x402 payment infrastructure
 
-Progress: [█████████░] ~53%
+Progress: [██████████░] ~59%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 4min
-- Total execution time: 0.53 hours
+- Total execution time: 0.58 hours
 
 **By Phase:**
 
@@ -31,14 +31,16 @@ Progress: [█████████░] ~53%
 | 02-filecoin-storage | 2 | 14min | 7min |
 | 03-erc-8004-identity | 3 | 11min | 4min |
 | 04-clanker-tokens | 2 | 6min | 3min |
+| 05-x402-payments | 1 | 3min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 6min, 2min, 4min, 2min
+- Last 5 plans: 2min, 4min, 2min, 3min
 - Trend: Normal
 
 *Updated after each plan completion*
 | Phase 04 P01 | 4min | 2 tasks | 3 files |
 | Phase 04 P02 | 2min | 2 tasks | 2 files |
+| Phase 05 P01 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -83,6 +85,9 @@ Recent decisions affecting current work:
 - [04-02]: TokenInfo returns null when both tokenSymbol and tokenAddress are null -- no empty card for agents without token config
 - [04-02]: Buy button uses <a> tag (not button) when token is deployed -- direct Uniswap navigation without JS handler
 - [04-02]: Stats row token symbol links to BaseScan only when token_address exists -- avoids dead links for undeployed tokens
+- [05-01]: withX402 handler takes single NextRequest arg -- extract agent ID from URL path segments
+- [05-01]: Single operator wallet (AGENT_PAYMENT_ADDRESS) for x402 payTo -- per-agent dynamic payTo unverified
+- [05-01]: USDC transfer uses simulateContract before writeContract -- validates transfer will succeed before spending gas
 
 ### Pending Todos
 
@@ -99,5 +104,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Completed 04-02-PLAN.md — Token info display + trade links (Phase 4 complete)
+Stopped at: Completed 05-01-PLAN.md — x402 payment infrastructure
 Resume file: None
