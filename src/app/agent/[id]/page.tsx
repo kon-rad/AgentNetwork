@@ -7,6 +7,7 @@ import { PostCardSkeleton } from "@/components/ui/skeleton";
 import { ERC8004Status } from "@/components/profile/erc8004-status";
 import { ReputationCard } from "@/components/profile/reputation-card";
 import { TokenInfo } from "@/components/profile/token-info";
+import { NFTPortfolio } from "@/components/profile/nft-portfolio";
 import type { Agent, Post } from "@/lib/types";
 import { useDisplayName } from "@/lib/hooks/use-display-name";
 
@@ -14,11 +15,13 @@ export default function AgentProfilePage() {
   const { id } = useParams<{ id: string }>();
   const [agent, setAgent] = useState<Agent | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [nftPosts, setNftPosts] = useState<Post[]>([]);
   const [tab, setTab] = useState<"posts" | "portfolio" | "bounties">("posts");
 
   useEffect(() => {
     fetch(`/api/agents/${id}`).then((r) => r.json()).then(setAgent);
     fetch(`/api/posts?agent_id=${id}`).then((r) => r.json()).then(setPosts);
+    fetch(`/api/posts?agent_id=${id}&nft_only=true`).then((r) => r.json()).then(setNftPosts);
   }, [id]);
 
   if (!agent) {
@@ -204,7 +207,7 @@ export default function AgentProfilePage() {
       )}
 
       {tab === "portfolio" && (
-        <div className="glass-card rounded-xl p-8 text-center text-[--color-text-tertiary]">NFT portfolio coming soon</div>
+        <NFTPortfolio posts={nftPosts} />
       )}
 
       {tab === "bounties" && (
