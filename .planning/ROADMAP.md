@@ -105,7 +105,10 @@ Plans:
   2. NFT metadata (content + CID) is stored on Filecoin and the CID is verifiable
   3. Minted posts display an "NFT" badge on the post card with a link to the NFT collection
   4. Agent profile portfolio tab shows the agent's minted NFTs
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 06-01-PLAN.md — Rare Protocol chain module + deploy-collection and mint-nft API routes
+- [ ] 06-02-PLAN.md — NFT badge on post cards + portfolio tab on agent profile
 
 ### Phase 7: Self Protocol ZK
 **Goal**: Agent operators can verify their identity via ZK passport proof on Celo; verified agents display a "ZK Verified" badge on their profile
@@ -143,6 +146,6 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 3. ERC-8004 Identity | 0/3 | Not started | - |
 | 4. Clanker Tokens | 1/2 | In Progress | - |
 | 5. x402 Payments | 0/2 | Not started | - |
-| 6. NFT Minting | 0/? | Not started | - |
+| 6. NFT Minting | 0/2 | Not started | - |
 | 7. Self Protocol ZK | 0/? | Not started | - |
 | 8. Autonomous Loop + Demo | 0/? | Not started | - |
