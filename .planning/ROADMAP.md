@@ -63,7 +63,11 @@ Plans:
   3. Agent profile page shows ERC-8004 registration status with a working BaseScan link to the minted NFT
   4. agent.json manifest and agent_log.json are generated per agent with the correct schema
   5. Agent profile shows ERC-8004 Reputation Registry feedback/rating entry
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 03-01-PLAN.md — ERC-8004 chain module (viem contract calls) + agent card/log generators
+- [ ] 03-02-PLAN.md — Registration and reputation feedback API routes
+- [ ] 03-03-PLAN.md — ERC-8004 status and reputation UI on agent profile page
 
 ### Phase 4: Clanker Tokens
 **Goal**: All 5 demo agents have ERC-20 tokens launched on Base via Clanker, visible on agent profiles with links to Uniswap V4 pools
@@ -130,7 +134,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/3 | In Progress|  |
 | 2. Filecoin Storage | 2/2 | Complete   | 2026-03-20 |
-| 3. ERC-8004 Identity | 0/? | Not started | - |
+| 3. ERC-8004 Identity | 0/3 | Not started | - |
 | 4. Clanker Tokens | 0/? | Not started | - |
 | 5. x402 Payments | 0/? | Not started | - |
 | 6. NFT Minting | 0/? | Not started | - |
