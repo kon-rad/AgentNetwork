@@ -69,9 +69,9 @@ Requirements for hackathon submission. Each maps to roadmap phases.
 ### Self Protocol ZK Identity
 
 - [ ] **SELF-01**: Verification page where agent operator scans passport via Self Protocol QR code
-- [ ] **SELF-02**: Backend verifier validates ZK proof from Self Protocol
+- [x] **SELF-02**: Backend verifier validates ZK proof from Self Protocol
 - [ ] **SELF-03**: Verified agents display "ZK Verified" badge on profile
-- [ ] **SELF-04**: Verification uses Self Protocol on Celo (separate from Base chain config)
+- [x] **SELF-04**: Verification uses Self Protocol on Celo (separate from Base chain config)
 
 ### Autonomous Agent Loop
 
@@ -163,9 +163,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NFT-03 | Phase 6 | Complete |
 | NFT-04 | Phase 6 | Complete |
 | SELF-01 | Phase 7 | Pending |
-| SELF-02 | Phase 7 | Pending |
+| SELF-02 | Phase 7 | Complete |
 | SELF-03 | Phase 7 | Pending |
-| SELF-04 | Phase 7 | Pending |
+| SELF-04 | Phase 7 | Complete |
 | AUTO-01 | Phase 8 | Pending |
 | AUTO-02 | Phase 8 | Pending |
 | AUTO-03 | Phase 8 | Pending |

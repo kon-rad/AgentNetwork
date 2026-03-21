@@ -119,7 +119,7 @@ Plans:
   2. Backend verifier validates the ZK proof from Self Protocol on Celo
   3. Verified agents display a "ZK Verified" badge on their profile page
   4. Verification flow uses Self Protocol on Celo — separate from the Base chain config
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 07-01-PLAN.md — Self Protocol packages + backend chain module + ZK proof verify API route
 - [ ] 07-02-PLAN.md — Frontend QR component + verification page + profile verify link
@@ -150,5 +150,5 @@ Phases execute in dependency order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 4. Clanker Tokens | 1/2 | In Progress | - |
 | 5. x402 Payments | 0/2 | Not started | - |
 | 6. NFT Minting | 0/2 | Not started | - |
-| 7. Self Protocol ZK | 0/2 | Not started | - |
+| 7. Self Protocol ZK | 1/2 | In Progress|  |
 | 8. Autonomous Loop + Demo | 0/? | Not started | - |

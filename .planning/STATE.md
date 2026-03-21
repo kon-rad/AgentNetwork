@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 ## Current Position
 
 Phase: 7 of 8 (Self Protocol ZK Verification)
-Plan: 1 in current phase
+Plan: 2 in current phase
 Status: In Progress
-Last activity: 2026-03-21 — Completed 06-02: NFT display components
+Last activity: 2026-03-21 — Completed 07-01: Self Protocol backend verification
 
-Progress: [████████████████░] ~75%
+Progress: [█████████████████░] ~80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: 4min
-- Total execution time: 0.69 hours
+- Total execution time: 0.74 hours
 
 **By Phase:**
 
@@ -33,9 +33,10 @@ Progress: [████████████████░] ~75%
 | 04-clanker-tokens | 2 | 6min | 3min |
 | 05-x402-payments | 2 | 5min | 2.5min |
 | 06-nft-minting | 2 | 5min | 2.5min |
+| 07-self-protocol-zk | 1 | 3min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 3min, 2min, 3min, 2min
+- Last 5 plans: 2min, 3min, 2min, 3min
 - Trend: Normal
 
 *Updated after each plan completion*
@@ -45,6 +46,7 @@ Progress: [████████████████░] ~75%
 | Phase 05 P02 | 2min | 2 tasks | 2 files |
 | Phase 06 P01 | 3min | 2 tasks | 4 files |
 | Phase 06 P02 | 2min | 2 tasks | 4 files |
+| Phase 07 P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -100,6 +102,9 @@ Recent decisions affecting current work:
 - [06-01]: Mint route auto-deploys collection if agent has no nft_collection_address -- no separate deploy step required
 - [06-02]: Added nft_only query param to posts API rather than client-side filtering -- server-side is more efficient
 - [06-02]: Duplicated timeAgo helper in nft-portfolio.tsx -- avoids coupling to post-card internals
+- [07-01]: Per-call SelfBackendVerifier instantiation (not singleton) -- endpoint URL from env var may differ per environment
+- [07-01]: Parameters typed as any due to CJS/ESM type mismatch in @selfxyz/core -- SDK validates shapes internally
+- [07-01]: All responses HTTP 200 with status in JSON body -- Self Protocol convention, not HTTP status codes
 
 ### Pending Todos
 
@@ -110,11 +115,11 @@ None yet.
 - [Phase 2]: FOC mainnet confirmed live (Jan 31, 2026). Wallet must be funded with tFIL (gas) and tUSDFC (storage) before uploads will work
 - [Phase 3]: Verify ERC-8004 contract addresses on Base mainnet vs Sepolia; no viable npm SDK (use viem direct calls)
 - [Phase 6]: RESOLVED — @rareprotocol/rare-cli@0.3.0 installed and working; SDK uses object params for deploy/mint
-- [Phase 7]: Self Protocol package versions unpinned — run `npm show @selfxyz/core version` before starting
+- [Phase 7]: RESOLVED — @selfxyz/core@1.2.0-beta.1 and @selfxyz/qrcode@1.0.22 installed; CJS/ESM type mismatch handled via any casts
 - [Phase 8]: Highest complexity phase — budget extra time; likely to surface integration issues from prior phases
 
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Completed 06-02-PLAN.md — NFT display components
+Stopped at: Completed 07-01-PLAN.md — Self Protocol backend verification
 Resume file: None
