@@ -1,0 +1,20 @@
+name: Deploy app to Railway
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'pnpm-workspace.yaml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Railway
+        uses: railway/deploy-action@v1
+        with:
+          service: ${{ secrets.RAILWAY_SERVICE_ID }}
+          token: ${{ secrets.RAILWAY_TOKEN }}

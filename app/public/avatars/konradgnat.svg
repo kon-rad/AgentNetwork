@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a1a"/>
+      <stop offset="50%" style="stop-color:#1a0a2e"/>
+      <stop offset="100%" style="stop-color:#0a1628"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7b2ff7"/>
+      <stop offset="100%" style="stop-color:#00f0ff"/>
+    </linearGradient>
+    <linearGradient id="visor" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff0066"/>
+      <stop offset="50%" style="stop-color:#ff6600"/>
+      <stop offset="100%" style="stop-color:#ff0066"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#00f0ff;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#00f0ff;stop-opacity:0"/>
+    </linearGradient>
+    <filter id="neon">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="neonStrong">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="400" fill="url(#bg)"/>
+
+  <!-- Grid lines -->
+  <g opacity="0.1" stroke="#00f0ff" stroke-width="0.5">
+    <line x1="0" y1="100" x2="400" y2="100"/>
+    <line x1="0" y1="200" x2="400" y2="200"/>
+    <line x1="0" y1="300" x2="400" y2="300"/>
+    <line x1="100" y1="0" x2="100" y2="400"/>
+    <line x1="200" y1="0" x2="200" y2="400"/>
+    <line x1="300" y1="0" x2="300" y2="400"/>
+  </g>
+
+  <!-- Neck/Body -->
+  <rect x="155" y="320" width="90" height="80" rx="5" fill="#1a1a2e"/>
+  <rect x="120" y="350" width="160" height="60" rx="10" fill="#1a1a2e"/>
+  <!-- Collar glow lines -->
+  <line x1="140" y1="355" x2="180" y2="370" stroke="#00f0ff" stroke-width="1.5" filter="url(#neon)" opacity="0.8"/>
+  <line x1="260" y1="355" x2="220" y2="370" stroke="#00f0ff" stroke-width="1.5" filter="url(#neon)" opacity="0.8"/>
+
+  <!-- Head shape -->
+  <ellipse cx="200" cy="220" rx="95" ry="110" fill="#2a1a3e"/>
+  <!-- Face -->
+  <ellipse cx="200" cy="230" rx="80" ry="95" fill="#d4a574"/>
+
+  <!-- Hair - spiky anime style -->
+  <path d="M105 200 Q120 80 200 100 Q280 80 295 200 Q290 160 260 130 Q240 100 220 120 Q200 60 180 120 Q160 100 140 130 Q110 160 105 200Z" fill="url(#hair)"/>
+  <!-- Extra hair spikes -->
+  <path d="M130 170 Q100 50 120 120 L140 160Z" fill="#7b2ff7" opacity="0.9"/>
+  <path d="M270 170 Q300 50 280 120 L260 160Z" fill="#00c8ff" opacity="0.9"/>
+  <path d="M200 120 Q195 30 210 80 L205 115Z" fill="#9b4fff" opacity="0.8"/>
+
+  <!-- Visor/Glasses -->
+  <rect x="125" y="205" width="150" height="35" rx="17" fill="url(#visor)" filter="url(#neonStrong)" opacity="0.9"/>
+  <!-- Visor shine -->
+  <rect x="135" y="210" width="130" height="8" rx="4" fill="white" opacity="0.2"/>
+  <!-- Eye glints behind visor -->
+  <circle cx="165" cy="222" r="5" fill="white" opacity="0.7"/>
+  <circle cx="235" cy="222" r="5" fill="white" opacity="0.7"/>
+
+  <!-- Nose -->
+  <line x1="200" y1="245" x2="197" y2="260" stroke="#c4956a" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Mouth - slight smirk -->
+  <path d="M180 280 Q195 292 215 278" stroke="#8a5a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Jaw line accents -->
+  <line x1="130" y1="270" x2="140" y2="300" stroke="#00f0ff" stroke-width="1" filter="url(#neon)" opacity="0.4"/>
+  <line x1="270" y1="270" x2="260" y2="300" stroke="#00f0ff" stroke-width="1" filter="url(#neon)" opacity="0.4"/>
+
+  <!-- Ear tech -->
+  <circle cx="118" cy="235" r="8" fill="#1a1a2e" stroke="#00f0ff" stroke-width="1.5" filter="url(#neon)"/>
+  <circle cx="118" cy="235" r="3" fill="#00f0ff" opacity="0.6"/>
+  <circle cx="282" cy="235" r="8" fill="#1a1a2e" stroke="#ff0066" stroke-width="1.5" filter="url(#neon)"/>
+  <circle cx="282" cy="235" r="3" fill="#ff0066" opacity="0.6"/>
+
+  <!-- Circuit patterns on cheeks -->
+  <g opacity="0.3" stroke="#00f0ff" stroke-width="0.8" filter="url(#neon)">
+    <path d="M140 250 L145 260 L155 260" fill="none"/>
+    <path d="M260 250 L255 260 L245 260" fill="none"/>
+    <circle cx="155" cy="260" r="2" fill="#00f0ff"/>
+    <circle cx="245" cy="260" r="2" fill="#00f0ff"/>
+  </g>
+
+  <!-- Floating HUD elements -->
+  <g filter="url(#neon)" opacity="0.6">
+    <!-- Left HUD -->
+    <rect x="30" y="150" width="50" height="25" rx="3" fill="none" stroke="#00f0ff" stroke-width="1"/>
+    <text x="38" y="167" font-family="monospace" font-size="9" fill="#00f0ff">KG.ai</text>
+    <!-- Right HUD -->
+    <rect x="320" y="150" width="50" height="25" rx="3" fill="none" stroke="#ff0066" stroke-width="1"/>
+    <text x="326" y="167" font-family="monospace" font-size="9" fill="#ff0066">v4.2</text>
+  </g>
+
+  <!-- Bottom text -->
+  <text x="200" y="390" font-family="monospace" font-size="11" fill="#00f0ff" text-anchor="middle" filter="url(#neon)" opacity="0.7">KONRAD GNAT // FILMMAKER</text>
+</svg>

@@ -1,50 +1,13 @@
 {
-  "name": "network",
-  "version": "0.1.0",
+  "name": "network-monorepo",
   "private": true,
+  "packageManager": "pnpm@9.0.0",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@filoz/synapse-sdk": "^0.40.0",
-    "@rainbow-me/rainbowkit": "^2.2.10",
-    "@rareprotocol/rare-cli": "^0.3.0",
-    "@selfxyz/core": "1.2.0-beta.1",
-    "@selfxyz/qrcode": "1.0.22",
-    "@supabase/ssr": "^0.9.0",
-    "@supabase/supabase-js": "^2.99.3",
-    "@tanstack/react-query": "^5.91.2",
-    "@x402/core": "^2.7.0",
-    "@x402/evm": "^2.7.0",
-    "@x402/fetch": "^2.7.0",
-    "@x402/next": "^2.7.0",
-    "clanker-sdk": "^4.2.14",
-    "ethers": "^6.16.0",
-    "iron-session": "^8.0.4",
-    "next": "16.2.0",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "siwe": "^3.0.0",
-    "uuid": "^13.0.0",
-    "viem": "^2.47.5",
-    "wagmi": "^2.19.5",
-    "zustand": "^5.0.12"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@types/uuid": "^11.0.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.0",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "dev": "pnpm --filter app dev",
+    "build": "pnpm --filter app build",
+    "start": "pnpm --filter app start"
   },
   "pnpm": {
-    "onlyBuiltDependencies": []
+    "onlyBuiltDependencies": ["better-sqlite3"]
   }
 }

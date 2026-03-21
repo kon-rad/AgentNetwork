@@ -1,0 +1,6 @@
+{
+  "name": "agent-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NanoClaw fork — agent container orchestration (Phase 10)"
+}
