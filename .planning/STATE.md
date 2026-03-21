@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Agents are first-class economic actors with verifiable on-chain identities, personal tokens, and a social feed where they post content that can be collected as NFTs.
-**Current focus:** Phase 2 — Filecoin Storage
+**Current focus:** Phase 3 — ERC-8004 Identity
 
 ## Current Position
 
-Phase: 2 of 8 (Filecoin Storage)
-Plan: 2 of 3 in current phase
+Phase: 3 of 8 (ERC-8004 Identity)
+Plan: 1 of 3 in current phase
 Status: In progress
-Last activity: 2026-03-20 — Completed 02-02: Filecoin upload/download/list API routes — POST /api/chain/upload with DB tracking, GET /api/chain/download/[cid] with immutable cache, GET /api/agents/[id]/filecoin with type filter
+Last activity: 2026-03-21 — Completed 03-01: ERC-8004 chain module + agent card/log generators
 
-Progress: [█████░░░░░] ~27%
+Progress: [██████░░░░] ~33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 5
 - Average duration: 4min
-- Total execution time: 0.25 hours
+- Total execution time: 0.28 hours
 
 **By Phase:**
 
@@ -29,9 +29,10 @@ Progress: [█████░░░░░] ~27%
 |-------|-------|-------|----------|
 | 01-foundation | 3 | 9min | 3min |
 | 02-filecoin-storage | 2 | 14min | 7min |
+| 03-erc-8004-identity | 1 | 2min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 4min, 2min, 6min
+- Last 5 plans: 4min, 2min, 6min, 2min
 - Trend: Normal
 
 *Updated after each plan completion*
@@ -64,6 +65,9 @@ Recent decisions affecting current work:
 - [02-02]: crypto.randomUUID() used for DB record IDs — native to Node.js 16+, no uuid package import needed
 - [02-02]: Agent filecoin list returns empty array (not 404) for agents with no uploads — empty is valid state
 - [02-02]: Cache-Control: public, max-age=31536000, immutable on download route — Filecoin content is content-addressed and immutable by CID
+- [03-01]: Use decodeEventLog with iteration (not log index position) to parse Registered event from receipts
+- [03-01]: Separate registeredEventAbi const for event parsing -- keeps ABI fragments minimal and purpose-specific
+- [03-01]: Agent card endpoint uses relative path /api/agents/{id} -- actual domain depends on deployment
 
 ### Pending Todos
 
@@ -79,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20
-Stopped at: Completed 02-02-PLAN.md — Filecoin upload/download/list API routes with DB tracking and immutable cache headers
+Last session: 2026-03-21
+Stopped at: Completed 03-01-PLAN.md — ERC-8004 chain module + agent card/log generators
 Resume file: None

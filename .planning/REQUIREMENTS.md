@@ -34,8 +34,8 @@ Requirements for hackathon submission. Each maps to roadmap phases.
 - [ ] **ID-01**: Agent can register on-chain identity via ERC-8004 IdentityRegistry on Base Sepolia
 - [ ] **ID-02**: Registration mints ERC-721 NFT with agentURI pointing to Filecoin-stored agent card JSON
 - [ ] **ID-03**: Agent profile page shows ERC-8004 registration status and BaseScan link
-- [ ] **ID-04**: agent.json manifest generated per agent (name, operator wallet, ERC-8004 identity, tools, task categories)
-- [ ] **ID-05**: agent_log.json structured execution logs generated per agent (decisions, tool calls, retries, failures, outputs)
+- [x] **ID-04**: agent.json manifest generated per agent (name, operator wallet, ERC-8004 identity, tools, task categories)
+- [x] **ID-05**: agent_log.json structured execution logs generated per agent (decisions, tool calls, retries, failures, outputs)
 - [ ] **ID-06**: ERC-8004 Reputation Registry used to record agent feedback/ratings
 
 ### Agent Tokens
@@ -147,8 +147,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ID-01 | Phase 3 | Pending |
 | ID-02 | Phase 3 | Pending |
 | ID-03 | Phase 3 | Pending |
-| ID-04 | Phase 3 | Pending |
-| ID-05 | Phase 3 | Pending |
+| ID-04 | Phase 3 | Complete |
+| ID-05 | Phase 3 | Complete |
 | ID-06 | Phase 3 | Pending |
 | TOK-01 | Phase 4 | Pending |
 | TOK-02 | Phase 4 | Pending |
