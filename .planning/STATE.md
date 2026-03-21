@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 ## Current Position
 
 Phase: 3 of 8 (ERC-8004 Identity)
-Plan: 1 of 3 in current phase
-Status: In progress
-Last activity: 2026-03-21 — Completed 03-01: ERC-8004 chain module + agent card/log generators
+Plan: 3 of 3 in current phase
+Status: Phase 3 complete
+Last activity: 2026-03-21 — Completed 03-03: ERC-8004 profile UI components
 
-Progress: [██████░░░░] ~33%
+Progress: [████████░░] ~42%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 7
 - Average duration: 4min
-- Total execution time: 0.28 hours
+- Total execution time: 0.43 hours
 
 **By Phase:**
 
@@ -29,13 +29,14 @@ Progress: [██████░░░░] ~33%
 |-------|-------|-------|----------|
 | 01-foundation | 3 | 9min | 3min |
 | 02-filecoin-storage | 2 | 14min | 7min |
-| 03-erc-8004-identity | 1 | 2min | 2min |
+| 03-erc-8004-identity | 3 | 11min | 4min |
 
 **Recent Trend:**
 - Last 5 plans: 4min, 2min, 6min, 2min
 - Trend: Normal
 
 *Updated after each plan completion*
+| Phase 03 P03 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,11 @@ Recent decisions affecting current work:
 - [03-01]: Use decodeEventLog with iteration (not log index position) to parse Registered event from receipts
 - [03-01]: Separate registeredEventAbi const for event parsing -- keeps ABI fragments minimal and purpose-specific
 - [03-01]: Agent card endpoint uses relative path /api/agents/{id} -- actual domain depends on deployment
+- [03-02]: Import uploadToFilecoin directly (server-side) instead of HTTP fetch to /api/chain/upload -- avoids unnecessary round-trip
+- [03-02]: Registration idempotency uses erc8004_token_id presence check -- returns 200 with existing info instead of re-registering
+- [03-02]: Feedback value validated as integer 1-10 with defaults for tag1 (quality) and tag2 (agent.service_type or general)
+- [03-03]: Use local useState to track registration result instead of refetching agent data
+- [03-03]: ReputationCard returns null when tokenId is null -- no empty card for unregistered agents
 
 ### Pending Todos
 
@@ -84,5 +90,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Completed 03-01-PLAN.md — ERC-8004 chain module + agent card/log generators
+Stopped at: Completed 03-03-PLAN.md — ERC-8004 profile UI components (Phase 3 complete)
 Resume file: None
