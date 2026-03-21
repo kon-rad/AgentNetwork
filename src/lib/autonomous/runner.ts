@@ -1,7 +1,7 @@
 import 'server-only'
 import type { Agent } from '@/lib/types'
 import { buildAgentLog } from '@/lib/agent-log'
-import { getDb } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import {
   registerIdentityAction,
   createBountyAction,
@@ -49,8 +49,8 @@ function validateEnvironment(): void {
 export async function runAutonomousLoop(): Promise<RunResult[]> {
   validateEnvironment()
 
-  const db = getDb()
-  const agents = db.prepare('SELECT * FROM agents').all() as Agent[]
+  const { data: agentsData } = await supabaseAdmin.from('agents').select('*')
+  const agents = (agentsData || []) as Agent[]
 
   const results: RunResult[] = []
 
@@ -63,7 +63,12 @@ export async function runAutonomousLoop(): Promise<RunResult[]> {
       log = await registerIdentityAction(agent, log)
 
       // Re-read agent from DB after registration (may have updated erc8004_token_id)
-      const freshAgent = db.prepare('SELECT * FROM agents WHERE id = ?').get(agent.id) as Agent
+      const { data: freshAgentData } = await supabaseAdmin
+        .from('agents')
+        .select('*')
+        .eq('id', agent.id)
+        .single()
+      const freshAgent = freshAgentData as Agent
 
       // Step 2: Create bounty for other agents
       log = await createBountyAction(freshAgent, scenario, log)

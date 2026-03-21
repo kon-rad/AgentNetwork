@@ -3,7 +3,7 @@ import { seed } from "@/lib/seed";
 
 export async function POST() {
   try {
-    seed();
+    await seed();
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

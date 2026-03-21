@@ -1,6 +1,6 @@
 import { deployCollection, mintPostNFT } from '@/lib/chain/nft'
 import { uploadToFilecoin } from '@/lib/chain/filecoin'
-import { getDb } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 
 export async function POST(req: Request): Promise<Response> {
   try {
@@ -14,35 +14,29 @@ export async function POST(req: Request): Promise<Response> {
       )
     }
 
-    const db = getDb()
-
     // Look up post with agent join
-    const post = db
-      .prepare(
-        `SELECT p.id, p.content, p.nft_contract, p.nft_token_id, p.agent_id,
-                a.id AS agent_id_joined, a.display_name, a.wallet_address,
-                a.service_type, a.nft_collection_address
-         FROM posts p
-         JOIN agents a ON p.agent_id = a.id
-         WHERE p.id = ?`,
-      )
-      .get(postId) as
-      | {
-          id: string
-          content: string
-          nft_contract: string | null
-          nft_token_id: string | null
-          agent_id: string
-          agent_id_joined: string
-          display_name: string
-          wallet_address: string
-          service_type: string | null
-          nft_collection_address: string | null
-        }
-      | undefined
+    const { data: post, error: postError } = await supabaseAdmin
+      .from('posts')
+      .select('id, content, nft_contract, nft_token_id, agent_id, agents!posts_agent_id_fkey(id, display_name, wallet_address, service_type, nft_collection_address)')
+      .eq('id', postId)
+      .maybeSingle()
 
-    if (!post) {
+    if (postError || !post) {
       return Response.json({ error: 'Post not found' }, { status: 404 })
+    }
+
+    const agentData = (post as typeof post & {
+      agents: {
+        id: string
+        display_name: string
+        wallet_address: string
+        service_type: string | null
+        nft_collection_address: string | null
+      } | null
+    }).agents
+
+    if (!agentData) {
+      return Response.json({ error: 'Post agent not found' }, { status: 404 })
     }
 
     // Idempotent: if post already has an NFT, return existing data
@@ -58,22 +52,24 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     // Deploy collection if agent doesn't have one yet
-    let collectionAddress = post.nft_collection_address
+    let collectionAddress = agentData.nft_collection_address
     if (!collectionAddress) {
-      const deployResult = await deployCollection(post.display_name)
+      const deployResult = await deployCollection(agentData.display_name)
       collectionAddress = deployResult.contractAddress
-      db.prepare('UPDATE agents SET nft_collection_address = ?, updated_at = datetime(?) WHERE id = ?')
-        .run(collectionAddress, new Date().toISOString(), post.agent_id)
+      await supabaseAdmin
+        .from('agents')
+        .update({ nft_collection_address: collectionAddress, updated_at: new Date().toISOString() })
+        .eq('id', post.agent_id)
     }
 
     // Build ERC-721 metadata JSON
     const metadata = {
-      name: `Post by ${post.display_name}`,
+      name: `Post by ${agentData.display_name}`,
       description: post.content,
       external_url: `/agent/${post.agent_id}`,
       attributes: [
-        { trait_type: 'Agent', value: post.display_name },
-        { trait_type: 'Service Type', value: post.service_type || 'general' },
+        { trait_type: 'Agent', value: agentData.display_name },
+        { trait_type: 'Service Type', value: agentData.service_type || 'general' },
       ],
     }
 
@@ -93,28 +89,30 @@ export async function POST(req: Request): Promise<Response> {
     // Mint NFT with tokenURI pointing to Filecoin CDN retrieval URL
     const mintResult = await mintPostNFT({
       collectionAddress,
-      toAddress: post.wallet_address,
+      toAddress: agentData.wallet_address,
       tokenUri: filResult.retrievalUrl,
     })
 
     // Update post with NFT data
-    db.prepare(
-      'UPDATE posts SET nft_contract = ?, nft_token_id = ?, filecoin_cid = ? WHERE id = ?',
-    ).run(collectionAddress, mintResult.tokenId, filResult.pieceCid, postId)
+    await supabaseAdmin
+      .from('posts')
+      .update({
+        nft_contract: collectionAddress,
+        nft_token_id: mintResult.tokenId,
+        filecoin_cid: filResult.pieceCid,
+      })
+      .eq('id', postId)
 
     // Record in filecoin_uploads table
     const uploadId = crypto.randomUUID()
-    db.prepare(
-      `INSERT INTO filecoin_uploads (id, agent_id, upload_type, piece_cid, retrieval_url, name)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    ).run(
-      uploadId,
-      post.agent_id,
-      'nft_metadata',
-      filResult.pieceCid,
-      filResult.retrievalUrl,
-      `nft_${postId}.json`,
-    )
+    await supabaseAdmin.from('filecoin_uploads').insert({
+      id: uploadId,
+      agent_id: post.agent_id,
+      upload_type: 'nft_metadata',
+      piece_cid: filResult.pieceCid,
+      retrieval_url: filResult.retrievalUrl,
+      name: `nft_${postId}.json`,
+    })
 
     return Response.json(
       {

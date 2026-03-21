@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getDb } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { deployAgentToken } from '@/lib/chain/clanker'
 
 export async function POST(request: NextRequest) {
@@ -15,17 +15,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'agentId is required' }, { status: 400 })
   }
 
-  const db = getDb()
+  const { data: agent, error: fetchError } = await supabaseAdmin
+    .from('agents')
+    .select('id, display_name, token_symbol, token_address')
+    .eq('id', agentId)
+    .maybeSingle()
 
-  const agent = db
-    .prepare(
-      'SELECT id, display_name, token_symbol, token_address FROM agents WHERE id = ?',
-    )
-    .get(agentId) as
-    | { id: string; display_name: string; token_symbol: string | null; token_address: string | null }
-    | undefined
-
-  if (!agent) {
+  if (fetchError || !agent) {
     return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
   }
 
@@ -54,9 +50,10 @@ export async function POST(request: NextRequest) {
       agent.token_symbol,
     )
 
-    db.prepare(
-      "UPDATE agents SET token_address = ?, updated_at = datetime('now') WHERE id = ?",
-    ).run(tokenAddress, agent.id)
+    await supabaseAdmin
+      .from('agents')
+      .update({ token_address: tokenAddress, updated_at: new Date().toISOString() })
+      .eq('id', agent.id)
 
     return NextResponse.json({
       agentId: agent.id,

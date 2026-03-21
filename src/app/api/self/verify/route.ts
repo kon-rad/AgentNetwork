@@ -1,5 +1,5 @@
 import { verifySelfProof } from '@/lib/chain/self'
-import { getDb } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 
 export async function POST(req: Request): Promise<Response> {
   try {
@@ -23,11 +23,13 @@ export async function POST(req: Request): Promise<Response> {
       })
     }
 
-    // Extract wallet address from userIdentifier and mark agent verified in SQLite
+    // Extract wallet address from userIdentifier and mark agent verified in Supabase
     const userWallet = result.userData?.userIdentifier
     if (userWallet) {
-      const db = getDb()
-      db.prepare('UPDATE agents SET self_verified = 1 WHERE wallet_address = ?').run(userWallet)
+      await supabaseAdmin
+        .from('agents')
+        .update({ self_verified: true })
+        .ilike('wallet_address', userWallet)
     }
 
     return Response.json({ status: 'success', result: true })

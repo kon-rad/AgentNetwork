@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server'
-import { getDb } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { deployAgentToken } from '@/lib/chain/clanker'
 
 export async function POST() {
-  const db = getDb()
+  const { data: agents, error } = await supabaseAdmin
+    .from('agents')
+    .select('id, display_name, token_symbol')
+    .is('token_address', null)
+    .not('token_symbol', 'is', null)
 
-  const agents = db
-    .prepare(
-      'SELECT id, display_name, token_symbol FROM agents WHERE token_address IS NULL AND token_symbol IS NOT NULL',
-    )
-    .all() as Array<{ id: string; display_name: string; token_symbol: string }>
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 
-  if (agents.length === 0) {
+  if (!agents || agents.length === 0) {
     return NextResponse.json({
       deployed: [],
       failed: [],
@@ -38,16 +40,17 @@ export async function POST() {
     try {
       const { tokenAddress, txHash } = await deployAgentToken(
         `${agent.display_name} Token`,
-        agent.token_symbol,
+        agent.token_symbol!,
       )
 
-      db.prepare(
-        "UPDATE agents SET token_address = ?, updated_at = datetime('now') WHERE id = ?",
-      ).run(tokenAddress, agent.id)
+      await supabaseAdmin
+        .from('agents')
+        .update({ token_address: tokenAddress, updated_at: new Date().toISOString() })
+        .eq('id', agent.id)
 
       deployed.push({
         agentId: agent.id,
-        symbol: agent.token_symbol,
+        symbol: agent.token_symbol!,
         tokenAddress,
         txHash,
         success: true,
@@ -55,7 +58,7 @@ export async function POST() {
     } catch (error) {
       failed.push({
         agentId: agent.id,
-        symbol: agent.token_symbol,
+        symbol: agent.token_symbol!,
         error: String(error),
         success: false,
       })

@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { verifyAuth, isAuthError, requireAgentOwnership } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   const auth = await verifyAuth(req);
   if (isAuthError(auth)) return auth;
 
-  const db = getDb();
   const { follower_id, follower_type, following_id } = await req.json();
 
   if (!follower_id || !following_id) {
@@ -15,33 +14,60 @@ export async function POST(req: NextRequest) {
 
   // If following as an agent, verify ownership
   if (follower_type === "agent") {
-    const ownershipError = requireAgentOwnership(auth, follower_id);
+    const ownershipError = await requireAgentOwnership(auth, follower_id);
     if (ownershipError) return ownershipError;
   }
 
-  try {
-    db.prepare(`
-      INSERT INTO follows (follower_id, follower_type, following_id)
-      VALUES (?, ?, ?)
-    `).run(follower_id, follower_type || "user", following_id);
+  // Check if already following (composite PK)
+  const { data: existing } = await supabaseAdmin
+    .from("follows")
+    .select("follower_id")
+    .eq("follower_id", follower_id)
+    .eq("following_id", following_id)
+    .maybeSingle();
 
-    db.prepare("UPDATE agents SET follower_count = follower_count + 1 WHERE id = ?").run(following_id);
-
-    return NextResponse.json({ ok: true }, { status: 201 });
-  } catch {
+  if (existing) {
     return NextResponse.json({ error: "Already following" }, { status: 409 });
   }
+
+  const { error: insertError } = await supabaseAdmin.from("follows").insert({
+    follower_id,
+    follower_type: follower_type || "user",
+    following_id,
+  });
+
+  if (insertError) {
+    return NextResponse.json({ error: "Already following" }, { status: 409 });
+  }
+
+  // Increment follower_count on the followed agent
+  const { data: agent } = await supabaseAdmin
+    .from("agents")
+    .select("follower_count")
+    .eq("id", following_id)
+    .single();
+
+  await supabaseAdmin
+    .from("agents")
+    .update({ follower_count: (agent?.follower_count ?? 0) + 1 })
+    .eq("id", following_id);
+
+  return NextResponse.json({ ok: true }, { status: 201 });
 }
 
 export async function DELETE(req: NextRequest) {
   const auth = await verifyAuth(req);
   if (isAuthError(auth)) return auth;
 
-  const db = getDb();
   const { follower_id, following_id } = await req.json();
 
   // Verify the follower belongs to the authenticated wallet
-  const agent = db.prepare("SELECT wallet_address FROM agents WHERE id = ?").get(follower_id) as { wallet_address: string } | undefined;
+  const { data: agent } = await supabaseAdmin
+    .from("agents")
+    .select("wallet_address")
+    .eq("id", follower_id)
+    .maybeSingle();
+
   if (agent && agent.wallet_address.toLowerCase() !== auth.walletAddress) {
     return NextResponse.json(
       { error: "Forbidden: wallet does not own this agent" },
@@ -49,10 +75,26 @@ export async function DELETE(req: NextRequest) {
     );
   }
 
-  const result = db.prepare("DELETE FROM follows WHERE follower_id = ? AND following_id = ?").run(follower_id, following_id);
+  const { data: deleted } = await supabaseAdmin
+    .from("follows")
+    .delete()
+    .eq("follower_id", follower_id)
+    .eq("following_id", following_id)
+    .select();
 
-  if (result.changes > 0) {
-    db.prepare("UPDATE agents SET follower_count = MAX(0, follower_count - 1) WHERE id = ?").run(following_id);
+  if (deleted && deleted.length > 0) {
+    // Decrement follower_count, floor at 0
+    const { data: followedAgent } = await supabaseAdmin
+      .from("agents")
+      .select("follower_count")
+      .eq("id", following_id)
+      .single();
+
+    const newCount = Math.max(0, (followedAgent?.follower_count ?? 1) - 1);
+    await supabaseAdmin
+      .from("agents")
+      .update({ follower_count: newCount })
+      .eq("id", following_id);
   }
 
   return NextResponse.json({ ok: true });

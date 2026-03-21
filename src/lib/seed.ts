@@ -1,4 +1,4 @@
-import { getDb } from "./db";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { v4 as uuid } from "uuid";
 
 const SEED_AGENTS = [
@@ -136,82 +136,89 @@ const SEED_BOUNTIES = [
   },
 ];
 
-export function seed() {
-  const db = getDb();
+export async function seed() {
+  const { data: existingAgents } = await supabaseAdmin
+    .from("agents")
+    .select("id", { count: "exact", head: true });
 
-  const agentCount = db.prepare("SELECT COUNT(*) as count FROM agents").get() as { count: number };
-  if (agentCount.count > 0) {
+  // existingAgents is null when using head:true, check count differently
+  const { count } = await supabaseAdmin
+    .from("agents")
+    .select("*", { count: "exact", head: true });
+
+  if (count && count > 0) {
     console.log("Database already seeded, skipping.");
     return;
   }
 
   console.log("Seeding database...");
 
-  const insertAgent = db.prepare(`
-    INSERT INTO agents (id, display_name, avatar_url, bio, service_type, services_offered, wallet_address, token_symbol, follower_count, following_count)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  const insertPost = db.prepare(`
-    INSERT INTO posts (id, agent_id, content, media_type, created_at)
-    VALUES (?, ?, ?, ?, datetime('now', ?))
-  `);
-
-  const insertBounty = db.prepare(`
-    INSERT INTO bounties (id, creator_id, creator_type, title, description, reward_amount, reward_token, required_service_type, status, claimed_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  const insertFollow = db.prepare(`
-    INSERT INTO follows (follower_id, follower_type, following_id)
-    VALUES (?, ?, ?)
-  `);
-
   const agentIds: string[] = [];
 
-  const tx = db.transaction(() => {
-    // Insert agents
-    for (const agent of SEED_AGENTS) {
-      const id = uuid();
-      agentIds.push(id);
-      const followers = Math.floor(Math.random() * 500) + 50;
-      const following = Math.floor(Math.random() * 10) + 1;
-      insertAgent.run(
-        id, agent.display_name, agent.avatar_url, agent.bio,
-        agent.service_type, agent.services_offered, agent.wallet_address,
-        agent.token_symbol, followers, following
-      );
-    }
+  // Insert agents
+  for (const agent of SEED_AGENTS) {
+    const id = uuid();
+    agentIds.push(id);
+    const followers = Math.floor(Math.random() * 500) + 50;
+    const following = Math.floor(Math.random() * 10) + 1;
+    await supabaseAdmin.from("agents").insert({
+      id,
+      display_name: agent.display_name,
+      avatar_url: agent.avatar_url,
+      bio: agent.bio,
+      service_type: agent.service_type,
+      services_offered: agent.services_offered,
+      wallet_address: agent.wallet_address,
+      token_symbol: agent.token_symbol,
+      follower_count: followers,
+      following_count: following,
+    });
+  }
 
-    // Insert posts with staggered timestamps
-    for (let i = 0; i < SEED_POSTS.length; i++) {
-      const post = SEED_POSTS[i];
-      const agentId = agentIds[post.agent_index];
-      const hoursAgo = `-${(SEED_POSTS.length - i) * 3} hours`;
-      insertPost.run(uuid(), agentId, post.content, post.media_type, hoursAgo);
-    }
+  // Insert posts with staggered timestamps
+  for (let i = 0; i < SEED_POSTS.length; i++) {
+    const post = SEED_POSTS[i];
+    const agentId = agentIds[post.agent_index];
+    const hoursAgo = new Date(Date.now() - (SEED_POSTS.length - i) * 3 * 60 * 60 * 1000).toISOString();
+    await supabaseAdmin.from("posts").insert({
+      id: uuid(),
+      agent_id: agentId,
+      content: post.content,
+      media_type: post.media_type,
+      created_at: hoursAgo,
+    });
+  }
 
-    // Insert bounties
-    for (const bounty of SEED_BOUNTIES) {
-      const creatorId = agentIds[bounty.creator_index];
-      const claimedBy = bounty.status === "claimed" ? agentIds[0] : null;
-      insertBounty.run(
-        uuid(), creatorId, "agent", bounty.title, bounty.description,
-        bounty.reward_amount, bounty.reward_token, bounty.required_service_type,
-        bounty.status, claimedBy
-      );
-    }
+  // Insert bounties
+  for (const bounty of SEED_BOUNTIES) {
+    const creatorId = agentIds[bounty.creator_index];
+    const claimedBy = bounty.status === "claimed" ? agentIds[0] : null;
+    await supabaseAdmin.from("bounties").insert({
+      id: uuid(),
+      creator_id: creatorId,
+      creator_type: "agent",
+      title: bounty.title,
+      description: bounty.description,
+      reward_amount: bounty.reward_amount,
+      reward_token: bounty.reward_token,
+      required_service_type: bounty.required_service_type,
+      status: bounty.status,
+      claimed_by: claimedBy,
+    });
+  }
 
-    // Insert some follow relationships
-    for (let i = 0; i < agentIds.length; i++) {
-      for (let j = 0; j < agentIds.length; j++) {
-        if (i !== j && Math.random() > 0.4) {
-          insertFollow.run(agentIds[i], "agent", agentIds[j]);
-        }
+  // Insert some follow relationships
+  for (let i = 0; i < agentIds.length; i++) {
+    for (let j = 0; j < agentIds.length; j++) {
+      if (i !== j && Math.random() > 0.4) {
+        await supabaseAdmin.from("follows").insert({
+          follower_id: agentIds[i],
+          follower_type: "agent",
+          following_id: agentIds[j],
+        });
       }
     }
-  });
+  }
 
-  tx();
   console.log(`Seeded ${agentIds.length} agents, ${SEED_POSTS.length} posts, ${SEED_BOUNTIES.length} bounties.`);
 }

@@ -1,41 +1,63 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { verifyAuth, isAuthError, requireAgentOwnership } from "@/lib/auth";
 import { v4 as uuid } from "uuid";
 
 export async function GET(req: NextRequest) {
-  const db = getDb();
   const url = req.nextUrl;
   const status = url.searchParams.get("status");
   const serviceType = url.searchParams.get("type");
   const limit = parseInt(url.searchParams.get("limit") || "50");
   const offset = parseInt(url.searchParams.get("offset") || "0");
 
-  let query = `
-    SELECT b.*,
-      c.display_name as creator_display_name,
-      cl.display_name as claimed_by_display_name
-    FROM bounties b
-    LEFT JOIN agents c ON b.creator_id = c.id
-    LEFT JOIN agents cl ON b.claimed_by = cl.id
-    WHERE 1=1
-  `;
-  const params: (string | number)[] = [];
+  // Fetch bounties with creator and claimed_by display names
+  let query = supabaseAdmin
+    .from("bounties")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
   if (status) {
-    query += " AND b.status = ?";
-    params.push(status);
+    query = query.eq("status", status);
   }
   if (serviceType) {
-    query += " AND b.required_service_type = ?";
-    params.push(serviceType);
+    query = query.eq("required_service_type", serviceType);
   }
 
-  query += " ORDER BY b.created_at DESC LIMIT ? OFFSET ?";
-  params.push(limit, offset);
+  const { data: bounties, error } = await query;
 
-  const bounties = db.prepare(query).all(...params);
-  return NextResponse.json(bounties);
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Enrich with creator and claimed_by display names
+  const agentIds = [
+    ...new Set([
+      ...(bounties || []).map((b) => b.creator_id).filter(Boolean),
+      ...(bounties || []).map((b) => b.claimed_by).filter(Boolean),
+    ]),
+  ];
+
+  let agentMap: Record<string, string> = {};
+
+  if (agentIds.length > 0) {
+    const { data: agents } = await supabaseAdmin
+      .from("agents")
+      .select("id, display_name")
+      .in("id", agentIds);
+
+    if (agents) {
+      agentMap = Object.fromEntries(agents.map((a) => [a.id, a.display_name]));
+    }
+  }
+
+  const result = (bounties || []).map((b) => ({
+    ...b,
+    creator_display_name: agentMap[b.creator_id] ?? null,
+    claimed_by_display_name: b.claimed_by ? (agentMap[b.claimed_by] ?? null) : null,
+  }));
+
+  return NextResponse.json(result);
 }
 
 export async function POST(req: NextRequest) {
@@ -46,27 +68,30 @@ export async function POST(req: NextRequest) {
 
   // If creator is an agent, verify ownership
   if (body.creator_type === "agent") {
-    const ownershipError = requireAgentOwnership(auth, body.creator_id);
+    const ownershipError = await requireAgentOwnership(auth, body.creator_id);
     if (ownershipError) return ownershipError;
   }
 
-  const db = getDb();
   const id = uuid();
 
-  db.prepare(`
-    INSERT INTO bounties (id, creator_id, creator_type, title, description, reward_amount, reward_token, required_service_type)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    id,
-    body.creator_id,
-    body.creator_type || "user",
-    body.title,
-    body.description,
-    body.reward_amount || null,
-    body.reward_token || null,
-    body.required_service_type || null,
-  );
+  const { data: bounty, error } = await supabaseAdmin
+    .from("bounties")
+    .insert({
+      id,
+      creator_id: body.creator_id,
+      creator_type: body.creator_type || "user",
+      title: body.title,
+      description: body.description,
+      reward_amount: body.reward_amount || null,
+      reward_token: body.reward_token || null,
+      required_service_type: body.required_service_type || null,
+    })
+    .select()
+    .single();
 
-  const bounty = db.prepare("SELECT * FROM bounties WHERE id = ?").get(id);
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
   return NextResponse.json(bounty, { status: 201 });
 }

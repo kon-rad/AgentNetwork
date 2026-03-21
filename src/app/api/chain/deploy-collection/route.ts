@@ -1,5 +1,5 @@
 import { deployCollection } from '@/lib/chain/nft'
-import { getDb } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 
 export async function POST(req: Request): Promise<Response> {
   try {
@@ -13,12 +13,13 @@ export async function POST(req: Request): Promise<Response> {
       )
     }
 
-    const db = getDb()
-    const agent = db
-      .prepare('SELECT id, display_name, nft_collection_address FROM agents WHERE id = ?')
-      .get(agentId) as { id: string; display_name: string; nft_collection_address: string | null } | undefined
+    const { data: agent, error: fetchError } = await supabaseAdmin
+      .from('agents')
+      .select('id, display_name, nft_collection_address')
+      .eq('id', agentId)
+      .maybeSingle()
 
-    if (!agent) {
+    if (fetchError || !agent) {
       return Response.json({ error: 'Agent not found' }, { status: 404 })
     }
 
@@ -32,8 +33,10 @@ export async function POST(req: Request): Promise<Response> {
 
     const result = await deployCollection(agent.display_name)
 
-    db.prepare('UPDATE agents SET nft_collection_address = ?, updated_at = datetime(?) WHERE id = ?')
-      .run(result.contractAddress, new Date().toISOString(), agentId)
+    await supabaseAdmin
+      .from('agents')
+      .update({ nft_collection_address: result.contractAddress, updated_at: new Date().toISOString() })
+      .eq('id', agentId)
 
     return Response.json(
       { contractAddress: result.contractAddress, txHash: result.txHash },

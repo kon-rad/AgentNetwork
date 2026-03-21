@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { verifyAuth, isAuthError } from "@/lib/auth";
 import { transferUsdc } from "@/lib/chain/usdc";
 
@@ -24,23 +24,38 @@ export async function PUT(
   const auth = await verifyAuth(req);
   if (isAuthError(auth)) return auth;
 
-  const db = getDb();
   const { deliverable_url } = await req.json();
 
-  const bounty = db.prepare("SELECT * FROM bounties WHERE id = ?").get(id) as BountyRow | undefined;
-  if (!bounty) {
+  const { data: bounty, error: fetchError } = await supabaseAdmin
+    .from("bounties")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (fetchError || !bounty) {
     return NextResponse.json({ error: "Bounty not found" }, { status: 404 });
   }
-  if (bounty.status !== "claimed") {
+
+  const typedBounty = bounty as BountyRow;
+
+  if (typedBounty.status !== "claimed") {
     return NextResponse.json({ error: "Bounty must be claimed first" }, { status: 400 });
   }
 
   // Only the agent who claimed this bounty can complete it
-  const claimingAgent = db.prepare("SELECT id, wallet_address FROM agents WHERE id = ?").get(bounty.claimed_by) as AgentRow | undefined;
+  const { data: claimingAgent } = await supabaseAdmin
+    .from("agents")
+    .select("id, wallet_address")
+    .eq("id", typedBounty.claimed_by!)
+    .maybeSingle();
+
   if (!claimingAgent) {
     return NextResponse.json({ error: "Claiming agent not found" }, { status: 404 });
   }
-  if (claimingAgent.wallet_address.toLowerCase() !== auth.walletAddress) {
+
+  const typedAgent = claimingAgent as AgentRow;
+
+  if (typedAgent.wallet_address.toLowerCase() !== auth.walletAddress) {
     return NextResponse.json(
       { error: "Forbidden: only the claiming agent can complete this bounty" },
       { status: 403 },
@@ -48,36 +63,53 @@ export async function PUT(
   }
 
   // If reward is zero or null, complete without payment
-  const hasReward = bounty.reward_amount && bounty.reward_amount !== "0";
+  const hasReward = typedBounty.reward_amount && typedBounty.reward_amount !== "0";
 
   if (!hasReward) {
-    db.prepare(`
-      UPDATE bounties SET status = 'completed', deliverable_url = ?, completed_at = datetime('now')
-      WHERE id = ?
-    `).run(deliverable_url || null, id);
+    const { data: updated } = await supabaseAdmin
+      .from("bounties")
+      .update({
+        status: "completed",
+        deliverable_url: deliverable_url || null,
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select()
+      .single();
 
-    const updated = db.prepare("SELECT * FROM bounties WHERE id = ?").get(id);
     return NextResponse.json(updated);
   }
 
   // Set pending_payment before attempting transfer
-  db.prepare("UPDATE bounties SET status = 'pending_payment' WHERE id = ?").run(id);
+  await supabaseAdmin
+    .from("bounties")
+    .update({ status: "pending_payment" })
+    .eq("id", id);
 
   try {
     const txHash = await transferUsdc(
-      claimingAgent.wallet_address as `0x${string}`,
-      bounty.reward_amount!,
+      typedAgent.wallet_address as `0x${string}`,
+      typedBounty.reward_amount!,
     );
 
-    db.prepare(`
-      UPDATE bounties SET status = 'completed', tx_hash = ?, deliverable_url = ?, completed_at = datetime('now')
-      WHERE id = ?
-    `).run(txHash, deliverable_url || null, id);
+    const { data: updated } = await supabaseAdmin
+      .from("bounties")
+      .update({
+        status: "completed",
+        tx_hash: txHash,
+        deliverable_url: deliverable_url || null,
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select()
+      .single();
 
-    const updated = db.prepare("SELECT * FROM bounties WHERE id = ?").get(id);
     return NextResponse.json(updated);
   } catch (err) {
-    db.prepare("UPDATE bounties SET status = 'payment_failed' WHERE id = ?").run(id);
+    await supabaseAdmin
+      .from("bounties")
+      .update({ status: "payment_failed" })
+      .eq("id", id);
 
     const message = err instanceof Error ? err.message : "USDC transfer failed";
     return NextResponse.json(

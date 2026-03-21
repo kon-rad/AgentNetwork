@@ -1,5 +1,5 @@
 import { uploadToFilecoin } from '@/lib/chain/filecoin'
-import { getDb } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { FilecoinUploadType } from '@/types/filecoin'
 
 const VALID_TYPES: FilecoinUploadType[] = ['agent_card', 'agent_log', 'nft_metadata']
@@ -42,18 +42,20 @@ export async function POST(req: Request): Promise<Response> {
     const fileName =
       name && typeof name === 'string' ? name : `${uploadType}_${agentId}.json`
 
-    const db = getDb()
-
     // For agent_card: check if this agent already has an agent_card upload (log replacement)
     if (uploadType === 'agent_card') {
-      const existing = db
-        .prepare(
-          `SELECT id, piece_cid FROM filecoin_uploads WHERE agent_id = ? AND upload_type = 'agent_card' ORDER BY created_at DESC LIMIT 1`,
-        )
-        .get(agentId)
+      const { data: existing } = await supabaseAdmin
+        .from('filecoin_uploads')
+        .select('piece_cid')
+        .eq('agent_id', agentId)
+        .eq('upload_type', 'agent_card')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
       if (existing) {
         console.log(
-          `[filecoin] Replacing existing agent_card for agent ${agentId} (previous CID: ${(existing as { piece_cid: string }).piece_cid})`,
+          `[filecoin] Replacing existing agent_card for agent ${agentId} (previous CID: ${existing.piece_cid})`,
         )
       }
     }
@@ -63,10 +65,19 @@ export async function POST(req: Request): Promise<Response> {
 
     const id = crypto.randomUUID()
 
-    db.prepare(
-      `INSERT INTO filecoin_uploads (id, agent_id, upload_type, piece_cid, retrieval_url, name)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    ).run(id, agentId, uploadType, result.pieceCid, result.retrievalUrl, fileName)
+    const { error: insertError } = await supabaseAdmin.from('filecoin_uploads').insert({
+      id,
+      agent_id: agentId,
+      upload_type: uploadType,
+      piece_cid: result.pieceCid,
+      retrieval_url: result.retrievalUrl,
+      name: fileName,
+    })
+
+    if (insertError) {
+      console.error('[filecoin upload] DB insert error:', insertError.message)
+      return Response.json({ error: 'Failed to record upload', details: insertError.message }, { status: 500 })
+    }
 
     return Response.json(
       {

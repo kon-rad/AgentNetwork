@@ -6,7 +6,7 @@ import { uploadToFilecoin } from '@/lib/chain/filecoin'
 import { registerAgent } from '@/lib/chain/erc8004'
 import { deployCollection, mintPostNFT } from '@/lib/chain/nft'
 import { transferUsdc } from '@/lib/chain/usdc'
-import { getDb } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { AgentScenario } from './demo-scenarios'
 
 /**
@@ -30,9 +30,10 @@ export async function registerIdentityAction(
     const filResult = await uploadToFilecoin(card, `agent_card_${agent.id}.json`)
     const { agentId, txHash } = await registerAgent(filResult.retrievalUrl)
 
-    const db = getDb()
-    db.prepare('UPDATE agents SET erc8004_token_id = ?, updated_at = datetime(?) WHERE id = ?')
-      .run(agentId.toString(), new Date().toISOString(), agent.id)
+    await supabaseAdmin
+      .from('agents')
+      .update({ erc8004_token_id: agentId.toString(), updated_at: new Date().toISOString() })
+      .eq('id', agent.id)
 
     return addLogEntry(log, {
       action: 'register_identity',
@@ -58,11 +59,12 @@ export async function createBountyAction(
   scenario: AgentScenario,
   log: AgentLog,
 ): Promise<AgentLog> {
-  const db = getDb()
-
-  const existing = db
-    .prepare('SELECT id FROM bounties WHERE creator_id = ? AND title = ?')
-    .get(agent.id, scenario.bountyToCreate.title) as { id: string } | undefined
+  const { data: existing } = await supabaseAdmin
+    .from('bounties')
+    .select('id')
+    .eq('creator_id', agent.id)
+    .eq('title', scenario.bountyToCreate.title)
+    .maybeSingle()
 
   if (existing) {
     return addLogEntry(log, {
@@ -74,17 +76,17 @@ export async function createBountyAction(
 
   try {
     const bountyId = crypto.randomUUID()
-    db.prepare(
-      `INSERT INTO bounties (id, creator_id, creator_type, title, description, reward_amount, reward_token, required_service_type, status)
-       VALUES (?, ?, 'agent', ?, ?, ?, 'USDC', ?, 'open')`,
-    ).run(
-      bountyId,
-      agent.id,
-      scenario.bountyToCreate.title,
-      scenario.bountyToCreate.description,
-      scenario.bountyToCreate.reward_amount,
-      scenario.bountyToCreate.required_service_type,
-    )
+    await supabaseAdmin.from('bounties').insert({
+      id: bountyId,
+      creator_id: agent.id,
+      creator_type: 'agent',
+      title: scenario.bountyToCreate.title,
+      description: scenario.bountyToCreate.description,
+      reward_amount: scenario.bountyToCreate.reward_amount,
+      reward_token: 'USDC',
+      required_service_type: scenario.bountyToCreate.required_service_type,
+      status: 'open',
+    })
 
     return addLogEntry(log, {
       action: 'create_bounty',
@@ -109,13 +111,14 @@ export async function discoverAndClaimBounty(
   agent: Agent,
   log: AgentLog,
 ): Promise<{ log: AgentLog; bountyId: string | null }> {
-  const db = getDb()
-
-  const bounty = db
-    .prepare(
-      'SELECT id FROM bounties WHERE status = ? AND required_service_type = ? AND creator_id != ? LIMIT 1',
-    )
-    .get('open', agent.service_type, agent.id) as { id: string } | undefined
+  const { data: bounty } = await supabaseAdmin
+    .from('bounties')
+    .select('id')
+    .eq('status', 'open')
+    .eq('required_service_type', agent.service_type!)
+    .neq('creator_id', agent.id)
+    .limit(1)
+    .maybeSingle()
 
   if (!bounty) {
     return {
@@ -135,8 +138,10 @@ export async function discoverAndClaimBounty(
       details: { found: true, bountyId: bounty.id },
     })
 
-    db.prepare('UPDATE bounties SET status = ?, claimed_by = ? WHERE id = ?')
-      .run('claimed', agent.id, bounty.id)
+    await supabaseAdmin
+      .from('bounties')
+      .update({ status: 'claimed', claimed_by: agent.id })
+      .eq('id', bounty.id)
 
     log = addLogEntry(log, {
       action: 'claim_bounty',
@@ -167,13 +172,15 @@ export async function createPostAction(
   content: string,
   log: AgentLog,
 ): Promise<{ log: AgentLog; postId: string }> {
-  const db = getDb()
   const postId = crypto.randomUUID()
 
   try {
-    db.prepare(
-      `INSERT INTO posts (id, agent_id, content, media_type) VALUES (?, ?, ?, 'text')`,
-    ).run(postId, agent.id, content)
+    await supabaseAdmin.from('posts').insert({
+      id: postId,
+      agent_id: agent.id,
+      content,
+      media_type: 'text',
+    })
 
     return {
       log: addLogEntry(log, {
@@ -207,25 +214,27 @@ export async function mintPostNFTAction(
   log: AgentLog,
 ): Promise<AgentLog> {
   try {
-    const db = getDb()
-
     // Deploy collection if needed
     let collectionAddress = agent.nft_collection_address
     if (!collectionAddress) {
       const deployResult = await deployCollection(agent.display_name)
       collectionAddress = deployResult.contractAddress
-      db.prepare('UPDATE agents SET nft_collection_address = ?, updated_at = datetime(?) WHERE id = ?')
-        .run(collectionAddress, new Date().toISOString(), agent.id)
+      await supabaseAdmin
+        .from('agents')
+        .update({ nft_collection_address: collectionAddress, updated_at: new Date().toISOString() })
+        .eq('id', agent.id)
     }
 
     // Build minimal metadata for the NFT
-    const post = db.prepare('SELECT content FROM posts WHERE id = ?').get(postId) as
-      | { content: string }
-      | undefined
+    const { data: postData } = await supabaseAdmin
+      .from('posts')
+      .select('content')
+      .eq('id', postId)
+      .maybeSingle()
 
     const metadata = {
       name: `Post by ${agent.display_name}`,
-      description: post?.content || '',
+      description: postData?.content || '',
       external_url: `/agent/${agent.id}`,
       attributes: [
         { trait_type: 'Agent', value: agent.display_name },
@@ -244,8 +253,14 @@ export async function mintPostNFTAction(
     })
 
     // Update post with NFT data
-    db.prepare('UPDATE posts SET nft_contract = ?, nft_token_id = ?, filecoin_cid = ? WHERE id = ?')
-      .run(collectionAddress, mintResult.tokenId, filResult.pieceCid, postId)
+    await supabaseAdmin
+      .from('posts')
+      .update({
+        nft_contract: collectionAddress,
+        nft_token_id: mintResult.tokenId,
+        filecoin_cid: filResult.pieceCid,
+      })
+      .eq('id', postId)
 
     return addLogEntry(log, {
       action: 'mint_nft',
@@ -270,14 +285,14 @@ export async function completeBountyAction(
   bountyId: string,
   log: AgentLog,
 ): Promise<AgentLog> {
-  const db = getDb()
-
   try {
-    const bounty = db.prepare('SELECT * FROM bounties WHERE id = ?').get(bountyId) as
-      | { id: string; status: string; claimed_by: string | null; reward_amount: string | null }
-      | undefined
+    const { data: bountyData } = await supabaseAdmin
+      .from('bounties')
+      .select('*')
+      .eq('id', bountyId)
+      .maybeSingle()
 
-    if (!bounty || bounty.status !== 'claimed' || bounty.claimed_by !== agent.id) {
+    if (!bountyData || bountyData.status !== 'claimed' || bountyData.claimed_by !== agent.id) {
       return addLogEntry(log, {
         action: 'complete_bounty',
         status: 'failure',
@@ -291,11 +306,11 @@ export async function completeBountyAction(
     let txHash: string | null = null
 
     // Transfer USDC if reward is non-zero
-    if (bounty.reward_amount && bounty.reward_amount !== '0') {
+    if (bountyData.reward_amount && bountyData.reward_amount !== '0') {
       try {
         txHash = await transferUsdc(
           agent.wallet_address as `0x${string}`,
-          bounty.reward_amount,
+          bountyData.reward_amount,
         )
       } catch (payErr) {
         const payMessage = payErr instanceof Error ? payErr.message : String(payErr)
@@ -308,9 +323,15 @@ export async function completeBountyAction(
       }
     }
 
-    db.prepare(
-      `UPDATE bounties SET status = 'completed', tx_hash = ?, deliverable_url = 'Autonomous agent delivery', completed_at = datetime(?) WHERE id = ?`,
-    ).run(txHash, new Date().toISOString(), bountyId)
+    await supabaseAdmin
+      .from('bounties')
+      .update({
+        status: 'completed',
+        tx_hash: txHash,
+        deliverable_url: 'Autonomous agent delivery',
+        completed_at: new Date().toISOString(),
+      })
+      .eq('id', bountyId)
 
     return addLogEntry(log, {
       action: 'complete_bounty',
