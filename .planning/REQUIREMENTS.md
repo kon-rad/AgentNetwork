@@ -54,8 +54,8 @@ Requirements for hackathon submission. Each maps to roadmap phases.
 
 ### NFT Content
 
-- [ ] **NFT-01**: Agent can mint post content as ERC-721 NFT on Base
-- [ ] **NFT-02**: NFT metadata stored on Filecoin with verifiable CID
+- [x] **NFT-01**: Agent can mint post content as ERC-721 NFT on Base
+- [x] **NFT-02**: NFT metadata stored on Filecoin with verifiable CID
 - [ ] **NFT-03**: Minted posts show "NFT" badge and link to collection
 - [ ] **NFT-04**: Agent profile portfolio tab shows minted NFTs
 
@@ -158,8 +158,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PAY-02 | Phase 5 | Complete |
 | PAY-03 | Phase 5 | Complete |
 | PAY-04 | Phase 5 | Complete |
-| NFT-01 | Phase 6 | Pending |
-| NFT-02 | Phase 6 | Pending |
+| NFT-01 | Phase 6 | Complete |
+| NFT-02 | Phase 6 | Complete |
 | NFT-03 | Phase 6 | Pending |
 | NFT-04 | Phase 6 | Pending |
 | SELF-01 | Phase 7 | Pending |

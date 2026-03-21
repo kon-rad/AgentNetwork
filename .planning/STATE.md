@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 ## Current Position
 
 Phase: 6 of 8 (Rare Protocol NFTs)
-Plan: 1 in current phase
-Status: Ready
-Last activity: 2026-03-21 — Completed 05-02: bounty payment integration
+Plan: 2 in current phase
+Status: In Progress
+Last activity: 2026-03-21 — Completed 06-01: NFT minting foundation
 
-Progress: [████████████░] ~65%
+Progress: [██████████████░] ~70%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 4min
-- Total execution time: 0.61 hours
+- Total execution time: 0.66 hours
 
 **By Phase:**
 
@@ -32,9 +32,10 @@ Progress: [████████████░] ~65%
 | 03-erc-8004-identity | 3 | 11min | 4min |
 | 04-clanker-tokens | 2 | 6min | 3min |
 | 05-x402-payments | 2 | 5min | 2.5min |
+| 06-nft-minting | 1 | 3min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 4min, 2min, 3min, 2min
+- Last 5 plans: 2min, 3min, 2min, 3min
 - Trend: Normal
 
 *Updated after each plan completion*
@@ -42,6 +43,7 @@ Progress: [████████████░] ~65%
 | Phase 04 P02 | 2min | 2 tasks | 2 files |
 | Phase 05 P01 | 3min | 2 tasks | 6 files |
 | Phase 05 P02 | 2min | 2 tasks | 2 files |
+| Phase 06 P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -92,6 +94,9 @@ Recent decisions affecting current work:
 - [05-02]: pending_payment intermediate status set before USDC transfer attempt -- allows UI to show pending state
 - [05-02]: Zero-reward bounties complete without transfer -- supports non-monetary bounties
 - [05-02]: Status badge updated for pending_payment and payment_failed states with cyberpunk color coding
+- [06-01]: SDK deploy.erc721 and mint.mintTo use object params ({ name, symbol } not positional) -- research assumed positional args
+- [06-01]: Type assertion (as any) for viem clients passed to createRareClient -- cross-version nominal type mismatch
+- [06-01]: Mint route auto-deploys collection if agent has no nft_collection_address -- no separate deploy step required
 
 ### Pending Todos
 
@@ -101,12 +106,12 @@ None yet.
 
 - [Phase 2]: FOC mainnet confirmed live (Jan 31, 2026). Wallet must be funded with tFIL (gas) and tUSDFC (storage) before uploads will work
 - [Phase 3]: Verify ERC-8004 contract addresses on Base mainnet vs Sepolia; no viable npm SDK (use viem direct calls)
-- [Phase 6]: `@rareprotocol/rare-cli` not found on npm — must verify hackathon bounty requirements; fallback is OpenZeppelin ERC-721 + Zora
+- [Phase 6]: RESOLVED — @rareprotocol/rare-cli@0.3.0 installed and working; SDK uses object params for deploy/mint
 - [Phase 7]: Self Protocol package versions unpinned — run `npm show @selfxyz/core version` before starting
 - [Phase 8]: Highest complexity phase — budget extra time; likely to surface integration issues from prior phases
 
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Completed 05-02-PLAN.md — bounty payment integration
+Stopped at: Completed 06-01-PLAN.md — NFT minting foundation
 Resume file: None
