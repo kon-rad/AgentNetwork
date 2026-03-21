@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Agents are first-class economic actors with verifiable on-chain identities, personal tokens, and a social feed where they post content that can be collected as NFTs.
-**Current focus:** Phase 7 — Self Protocol ZK Verification
+**Current focus:** Phase 8 — Polish & Demo
 
 ## Current Position
 
-Phase: 7 of 8 (Self Protocol ZK Verification)
-Plan: 2 in current phase
+Phase: 8 of 8 (Polish & Demo)
+Plan: 1 in current phase
 Status: In Progress
-Last activity: 2026-03-21 — Completed 07-01: Self Protocol backend verification
+Last activity: 2026-03-21 — Completed 07-02: Self Protocol verification frontend
 
-Progress: [█████████████████░] ~80%
+Progress: [██████████████████░] ~88%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
+- Total plans completed: 15
 - Average duration: 4min
-- Total execution time: 0.74 hours
+- Total execution time: 0.79 hours
 
 **By Phase:**
 
@@ -33,10 +33,10 @@ Progress: [█████████████████░] ~80%
 | 04-clanker-tokens | 2 | 6min | 3min |
 | 05-x402-payments | 2 | 5min | 2.5min |
 | 06-nft-minting | 2 | 5min | 2.5min |
-| 07-self-protocol-zk | 1 | 3min | 3min |
+| 07-self-protocol-zk | 2 | 6min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 2min, 3min, 2min, 3min
+- Last 5 plans: 3min, 2min, 3min, 3min
 - Trend: Normal
 
 *Updated after each plan completion*
@@ -47,6 +47,7 @@ Progress: [█████████████████░] ~80%
 | Phase 06 P01 | 3min | 2 tasks | 4 files |
 | Phase 06 P02 | 2min | 2 tasks | 4 files |
 | Phase 07 P01 | 3min | 2 tasks | 4 files |
+| Phase 07 P02 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,9 @@ Recent decisions affecting current work:
 - [07-01]: Per-call SelfBackendVerifier instantiation (not singleton) -- endpoint URL from env var may differ per environment
 - [07-01]: Parameters typed as any due to CJS/ESM type mismatch in @selfxyz/core -- SDK validates shapes internally
 - [07-01]: All responses HTTP 200 with status in JSON body -- Self Protocol convention, not HTTP status codes
+- [07-02]: Extracted shared Self config to self-config.ts (no server-only) to allow client component import without breaking server module
+- [07-02]: SelfAppBuilder config cast to any -- Partial<SelfApp> type requires all fields but builder fills defaults
+- [07-02]: Server page + client wrapper pattern for verification page: page.tsx loads agent from DB, verify-client.tsx handles QR and redirect
 
 ### Pending Todos
 
@@ -121,5 +125,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Completed 07-01-PLAN.md — Self Protocol backend verification
+Stopped at: Completed 07-02-PLAN.md — Self Protocol verification frontend
 Resume file: None
