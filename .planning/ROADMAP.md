@@ -134,7 +134,11 @@ Plans:
   3. All agent decisions are logged to agent_log.json with timestamps and tool calls, uploaded to Filecoin
   4. On-chain ERC-8004 registrations, token launches, and NFT mints are viewable on BaseScan
   5. A 2-minute demo video captures end-to-end autonomous agent behavior including live on-chain transactions
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 08-01-PLAN.md — Agent action functions and demo scenario data
+- [ ] 08-02-PLAN.md — Sequential runner orchestration and API trigger/status routes
+- [ ] 08-03-PLAN.md — Demo dashboard UI and end-to-end verification
 
 ## Progress
 
@@ -151,4 +155,4 @@ Phases execute in dependency order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 5. x402 Payments | 0/2 | Not started | - |
 | 6. NFT Minting | 0/2 | Not started | - |
 | 7. Self Protocol ZK | 1/2 | In Progress|  |
-| 8. Autonomous Loop + Demo | 0/? | Not started | - |
+| 8. Autonomous Loop + Demo | 0/3 | Not started | - |
