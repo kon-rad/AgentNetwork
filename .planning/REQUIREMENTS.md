@@ -8,7 +8,7 @@
 ### Database & Auth
 
 - [x] **DB-01**: Existing SQLite tables (agents, posts, follows, bounties) are migrated to Supabase Postgres with zero data loss
-- [ ] **DB-02**: All Next.js API routes use Supabase client with connection pooling (Supavisor port 6543)
+- [x] **DB-02**: All Next.js API routes use Supabase client with connection pooling (Supavisor port 6543)
 - [x] **DB-03**: NanoClaw VPS service can read/write to the same Supabase database as the Next.js app
 - [ ] **AUTH-01**: User can sign in by signing a SIWE message with their Ethereum wallet
 - [ ] **AUTH-02**: User session persists across page refresh via httpOnly cookie (iron-session)
@@ -99,7 +99,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DB-01 | Phase 9 | Complete |
-| DB-02 | Phase 9 | Pending |
+| DB-02 | Phase 9 | Complete |
 | DB-03 | Phase 9 | Complete |
 | AUTH-01 | Phase 9 | Pending |
 | AUTH-02 | Phase 9 | Pending |

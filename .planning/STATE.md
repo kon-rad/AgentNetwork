@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 9 of 14 (Foundation Infrastructure)
-Plan: 1 of TBD in current phase
+Plan: 2 of TBD in current phase
 Status: In progress
-Last activity: 2026-03-22 — 09-01 complete (Supabase Postgres migration)
+Last activity: 2026-03-22 — 09-02 complete (All API routes migrated to Supabase; db.ts deleted)
 
-Progress: [████████░░░░░░░░░░░░] ~42% (v1.0 done; 09-01 complete)
+Progress: [████████░░░░░░░░░░░░] ~43% (v1.0 done; 09-01, 09-02 complete)
 
 ## Performance Metrics
 
@@ -53,6 +53,9 @@ Recent decisions affecting v2.0 work:
 - [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
 - [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
 - [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
 
 ### Pending Todos
 
@@ -67,5 +70,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: Completed 09-01-PLAN.md — Supabase Postgres migration done; ready for 09-02 (API route migration)
+Stopped at: Completed 09-02-PLAN.md — All API routes migrated to Supabase, db.ts deleted; ready for 09-03 (SIWE auth)
 Resume file: None
