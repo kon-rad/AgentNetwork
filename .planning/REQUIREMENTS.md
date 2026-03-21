@@ -37,8 +37,8 @@
 - [ ] **NC-05**: WireGuard tunnel encrypts all traffic between Railway (Next.js) and VPS (NanoClaw)
 - [ ] **NC-06**: Shared secret header authenticates requests from Next.js to NanoClaw (defense-in-depth)
 - [ ] **NC-07**: NanoClaw can register new agent groups programmatically when a subscription is purchased
-- [ ] **CICD-01**: Monorepo structure: app/ (Next.js) and agent-server/ (NanoClaw fork) in one repo
-- [ ] **CICD-02**: GitHub Actions deploys app/ changes to Railway automatically
+- [x] **CICD-01**: Monorepo structure: app/ (Next.js) and agent-server/ (NanoClaw fork) in one repo
+- [x] **CICD-02**: GitHub Actions deploys app/ changes to Railway automatically
 - [ ] **CICD-03**: GitHub Actions deploys agent-server/ changes to VPS via SSH
 - [ ] **CICD-04**: Agent container image rebuilds update skills/MCP without restarting the NanoClaw host process
 
@@ -108,8 +108,8 @@
 | OWN-01 | Phase 9 | Complete |
 | OWN-02 | Phase 9 | Complete |
 | OWN-03 | Phase 9 | Complete |
-| CICD-01 | Phase 9 | Pending |
-| CICD-02 | Phase 9 | Pending |
+| CICD-01 | Phase 9 | Complete |
+| CICD-02 | Phase 9 | Complete |
 | NC-01 | Phase 10 | Pending |
 | NC-02 | Phase 10 | Pending |
 | NC-03 | Phase 10 | Pending |

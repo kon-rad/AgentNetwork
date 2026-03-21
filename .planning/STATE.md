@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 9 of 14 (Foundation Infrastructure)
-Plan: 3 of TBD in current phase
-Status: In progress
-Last activity: 2026-03-22 — 09-03 complete (SIWE auth implemented; requireAuth/requireOwnership guards; navbar Sign In)
+Plan: 4 of TBD in current phase
+Status: Checkpoint — awaiting Railway dashboard config + GitHub secrets
+Last activity: 2026-03-22 — 09-04 Task 1 complete (monorepo restructured; pnpm build verified; workflow file created)
 
-Progress: [████████░░░░░░░░░░░░] ~45% (v1.0 done; 09-01, 09-02, 09-03 complete)
+Progress: [████████░░░░░░░░░░░░] ~50% (v1.0 done; 09-01, 09-02, 09-03, 09-04 Task 1 complete)
 
 ## Performance Metrics
 
@@ -38,6 +38,7 @@ Progress: [████████░░░░░░░░░░░░] ~45% (v
 
 *Updated after each plan completion*
 | Phase 09-foundation-infrastructure P03 | 8 | 3 tasks | 17 files |
+| Phase 09-foundation-infrastructure P04 | 15 | 1 tasks | 107 files |
 
 ## Accumulated Context
 
@@ -60,6 +61,9 @@ Recent decisions affecting v2.0 work:
 - [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
 - [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
 - [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
 
 ### Pending Todos
 
@@ -74,5 +78,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: Completed 09-03-PLAN.md — SIWE auth implemented; requireAuth()/requireOwnership() guards ready; navbar Sign In button added; ready for next 09 plan
+Stopped at: Checkpoint in 09-04-PLAN.md Task 2 — monorepo restructure complete (Task 1 committed 844eafb); awaiting user to configure Railway Root Directory + GitHub Secrets for CI/CD
 Resume file: None
