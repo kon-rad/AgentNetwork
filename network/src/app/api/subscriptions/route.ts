@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-shared-secret': process.env.NANOCLAW_SHARED_SECRET!,
+        'x-shared-secret': process.env.NANOCLAW_SECRET!,
       },
       body: JSON.stringify({
         agentId: agent_id,

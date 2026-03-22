@@ -12,7 +12,7 @@ export async function GET(
   if (sessionOrError instanceof Response) return sessionOrError;
 
   const nanoclawUrl = process.env.NANOCLAW_URL;
-  const sharedSecret = process.env.NANOCLAW_SHARED_SECRET;
+  const sharedSecret = process.env.NANOCLAW_SECRET;
 
   if (!nanoclawUrl || !sharedSecret) {
     return NextResponse.json({ error: "NanoClaw not configured" }, { status: 503 });
