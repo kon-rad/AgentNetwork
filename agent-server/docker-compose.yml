@@ -1,0 +1,54 @@
+services:
+  nanoclaw:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - WEBAPP_PORT=3000
+      - WEBAPP_PORT=3000
+      - WEBAPP_SHARED_SECRET=${WEBAPP_SHARED_SECRET}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - ASSISTANT_NAME=${ASSISTANT_NAME:-Andy}
+      - MAX_CONCURRENT_CONTAINERS=${MAX_CONCURRENT_CONTAINERS:-10}
+      - CONTAINER_IMAGE=${CONTAINER_IMAGE:-nanoclaw-agent:latest}
+      - CREDENTIAL_PROXY_PORT=${CREDENTIAL_PROXY_PORT:-3001}
+    volumes:
+      # Persistent data: SQLite DB, per-group workspaces, sessions, IPC
+      - ./data:/app/data
+      - ./groups:/app/groups
+      - ./store:/app/store
+      # Docker socket — NanoClaw spawns per-turn agent containers via Docker daemon
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - internal
+    # Port 3000 (webapp channel) is NOT exposed publicly — Caddy reverse-proxies to it
+    # via the internal Docker network (nanoclaw:3000).
+    # Credential proxy (NC-04): bound to host loopback so per-turn containers reach it
+    # via host.docker.internal:3001. Containers never receive ANTHROPIC_API_KEY directly.
+    ports:
+      - "127.0.0.1:3001:3001"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:

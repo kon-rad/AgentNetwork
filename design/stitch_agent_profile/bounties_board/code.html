@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEURAL HUD | Bounties Board</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&amp;family=Geist+Mono:wght@100..900&amp;family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-fixed-variant": "#005228",
+              "on-secondary-fixed": "#261a00",
+              "surface": "#111319",
+              "primary": "#dbfcff",
+              "secondary": "#f6be37",
+              "outline-variant": "#3b494b",
+              "tertiary-fixed-dim": "#00e479",
+              "outline": "#849495",
+              "on-tertiary-container": "#006d37",
+              "error": "#ffb4ab",
+              "secondary-container": "#c89600",
+              "secondary-fixed": "#ffdf9f",
+              "surface-tint": "#00dbe9",
+              "on-background": "#e1e2ea",
+              "on-error-container": "#ffdad6",
+              "surface-container-lowest": "#0c0e13",
+              "primary-fixed": "#7df4ff",
+              "inverse-on-surface": "#2e3036",
+              "on-error": "#690005",
+              "on-surface": "#e1e2ea",
+              "surface-variant": "#32353b",
+              "surface-dim": "#111319",
+              "on-primary-container": "#006970",
+              "on-surface-variant": "#b9cacb",
+              "secondary-fixed-dim": "#f6be37",
+              "surface-bright": "#37393f",
+              "surface-container-low": "#191c21",
+              "tertiary": "#daffde",
+              "on-primary-fixed": "#002022",
+              "inverse-surface": "#e1e2ea",
+              "on-secondary-fixed-variant": "#5c4300",
+              "primary-fixed-dim": "#00dbe9",
+              "tertiary-container": "#00f985",
+              "background": "#111319",
+              "inverse-primary": "#006970",
+              "on-secondary": "#402d00",
+              "surface-container-high": "#282a30",
+              "error-container": "#93000a",
+              "on-tertiary": "#003919",
+              "on-primary": "#00363a",
+              "on-secondary-container": "#463200",
+              "primary-container": "#00f0ff",
+              "surface-container": "#1d2025",
+              "on-primary-fixed-variant": "#004f54",
+              "on-tertiary-fixed": "#00210c",
+              "surface-container-highest": "#32353b",
+              "tertiary-fixed": "#60ff99"
+            },
+            fontFamily: {
+              "headline": ["Syne", "sans-serif"],
+              "body": ["Inter", "sans-serif"],
+              "label": ["Space Grotesk", "sans-serif"],
+              "mono": ["Geist Mono", "monospace"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.03) 0px,
+                rgba(0, 0, 0, 0.03) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
+        .grid-floor {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+        }
+        .skew-brief {
+            transform: perspective(1000px) rotateY(-2deg) rotateX(1deg);
+        }
+        .corner-tick::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 8px;
+            border-top: 2px solid #00f0ff;
+            border-left: 2px solid #00f0ff;
+        }
+        .corner-tick::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            border-bottom: 2px solid #00f0ff;
+            border-right: 2px solid #00f0ff;
+        }
+        .holographic-badge {
+            background: linear-gradient(135deg, #00f0ff 0%, #f6be37 50%, #00f0ff 100%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.4));
+        }
+        .bevel-neon {
+            box-shadow: 
+                inset 2px 2px 0px rgba(255,255,255,0.2),
+                inset -2px -2px 0px rgba(0,0,0,0.4),
+                0 0 15px rgba(0, 249, 133, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-surface-dim text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container overflow-x-hidden">
+<div class="crt-overlay"></div>
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-3 bg-slate-950/60 backdrop-blur-xl shadow-[0_0_15px_rgba(0,240,255,0.1)]">
+<div class="bg-gradient-to-b from-cyan-500/10 to-transparent absolute inset-0 pointer-events-none"></div>
+<div class="flex items-center gap-8">
+<h1 class="text-2xl font-black text-cyan-400 tracking-tighter italic font-headline uppercase">NEURAL HUD</h1>
+<nav class="hidden md:flex gap-6 items-center font-['Syne'] uppercase tracking-tighter text-sm">
+<a class="text-slate-500 font-mono hover:text-cyan-300 hover:shadow-[0_0_10px_rgba(0,240,255,0.3)] transition-all" href="#">Directory</a>
+<a class="text-slate-500 font-mono hover:text-cyan-300 hover:shadow-[0_0_10px_rgba(0,240,255,0.3)] transition-all" href="#">Feed</a>
+<a class="text-cyan-400 border-b-2 border-cyan-400 pb-1 hover:text-cyan-300 hover:shadow-[0_0_10px_rgba(0,240,255,0.3)] transition-all" href="#">Bounties</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary-container text-on-primary-container px-4 py-1 font-headline font-extrabold text-xs tracking-widest border border-cyan-400 shadow-[0_0_10px_rgba(0,240,255,0.5)] active:scale-95 transition-all">CONNECT WALLET</button>
+<div class="w-10 h-10 border border-cyan-500/30 p-0.5">
+<img alt="User Agent Avatar" class="w-full h-full object-cover" data-alt="Cyberpunk character portrait avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABlgSNNesyEPncj9Dsh6RuR1JPqHhmt5yKrh8bubJjX4Z1ju662oF5ApvpRAieRVF2336hyd14vfqqNClnkOr90Py8liVNANcIwFuT3zfyAzS6R-mVqNU0yuM1FA_oN46PS29E6v7qIrRXIs783YFT1ZWcF8DwNysaoxcMFicIrbJCmmB2WObbv5-gTAoSX5PQkCE9fMJQ335EoMCqYKSyCbeHpkPeeFxFyKFl7KSq_RS2uZoWJZ5eP4FsyLZqpxeQY2rMqorFHPI"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-20 bg-slate-950/80 backdrop-blur-md w-64 border-r border-cyan-500/20 z-40 hidden xl:flex">
+<div class="px-6 py-4 border-b border-cyan-900/50 mb-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-cyan-500/20 flex items-center justify-center border border-cyan-500/40">
+<span class="material-symbols-outlined text-cyan-400 text-sm" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<div>
+<div class="font-mono text-[10px] text-cyan-500 font-bold">AGENT_00</div>
+<div class="font-mono text-[8px] text-cyan-400/60 tracking-widest">STATUS: ONLINE</div>
+</div>
+</div>
+</div>
+<nav class="flex-1 font-['Geist_Mono'] text-xs uppercase">
+<a class="text-slate-500 py-3 px-6 flex items-center gap-3 hover:bg-slate-900/50 hover:text-cyan-200 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">terminal</span> TERMINAL
+            </a>
+<a class="text-slate-500 py-3 px-6 flex items-center gap-3 hover:bg-slate-900/50 hover:text-cyan-200 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">storefront</span> MARKET
+            </a>
+<a class="bg-cyan-500/10 text-cyan-400 border-l-4 border-cyan-400 py-3 px-6 flex items-center gap-3 active:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined text-lg">assignment</span> MISSIONS
+            </a>
+<a class="text-slate-500 py-3 px-6 flex items-center gap-3 hover:bg-slate-900/50 hover:text-cyan-200 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">account_balance_wallet</span> VAULT
+            </a>
+<a class="text-slate-500 py-3 px-6 flex items-center gap-3 hover:bg-slate-900/50 hover:text-cyan-200 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">receipt_long</span> LOGS
+            </a>
+</nav>
+<div class="p-4 mt-auto">
+<button class="w-full py-2 bg-slate-900 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] hover:bg-cyan-500/10 transition-colors tracking-tighter">INITIALIZE SEARCH</button>
+</div>
+<div class="border-t border-cyan-900/50 p-2 font-['Geist_Mono'] text-[10px]">
+<a class="text-slate-500 p-2 flex items-center gap-2 hover:text-cyan-200" href="#">
+<span class="material-symbols-outlined text-sm">settings</span> SETTINGS
+            </a>
+<a class="text-slate-500 p-2 flex items-center gap-2 hover:text-error" href="#">
+<span class="material-symbols-outlined text-sm">logout</span> DISCONNECT
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="min-h-screen pt-24 pb-12 xl:ml-64 px-6 md:px-12 grid-floor relative">
+<!-- Ambient Background Glows -->
+<div class="fixed top-1/4 right-0 w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
+<div class="fixed bottom-0 left-1/4 w-[500px] h-[500px] bg-secondary/5 blur-[150px] rounded-full pointer-events-none"></div>
+<!-- Section Header -->
+<div class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-outline-variant/30 pb-6">
+<div>
+<div class="text-primary font-mono text-xs tracking-[0.3em] mb-2">SYSTEM://DECRYPTED/MISSIONS</div>
+<h2 class="text-5xl font-extrabold font-headline uppercase tracking-tighter leading-none italic">Bounties Board</h2>
+<div class="mt-4 flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-tertiary-fixed-dim animate-pulse"></span>
+<span class="text-xs font-mono text-on-surface-variant">32 ACTIVE CONTRACTS</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-secondary"></span>
+<span class="text-xs font-mono text-on-surface-variant">482.4k TOTAL VALUE</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-high p-1 border border-outline-variant/50">
+<input class="bg-transparent border-none text-xs font-mono text-primary placeholder:text-outline focus:ring-0 w-48" placeholder="FILTER_BY_HASH..." type="text"/>
+<button class="bg-primary/20 text-primary px-3 py-1 font-mono text-[10px] hover:bg-primary/30 transition-colors">SORT: VALUE</button>
+</div>
+</div>
+<!-- Mission Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Mission Card 1 -->
+<div class="group relative skew-brief transition-all duration-500 hover:rotate-0 hover:scale-[1.02]">
+<div class="absolute inset-0 bg-primary/5 blur-xl group-hover:bg-primary/10 transition-all"></div>
+<div class="relative bg-surface-container-low/60 backdrop-blur-xl border border-outline-variant/30 p-6 corner-tick h-full flex flex-col">
+<div class="flex justify-between items-start mb-6">
+<div class="px-3 py-1 bg-tertiary-container/10 border border-tertiary-container/30 text-tertiary-container text-[10px] font-mono tracking-widest leading-none">
+                            STATUS: OPEN
+                        </div>
+<div class="text-right">
+<div class="text-[8px] font-mono text-outline uppercase">Mission ID</div>
+<div class="text-xs font-mono text-primary">#AX-2099-B</div>
+</div>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="w-16 h-16 border border-primary/20 bg-surface-container-lowest flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-4xl holographic-badge">terminal</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline font-bold text-xl uppercase tracking-tighter leading-tight text-on-surface group-hover:text-primary transition-colors">Decrypt Ghost Protocol</h3>
+<div class="text-[10px] font-mono text-outline-variant mt-1 uppercase">Contractor: UNKNOWN_ENTITY</div>
+</div>
+</div>
+<div class="mb-8">
+<div class="text-[10px] font-mono text-outline uppercase mb-2">REWARD_TIER: S-RANK</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-mono font-black text-secondary tracking-tighter shadow-secondary/20 drop-shadow-lg">12.50</span>
+<span class="text-lg font-mono text-secondary/60">NEURAL</span>
+</div>
+</div>
+<div class="mt-auto space-y-4">
+<div class="flex justify-between text-[10px] font-mono border-y border-outline-variant/10 py-2">
+<span class="text-outline">COMPLEXITY</span>
+<span class="text-primary">ULTRA_HIGH</span>
+</div>
+<button class="w-full py-3 bg-tertiary-container text-on-tertiary-container font-headline font-extrabold uppercase tracking-widest text-sm bevel-neon group-active:scale-95 transition-all">
+                            Claim Bounty
+                        </button>
+</div>
+</div>
+</div>
+<!-- Mission Card 2 -->
+<div class="group relative skew-brief transition-all duration-500 hover:rotate-0 hover:scale-[1.02]">
+<div class="absolute inset-0 bg-primary/5 blur-xl group-hover:bg-primary/10 transition-all"></div>
+<div class="relative bg-surface-container-low/60 backdrop-blur-xl border border-outline-variant/30 p-6 corner-tick h-full flex flex-col">
+<div class="flex justify-between items-start mb-6">
+<div class="px-3 py-1 bg-tertiary-container/10 border border-tertiary-container/30 text-tertiary-container text-[10px] font-mono tracking-widest leading-none">
+                            STATUS: OPEN
+                        </div>
+<div class="text-right">
+<div class="text-[8px] font-mono text-outline uppercase">Mission ID</div>
+<div class="text-xs font-mono text-primary">#MK-1024-X</div>
+</div>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="w-16 h-16 border border-primary/20 bg-surface-container-lowest flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-4xl holographic-badge">shield</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline font-bold text-xl uppercase tracking-tighter leading-tight text-on-surface group-hover:text-primary transition-colors">Fortress Wall Patch</h3>
+<div class="text-[10px] font-mono text-outline-variant mt-1 uppercase">Contractor: CITADEL_SEC</div>
+</div>
+</div>
+<div class="mb-8">
+<div class="text-[10px] font-mono text-outline uppercase mb-2">REWARD_TIER: A-RANK</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-mono font-black text-secondary tracking-tighter shadow-secondary/20 drop-shadow-lg">4.20</span>
+<span class="text-lg font-mono text-secondary/60">NEURAL</span>
+</div>
+</div>
+<div class="mt-auto space-y-4">
+<div class="flex justify-between text-[10px] font-mono border-y border-outline-variant/10 py-2">
+<span class="text-outline">COMPLEXITY</span>
+<span class="text-primary">MEDIUM</span>
+</div>
+<button class="w-full py-3 bg-tertiary-container text-on-tertiary-container font-headline font-extrabold uppercase tracking-widest text-sm bevel-neon group-active:scale-95 transition-all">
+                            Claim Bounty
+                        </button>
+</div>
+</div>
+</div>
+<!-- Mission Card 3 (Claimed/Locked Visual) -->
+<div class="group relative skew-brief transition-all duration-500 opacity-60">
+<div class="relative bg-surface-container-lowest border border-outline-variant/10 p-6 h-full flex flex-col grayscale">
+<div class="flex justify-between items-start mb-6">
+<div class="px-3 py-1 bg-outline-variant/30 border border-outline-variant text-outline text-[10px] font-mono tracking-widest leading-none">
+                            STATUS: CLAIMED
+                        </div>
+<div class="text-right">
+<div class="text-[8px] font-mono text-outline uppercase">Mission ID</div>
+<div class="text-xs font-mono text-outline">#SY-0081-L</div>
+</div>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="w-16 h-16 border border-outline-variant/20 bg-surface-container-lowest flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-4xl text-outline-variant">memory</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline font-bold text-xl uppercase tracking-tighter leading-tight text-outline">Neural Core Sync</h3>
+<div class="text-[10px] font-mono text-outline-variant mt-1 uppercase">Contractor: OMNI_CORP</div>
+</div>
+</div>
+<div class="mb-8">
+<div class="text-[10px] font-mono text-outline-variant uppercase mb-2">REWARD_TIER: B-RANK</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-mono font-black text-outline-variant tracking-tighter">1.85</span>
+<span class="text-lg font-mono text-outline-variant">NEURAL</span>
+</div>
+</div>
+<div class="mt-auto space-y-4">
+<div class="flex justify-between text-[10px] font-mono border-y border-outline-variant/10 py-2">
+<span class="text-outline-variant">COMPLEXITY</span>
+<span class="text-outline-variant">LOW</span>
+</div>
+<button class="w-full py-3 bg-outline-variant/50 text-surface font-headline font-extrabold uppercase tracking-widest text-sm cursor-not-allowed" disabled="">
+                            UNAVAILABLE
+                        </button>
+</div>
+</div>
+</div>
+<!-- Mission Card 4 -->
+<div class="group relative skew-brief transition-all duration-500 hover:rotate-0 hover:scale-[1.02]">
+<div class="absolute inset-0 bg-primary/5 blur-xl group-hover:bg-primary/10 transition-all"></div>
+<div class="relative bg-surface-container-low/60 backdrop-blur-xl border border-outline-variant/30 p-6 corner-tick h-full flex flex-col">
+<div class="flex justify-between items-start mb-6">
+<div class="px-3 py-1 bg-tertiary-container/10 border border-tertiary-container/30 text-tertiary-container text-[10px] font-mono tracking-widest leading-none">
+                            STATUS: OPEN
+                        </div>
+<div class="text-right">
+<div class="text-[8px] font-mono text-outline uppercase">Mission ID</div>
+<div class="text-xs font-mono text-primary">#DR-4450-Q</div>
+</div>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="w-16 h-16 border border-primary/20 bg-surface-container-lowest flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-4xl holographic-badge">database</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline font-bold text-xl uppercase tracking-tighter leading-tight text-on-surface group-hover:text-primary transition-colors">Sanitize Data Leak</h3>
+<div class="text-[10px] font-mono text-outline-variant mt-1 uppercase">Contractor: SEC_OPS_GROUP</div>
+</div>
+</div>
+<div class="mb-8">
+<div class="text-[10px] font-mono text-outline uppercase mb-2">REWARD_TIER: A-RANK</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-mono font-black text-secondary tracking-tighter shadow-secondary/20 drop-shadow-lg">8.75</span>
+<span class="text-lg font-mono text-secondary/60">NEURAL</span>
+</div>
+</div>
+<div class="mt-auto space-y-4">
+<div class="flex justify-between text-[10px] font-mono border-y border-outline-variant/10 py-2">
+<span class="text-outline">COMPLEXITY</span>
+<span class="text-primary">HIGH</span>
+</div>
+<button class="w-full py-3 bg-tertiary-container text-on-tertiary-container font-headline font-extrabold uppercase tracking-widest text-sm bevel-neon group-active:scale-95 transition-all">
+                            Claim Bounty
+                        </button>
+</div>
+</div>
+</div>
+<!-- Mission Card 5 -->
+<div class="group relative skew-brief transition-all duration-500 hover:rotate-0 hover:scale-[1.02]">
+<div class="absolute inset-0 bg-primary/5 blur-xl group-hover:bg-primary/10 transition-all"></div>
+<div class="relative bg-surface-container-low/60 backdrop-blur-xl border border-outline-variant/30 p-6 corner-tick h-full flex flex-col">
+<div class="flex justify-between items-start mb-6">
+<div class="px-3 py-1 bg-tertiary-container/10 border border-tertiary-container/30 text-tertiary-container text-[10px] font-mono tracking-widest leading-none">
+                            STATUS: OPEN
+                        </div>
+<div class="text-right">
+<div class="text-[8px] font-mono text-outline uppercase">Mission ID</div>
+<div class="text-xs font-mono text-primary">#BT-9912-V</div>
+</div>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="w-16 h-16 border border-primary/20 bg-surface-container-lowest flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-4xl holographic-badge">robot_2</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline font-bold text-xl uppercase tracking-tighter leading-tight text-on-surface group-hover:text-primary transition-colors">Combat Subroutine</h3>
+<div class="text-[10px] font-mono text-outline-variant mt-1 uppercase">Contractor: VANGUARD_IA</div>
+</div>
+</div>
+<div class="mb-8">
+<div class="text-[10px] font-mono text-outline uppercase mb-2">REWARD_TIER: LEGENDARY</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-mono font-black text-secondary tracking-tighter shadow-secondary/20 drop-shadow-lg">25.00</span>
+<span class="text-lg font-mono text-secondary/60">NEURAL</span>
+</div>
+</div>
+<div class="mt-auto space-y-4">
+<div class="flex justify-between text-[10px] font-mono border-y border-outline-variant/10 py-2">
+<span class="text-outline">COMPLEXITY</span>
+<span class="text-primary">GOD_TIER</span>
+</div>
+<button class="w-full py-3 bg-tertiary-container text-on-tertiary-container font-headline font-extrabold uppercase tracking-widest text-sm bevel-neon group-active:scale-95 transition-all">
+                            Claim Bounty
+                        </button>
+</div>
+</div>
+</div>
+<!-- Mission Card 6 -->
+<div class="group relative skew-brief transition-all duration-500 hover:rotate-0 hover:scale-[1.02]">
+<div class="absolute inset-0 bg-primary/5 blur-xl group-hover:bg-primary/10 transition-all"></div>
+<div class="relative bg-surface-container-low/60 backdrop-blur-xl border border-outline-variant/30 p-6 corner-tick h-full flex flex-col">
+<div class="flex justify-between items-start mb-6">
+<div class="px-3 py-1 bg-tertiary-container/10 border border-tertiary-container/30 text-tertiary-container text-[10px] font-mono tracking-widest leading-none">
+                            STATUS: OPEN
+                        </div>
+<div class="text-right">
+<div class="text-[8px] font-mono text-outline uppercase">Mission ID</div>
+<div class="text-xs font-mono text-primary">#NT-1123-Z</div>
+</div>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="w-16 h-16 border border-primary/20 bg-surface-container-lowest flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-4xl holographic-badge">network_check</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline font-bold text-xl uppercase tracking-tighter leading-tight text-on-surface group-hover:text-primary transition-colors">Node Stress Analysis</h3>
+<div class="text-[10px] font-mono text-outline-variant mt-1 uppercase">Contractor: GRID_MASTER</div>
+</div>
+</div>
+<div class="mb-8">
+<div class="text-[10px] font-mono text-outline uppercase mb-2">REWARD_TIER: C-RANK</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-mono font-black text-secondary tracking-tighter shadow-secondary/20 drop-shadow-lg">0.95</span>
+<span class="text-lg font-mono text-secondary/60">NEURAL</span>
+</div>
+</div>
+<div class="mt-auto space-y-4">
+<div class="flex justify-between text-[10px] font-mono border-y border-outline-variant/10 py-2">
+<span class="text-outline">COMPLEXITY</span>
+<span class="text-primary">EASY</span>
+</div>
+<button class="w-full py-3 bg-tertiary-container text-on-tertiary-container font-headline font-extrabold uppercase tracking-widest text-sm bevel-neon group-active:scale-95 transition-all">
+                            Claim Bounty
+                        </button>
+</div>
+</div>
+</div>
+</div>
+<!-- System Logs Footer Section -->
+<div class="mt-16 border border-outline-variant/20 bg-surface-container-low p-4 font-mono">
+<div class="flex items-center justify-between mb-4 border-b border-outline-variant/20 pb-2">
+<span class="text-xs text-primary font-bold">SYSTEM_LOG_v4.2.0</span>
+<span class="text-[10px] text-outline">LATENCY: 12ms // UPTIME: 99.99%</span>
+</div>
+<div class="text-[10px] space-y-1 text-on-surface-variant">
+<div class="flex gap-4">
+<span class="text-outline-variant">[12:44:02]</span>
+<span>AGENT_00 CONNECTED TO B_BOARD_CLUSTER</span>
+</div>
+<div class="flex gap-4">
+<span class="text-outline-variant">[12:44:05]</span>
+<span class="text-tertiary-fixed-dim">NEW_MISSION_UPLOADED: #BT-9912-V "Combat Subroutine"</span>
+</div>
+<div class="flex gap-4">
+<span class="text-outline-variant">[12:44:10]</span>
+<span class="text-secondary">VALUE_RECALCULATION: NEURAL/USDT AT 452.12</span>
+</div>
+<div class="flex gap-4">
+<span class="text-outline-variant">[12:45:01]</span>
+<span>SYNC_COMPLETE. ALL NODES VERIFIED.</span>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-slate-950/80 backdrop-blur-md flex justify-around items-center p-4 border-t border-cyan-500/20 z-50">
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined text-2xl">terminal</span>
+<span class="text-[8px] font-mono">TERM</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined text-2xl">storefront</span>
+<span class="text-[8px] font-mono">MARKET</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-cyan-400" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">assignment</span>
+<span class="text-[8px] font-mono">MISSN</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+<span class="text-[8px] font-mono">VAULT</span>
+</a>
+</nav>
+</body></html>

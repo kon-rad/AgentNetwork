@@ -1,0 +1,18 @@
+# NanoClaw reverse proxy — HTTP mode (no TLS, no domain required)
+# To upgrade to HTTPS later: replace :80 with your domain and remove tls off
+
+:80 {
+    # SSE endpoint needs long timeouts — agent turns can take several minutes
+    handle /stream/* {
+        reverse_proxy localhost:3000 {
+            transport http {
+                response_header_timeout 300s
+                read_timeout 300s
+                write_timeout 300s
+            }
+        }
+    }
+
+    # All other endpoints (/message, /register-group, health checks)
+    reverse_proxy localhost:3000
+}

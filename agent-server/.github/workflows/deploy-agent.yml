@@ -1,0 +1,74 @@
+# Required GitHub Secrets:
+# VPS_HOST     — IP address or hostname of the NanoClaw VPS (e.g. 146.190.161.168)
+# VPS_USER     — SSH username (e.g. "deploy")
+# VPS_SSH_KEY  — SSH private key (contents of ~/.ssh/id_ed25519 for the deploy user)
+#
+# Add these at: GitHub repo → Settings → Secrets and variables → Actions → New repository secret
+#
+# To generate a dedicated deploy key (recommended):
+#   ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/nanoclaw_deploy_key -N ""
+#   ssh-copy-id -i ~/.ssh/nanoclaw_deploy_key.pub deploy@VPS_IP
+#   # Set VPS_SSH_KEY to the contents of: cat ~/.ssh/nanoclaw_deploy_key
+
+name: Deploy agent-server to VPS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'agent-server/**'
+  workflow_dispatch:  # allow manual trigger for first-run verification
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy agent-server to VPS via SSH
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          timeout: 10m
+          script: |
+            set -e
+
+            echo "==> Syncing agent-server code to VPS"
+            # Note: rsync runs on the VPS side after checkout; the actual file sync
+            # is handled by the checkout + scp pattern below.
+            # Files are synced by the prior step via SSH, then we run the build steps.
+
+            cd /opt/agent-server
+
+            echo "==> Pulling latest agent-server code"
+            git pull origin main
+
+            echo "==> Installing dependencies"
+            npm ci --omit=dev
+
+            echo "==> Building TypeScript"
+            npm run build
+
+            # CICD-04: Rebuild the nanoclaw-agent container image.
+            # New agent turns will pick up the updated image automatically.
+            # In-flight containers are unaffected — they continue running their existing image.
+            echo "==> Building nanoclaw-agent container image (CICD-04: new image for future turns)"
+            docker build -t nanoclaw-agent:latest ./container
+
+            echo "==> Restarting NanoClaw host process"
+            # --force-recreate restarts only the nanoclaw service with the updated host image.
+            # The Caddy service is NOT restarted (no --force-recreate on caddy).
+            docker compose up -d --force-recreate nanoclaw
+
+            echo "==> Verifying NanoClaw is running"
+            sleep 3
+            docker compose ps nanoclaw | grep -i "running\|Up" || \
+              (echo "ERROR: NanoClaw not running after deploy" && docker compose logs --tail=20 nanoclaw && exit 1)
+
+            echo "==> Deploy complete"
