@@ -131,8 +131,25 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'Failed to create subscription' }, { status: 500 })
   }
 
-  // NanoClaw registration (fire-and-forget — non-fatal)
+  // NanoClaw registration with Soul.md (fire-and-forget — non-fatal)
   try {
+    // Fetch template soul_md for CLAUDE.md content
+    let claudeMdContent: string | undefined
+    const { data: agentRow } = await supabaseAdmin
+      .from('agents')
+      .select('service_type')
+      .eq('id', agent_id)
+      .single()
+
+    if (agentRow?.service_type) {
+      const { data: template } = await supabaseAdmin
+        .from('agent_templates')
+        .select('soul_md')
+        .eq('agent_type', agentRow.service_type)
+        .single()
+      claudeMdContent = template?.soul_md
+    }
+
     await fetch(`${process.env.NANOCLAW_URL}/register-group`, {
       method: 'POST',
       headers: {
@@ -140,9 +157,9 @@ export async function POST(req: NextRequest) {
         'x-shared-secret': process.env.NANOCLAW_SHARED_SECRET!,
       },
       body: JSON.stringify({
-        name: agent_id,
+        agentId: agent_id,
         folder: agent_id,
-        trigger: `@agent-${agent_id}`,
+        claudeMdContent,
       }),
     })
   } catch {

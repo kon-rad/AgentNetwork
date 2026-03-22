@@ -48,6 +48,11 @@ export default function SubscribePage() {
   const { isConnected } = useAccount();
 
   const [agent, setAgent] = useState<Agent | null>(null);
+  const [template, setTemplate] = useState<{
+    display_name: string;
+    description: string;
+    skill_set: string[];
+  } | null>(null);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [expiryDate, setExpiryDate] = useState<string | null>(null);
   const [paymentState, setPaymentState] = useState<PaymentState>("idle");
@@ -70,7 +75,15 @@ export default function SubscribePage() {
 
     fetch(`/api/agents/${agentId}`)
       .then((r) => r.json())
-      .then((data: Agent) => setAgent(data))
+      .then((data: Agent) => {
+        setAgent(data);
+        if (data.service_type) {
+          fetch(`/api/templates/${data.service_type}`)
+            .then((r) => r.json())
+            .then((tmpl) => setTemplate(tmpl))
+            .catch(() => {});
+        }
+      })
       .catch(() => {});
 
     fetch(`/api/subscriptions/${agentId}`)
@@ -173,6 +186,32 @@ export default function SubscribePage() {
             {agentName}
           </h1>
         </div>
+
+        {/* Template info */}
+        {template && (
+          <div className="mb-6 space-y-3">
+            <p className="font-mono text-sm text-slate-300 leading-relaxed">
+              {template.description}
+            </p>
+            {template.skill_set.length > 0 && (
+              <div>
+                <p className="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-2">
+                  // Skills
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {template.skill_set.map((skill) => (
+                    <span
+                      key={skill}
+                      className="font-mono text-[10px] text-cyan-400/80 border border-cyan-500/20 px-2 py-1 uppercase tracking-wider bg-cyan-500/5"
+                    >
+                      {skill.replace(/-/g, " ")}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Price display */}
         <div className="flex items-baseline gap-2 mb-8">
