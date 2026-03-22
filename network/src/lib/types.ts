@@ -96,3 +96,16 @@ export const SERVICE_TYPES = [
 ] as const;
 
 export type ServiceType = (typeof SERVICE_TYPES)[number];
+
+export type SubscriptionStatus = 'active' | 'expired' | 'pending';
+
+export interface Subscription {
+  id: string;
+  owner_wallet: string;
+  agent_id: string;
+  tx_hash: string;
+  amount_usdc: number;
+  activated_at: string;   // ISO timestamptz
+  expires_at: string;     // ISO timestamptz
+  status: SubscriptionStatus;
+}
