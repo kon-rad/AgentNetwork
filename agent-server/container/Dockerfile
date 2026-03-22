@@ -17,4 +17,6 @@ RUN npm install -g @anthropic-ai/claude-code typescript
 # the credential proxy at http://host.docker.internal:3001 — containers never receive
 # ANTHROPIC_API_KEY directly (NC-04).
 
+COPY skills/ /app/skills/
+
 CMD ["node", "-e", "console.log('nanoclaw-agent ready')"]
