@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 10 of 14 (NanoClaw VPS Deployment)
-Plan: 1 of 6 in current phase (script complete; awaiting VPS creation)
-Status: Checkpoint — awaiting user to create Hetzner VPS and provide IP address
-Last activity: 2026-03-22 — 10-01 Task 2 complete (provision-vps.sh created; agent-server git repo initialized)
+Plan: 2 of 6 in current phase (transport decision complete; TRANSPORT.md created)
+Status: Active — ready to proceed with 10-03 (NanoClaw fork setup on VPS)
+Last activity: 2026-03-22 — 10-02 complete (HTTPS+Caddy confirmed as primary transport; TRANSPORT.md created)
 
 Progress: [████████░░░░░░░░░░░░] ~50% (v1.0 done; 09-01, 09-02, 09-03, 09-04 Task 1 complete)
 
@@ -40,6 +40,7 @@ Progress: [████████░░░░░░░░░░░░] ~50% (v
 | Phase 09-foundation-infrastructure P03 | 8 | 3 tasks | 17 files |
 | Phase 09-foundation-infrastructure P04 | 15 | 1 tasks | 107 files |
 | Phase 10-nanoclaw-vps-deployment P01 | 15 | 2 tasks | 1 files |
+| Phase 10-nanoclaw-vps-deployment P02 | 2 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,8 @@ Recent decisions affecting v2.0 work:
 - [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
 - [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB ($24/mo) for 3x cost savings
 - [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
 
 ### Pending Todos
 
@@ -74,12 +77,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 10]: WireGuard outbound UDP on Railway is unverified — validate at start of Phase 10, fall back to HTTPS+Caddy if blocked
 - [Phase 10]: NanoClaw 2s polling latency may create noticeable chat delay — spike before building chat UI in Phase 13
 - [Phase 13]: Claude Agent SDK token streaming through NanoClaw IPC to webapp channel is unconfirmed — may fall back to polling Supabase for completed turns
 
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: Checkpoint in 10-01-PLAN.md — provisioning script created (97ce7ae in agent-server repo); awaiting user to create Hetzner VPS and provide IP address to run provision-vps.sh
+Stopped at: Completed 10-02-PLAN.md — TRANSPORT.md created; HTTPS+Caddy confirmed as primary transport; ready for 10-03 (NanoClaw fork setup on VPS)
 Resume file: None
