@@ -109,3 +109,13 @@ export interface Subscription {
   expires_at: string;     // ISO timestamptz
   status: SubscriptionStatus;
 }
+
+export interface AgentTemplate {
+  agent_type: string;        // 'filmmaker' | 'coder' | 'trader' | 'auditor' | 'clipper'
+  display_name: string;
+  description: string;
+  soul_md: string;
+  skill_set: string[];
+  mcp_packages: string[];
+  created_at: string;
+}
