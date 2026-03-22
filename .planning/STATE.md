@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 10 of 14 (NanoClaw VPS Deployment)
-Plan: 3 of 6 in current phase (NanoClaw fork compiled and tested; webapp channel + Supabase logger complete)
-Status: Active — ready to proceed with 10-04 (Caddy + DNS configuration)
-Last activity: 2026-03-22 — 10-03 complete (NanoClaw fork with webapp channel + Supabase logger; tsc zero errors)
+Plan: 5 of 6 in current phase (CI/CD workflow created; awaiting human-verify checkpoint for GitHub Secrets + first deploy)
+Status: Active — checkpoint reached at 10-05 Task 2 (human-verify: add GitHub Secrets + trigger workflow dispatch)
+Last activity: 2026-03-22 — 10-05 Task 1 complete (deploy-agent.yml workflow in agent-server/.github/workflows/)
 
 Progress: [████████░░░░░░░░░░░░] ~50% (v1.0 done; 09-01, 09-02, 09-03, 09-04 Task 1 complete)
 
@@ -42,6 +42,7 @@ Progress: [████████░░░░░░░░░░░░] ~50% (v
 | Phase 10-nanoclaw-vps-deployment P01 | 15 | 2 tasks | 1 files |
 | Phase 10-nanoclaw-vps-deployment P02 | 2 | 1 tasks | 1 files |
 | Phase 10-nanoclaw-vps-deployment P03 | 4 | 2 tasks | 27 files |
+| Phase 10-nanoclaw-vps-deployment P05 | 5 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,7 @@ Recent decisions affecting v2.0 work:
 - [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
 - [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
 - [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
 
 ### Pending Todos
 
@@ -88,5 +90,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: Completed 10-03-PLAN.md — NanoClaw fork with webapp channel + Supabase logger; tsc zero errors; ready for 10-04 (Caddy + DNS)
+Stopped at: 10-05 Task 2 checkpoint (human-verify) — deploy-agent.yml committed to agent-server; waiting for user to add GitHub Secrets (VPS_HOST, VPS_USER, VPS_SSH_KEY) and trigger workflow_dispatch
 Resume file: None

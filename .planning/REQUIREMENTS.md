@@ -39,8 +39,8 @@
 - [x] **NC-07**: NanoClaw can register new agent groups programmatically when a subscription is purchased
 - [x] **CICD-01**: Monorepo structure: app/ (Next.js) and agent-server/ (NanoClaw fork) in one repo
 - [x] **CICD-02**: GitHub Actions deploys app/ changes to Railway automatically
-- [ ] **CICD-03**: GitHub Actions deploys agent-server/ changes to VPS via SSH
-- [ ] **CICD-04**: Agent container image rebuilds update skills/MCP without restarting the NanoClaw host process
+- [x] **CICD-03**: GitHub Actions deploys agent-server/ changes to VPS via SSH
+- [x] **CICD-04**: Agent container image rebuilds update skills/MCP without restarting the NanoClaw host process
 
 ### Agent Templates & Skills
 
@@ -117,8 +117,8 @@
 | NC-05 | Phase 10 | Complete |
 | NC-06 | Phase 10 | Complete |
 | NC-07 | Phase 10 | Complete |
-| CICD-03 | Phase 10 | Pending |
-| CICD-04 | Phase 10 | Pending |
+| CICD-03 | Phase 10 | Complete |
+| CICD-04 | Phase 10 | Complete |
 | PAY-01 | Phase 11 | Pending |
 | PAY-02 | Phase 11 | Pending |
 | PAY-03 | Phase 11 | Pending |
