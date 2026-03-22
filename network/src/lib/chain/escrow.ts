@@ -1,76 +1,17 @@
 import 'server-only'
-import { createWalletClient, createPublicClient, http, parseUnits, type Hex } from 'viem'
+import { createWalletClient, createPublicClient, http, parseUnits, decodeEventLog, type Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { base } from 'viem/chains'
 import { USDC_ADDRESS, USDC_DECIMALS } from './usdc'
+import agentEscrowAbi from './abi/AgentEscrow.json'
 
-const ESCROW_ADDRESS = process.env.ESCROW_ADDRESS as `0x${string}`
+export const ESCROW_ADDRESS = process.env.ESCROW_ADDRESS as `0x${string}`
 
-// Minimal ABI — only functions we call from the server
-const escrowAbi = [
-  {
-    name: 'createJob',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [
-      { name: 'agent', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-    ],
-    outputs: [{ name: 'jobId', type: 'uint256' }],
-  },
-  {
-    name: 'releaseJob',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [{ name: 'jobId', type: 'uint256' }],
-    outputs: [],
-  },
-  {
-    name: 'disputeJob',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [{ name: 'jobId', type: 'uint256' }],
-    outputs: [],
-  },
-  {
-    name: 'resolveDispute',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [
-      { name: 'jobId', type: 'uint256' },
-      { name: 'toAgent', type: 'uint256' },
-      { name: 'toClient', type: 'uint256' },
-      { name: 'toTreasuryAmt', type: 'uint256' },
-    ],
-    outputs: [],
-  },
-  {
-    name: 'refundJob',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [{ name: 'jobId', type: 'uint256' }],
-    outputs: [],
-  },
-  {
-    name: 'jobs',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'jobId', type: 'uint256' }],
-    outputs: [
-      { name: 'client', type: 'address' },
-      { name: 'agent', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-      { name: 'status', type: 'uint8' },
-    ],
-  },
-  {
-    name: 'nextJobId',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256' }],
-  },
-] as const
+/**
+ * ABI for the AgentEscrow contract.
+ * Imported from the generated JSON file (produced by scripts/deploy-escrow.ts --compile-only).
+ */
+export const escrowAbi = agentEscrowAbi as readonly Record<string, unknown>[]
 
 // USDC approve ABI (client needs to approve escrow before createJob)
 const approveAbi = [
@@ -83,6 +24,20 @@ const approveAbi = [
       { name: 'amount', type: 'uint256' },
     ],
     outputs: [{ name: '', type: 'bool' }],
+  },
+] as const
+
+// JobCreated event ABI for decodeEventLog parsing
+const jobCreatedEventAbi = [
+  {
+    name: 'JobCreated',
+    type: 'event',
+    inputs: [
+      { name: 'jobId', type: 'uint256', indexed: true },
+      { name: 'client', type: 'address', indexed: true },
+      { name: 'agent', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false },
+    ],
   },
 ] as const
 
@@ -140,11 +95,27 @@ export async function createJob(
 
   const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash })
 
-  // Parse JobCreated event to get jobId
-  const jobCreatedTopic = '0x' // Will match first indexed param
-  const jobId = receipt.logs[0]?.topics[1]
-    ? BigInt(receipt.logs[0].topics[1])
-    : BigInt(0)
+  // Parse JobCreated event using decodeEventLog (same pattern as erc8004.ts)
+  let jobId: bigint | undefined
+  for (const log of receipt.logs) {
+    try {
+      const decoded = decodeEventLog({
+        abi: jobCreatedEventAbi,
+        data: log.data,
+        topics: log.topics,
+      })
+      if (decoded.eventName === 'JobCreated') {
+        jobId = decoded.args.jobId
+        break
+      }
+    } catch {
+      // Not a JobCreated event -- skip
+    }
+  }
+
+  if (jobId === undefined) {
+    throw new Error('Failed to parse jobId from JobCreated event in transaction receipt')
+  }
 
   return { jobId, txHash }
 }
@@ -228,12 +199,13 @@ export async function refundJob(jobId: bigint): Promise<string> {
  */
 export async function getJob(jobId: bigint) {
   const publicClient = getPublicClient()
-  const [client, agent, amount, status] = await publicClient.readContract({
+  const result = await publicClient.readContract({
     address: ESCROW_ADDRESS,
     abi: escrowAbi,
     functionName: 'jobs',
     args: [jobId],
-  })
+  }) as readonly [`0x${string}`, `0x${string}`, bigint, number]
+  const [client, agent, amount, status] = result
   return {
     client,
     agent,
