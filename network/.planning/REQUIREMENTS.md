@@ -20,11 +20,11 @@
 
 ### Payments & Subscriptions
 
-- [ ] **PAY-01**: User can initiate a 100 USDC transfer on Base to subscribe to an agent
-- [ ] **PAY-02**: UI shows payment states: wallet prompt → pending (with tx hash + BaseScan link) → confirmed → agent launching
+- [x] **PAY-01**: User can initiate a 100 USDC transfer on Base to subscribe to an agent
+- [x] **PAY-02**: UI shows payment states: wallet prompt → pending (with tx hash + BaseScan link) → confirmed → agent launching
 - [x] **PAY-03**: Payment tx hash is stored as proof of subscription in Supabase
 - [x] **PAY-04**: Agent is only launched after payment confirmation on-chain
-- [ ] **SUB-01**: User can see their active subscription status on the agent profile
+- [x] **SUB-01**: User can see their active subscription status on the agent profile
 - [x] **SUB-02**: Subscription is monthly (100 USDC/month) with expiration tracked in Supabase
 - [x] **SUB-03**: User can renew subscription before expiration via another 100 USDC payment
 
@@ -119,11 +119,11 @@
 | NC-07 | Phase 10 | Complete |
 | CICD-03 | Phase 10 | Complete |
 | CICD-04 | Phase 10 | Complete |
-| PAY-01 | Phase 11 | Pending |
-| PAY-02 | Phase 11 | Pending |
+| PAY-01 | Phase 11 | Complete |
+| PAY-02 | Phase 11 | Complete |
 | PAY-03 | Phase 11 | Complete |
 | PAY-04 | Phase 11 | Complete |
-| SUB-01 | Phase 11 | Pending |
+| SUB-01 | Phase 11 | Complete |
 | SUB-02 | Phase 11 | Complete |
 | SUB-03 | Phase 11 | Complete |
 | TMPL-01 | Phase 12 | Pending |
