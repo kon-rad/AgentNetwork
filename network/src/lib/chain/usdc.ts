@@ -1,16 +1,16 @@
 import 'server-only'
 import { createWalletClient, createPublicClient, http, parseUnits, erc20Abi } from 'viem'
-import { baseSepolia } from 'viem/chains'
+import { base } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
 
-/** USDC contract address on Base Sepolia */
-export const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e' as const
+/** USDC contract address on Base Mainnet (Circle official) */
+export const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const
 
 /** USDC uses 6 decimal places (not 18 like ETH) */
 export const USDC_DECIMALS = 6
 
 /**
- * Transfer USDC on Base Sepolia from the payer's wallet to a recipient.
+ * Transfer USDC on Base Mainnet from the payer's wallet to a recipient.
  * The payer signs with their own private key — no platform wallet involved.
  *
  * @param toAddress - Recipient wallet address
@@ -27,12 +27,12 @@ export async function transferUsdc(
 
   const walletClient = createWalletClient({
     account,
-    chain: baseSepolia,
+    chain: base,
     transport: http(),
   })
 
   const publicClient = createPublicClient({
-    chain: baseSepolia,
+    chain: base,
     transport: http(),
   })
 

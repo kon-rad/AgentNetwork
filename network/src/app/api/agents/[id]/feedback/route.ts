@@ -84,7 +84,7 @@ export async function POST(
       {
         txHash,
         agentId: typedAgent.erc8004_token_id,
-        basescanUrl: `https://sepolia.basescan.org/tx/${txHash}`,
+        basescanUrl: `https://basescan.org/tx/${txHash}`,
       },
       { status: 201 },
     )

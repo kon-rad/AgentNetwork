@@ -14,7 +14,7 @@ import { useDisplayName } from "@/lib/hooks/use-display-name";
 import { SubscriptionStatus } from "@/components/profile/subscription-status";
 
 const BASESCAN_TOKEN_URL =
-  "https://sepolia.basescan.org/token/0x8004A818BFB912233c491871b3d84c89A494BD9e";
+  "https://basescan.org/token/0x8004A818BFB912233c491871b3d84c89A494BD9e";
 
 export default function AgentProfilePage() {
   const { id } = useParams<{ id: string }>();

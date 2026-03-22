@@ -10,6 +10,31 @@ const REQUIRED_AMOUNT = parseUnits('100', USDC_DECIMALS) // 100_000_000n
 
 const publicClient = createPublicClient({ chain: base, transport: http() })
 
+/**
+ * Whitelist: wallets that can launch agents for free (no USDC payment required).
+ * Set FREE_LAUNCH_WALLETS as a comma-separated list of addresses in .env.local.
+ * Coupon codes: set FREE_LAUNCH_COUPONS as a comma-separated list in .env.local.
+ * Example: FREE_LAUNCH_WALLETS=0xabc...,0xdef...
+ * Example: FREE_LAUNCH_COUPONS=BETA2026,TESTLAUNCH
+ */
+function isWhitelistedWallet(address: string): boolean {
+  const whitelist = process.env.FREE_LAUNCH_WALLETS || ''
+  return whitelist
+    .split(',')
+    .map((a) => a.trim().toLowerCase())
+    .filter(Boolean)
+    .includes(address.toLowerCase())
+}
+
+function isValidCoupon(code: string): boolean {
+  const coupons = process.env.FREE_LAUNCH_COUPONS || ''
+  return coupons
+    .split(',')
+    .map((c) => c.trim().toUpperCase())
+    .filter(Boolean)
+    .includes(code.toUpperCase())
+}
+
 export async function POST(req: NextRequest) {
   // Auth check
   const sessionOrError = await requireAuth()
@@ -17,19 +42,82 @@ export async function POST(req: NextRequest) {
   const session = sessionOrError
 
   // Parse body
-  let body: { tx_hash?: string; agent_id?: string }
+  let body: { tx_hash?: string; agent_id?: string; coupon_code?: string; free_launch?: boolean }
   try {
     body = await req.json()
   } catch {
     return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { tx_hash, agent_id } = body
-  if (!tx_hash || typeof tx_hash !== 'string') {
-    return Response.json({ error: 'tx_hash is required' }, { status: 400 })
-  }
+  const { tx_hash, agent_id, coupon_code, free_launch } = body
   if (!agent_id || typeof agent_id !== 'string') {
     return Response.json({ error: 'agent_id is required' }, { status: 400 })
+  }
+
+  // --- FREE LAUNCH PATH (whitelist or coupon) ---
+  const walletWhitelisted = isWhitelistedWallet(session.address!)
+  const couponValid = coupon_code ? isValidCoupon(coupon_code) : false
+
+  if (free_launch && (walletWhitelisted || couponValid)) {
+    // Skip payment verification — create subscription directly
+    const activatedAt = new Date()
+    const expiresAt = new Date(activatedAt.getTime() + 30 * 24 * 60 * 60 * 1000)
+
+    const { data: subscription, error: insertError } = await supabaseAdmin
+      .from('subscriptions')
+      .insert({
+        owner_wallet: session.address!.toLowerCase(),
+        agent_id,
+        tx_hash: `free:${walletWhitelisted ? 'whitelist' : 'coupon'}:${coupon_code || 'none'}:${Date.now()}`,
+        amount_usdc: 0,
+        activated_at: activatedAt.toISOString(),
+        expires_at: expiresAt.toISOString(),
+        status: 'active',
+      })
+      .select()
+      .single()
+
+    if (insertError) {
+      console.error('Failed to insert free subscription:', insertError)
+      return Response.json({ error: 'Failed to create subscription' }, { status: 500 })
+    }
+
+    // NanoClaw registration (same as paid path)
+    try {
+      let claudeMdContent: string | undefined
+      const { data: agentRow } = await supabaseAdmin
+        .from('agents')
+        .select('service_type')
+        .eq('id', agent_id)
+        .single()
+
+      if (agentRow?.service_type) {
+        const { data: template } = await supabaseAdmin
+          .from('agent_templates')
+          .select('soul_md')
+          .eq('agent_type', agentRow.service_type)
+          .single()
+        claudeMdContent = template?.soul_md
+      }
+
+      await fetch(`${process.env.NANOCLAW_URL}/register-group`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-shared-secret': process.env.NANOCLAW_SECRET!,
+        },
+        body: JSON.stringify({ agentId: agent_id, folder: agent_id, claudeMdContent }),
+      })
+    } catch {
+      console.error('NanoClaw registration failed (free launch)')
+    }
+
+    return Response.json({ ...subscription, free_launch: true }, { status: 201 })
+  }
+
+  // --- PAID PATH (100 USDC) ---
+  if (!tx_hash || typeof tx_hash !== 'string') {
+    return Response.json({ error: 'tx_hash is required (or use free_launch with valid coupon/whitelist)' }, { status: 400 })
   }
 
   // Duplicate check — UNIQUE constraint at DB layer, but check early for better UX

@@ -16,7 +16,7 @@ interface RunResult {
   logFilecoinCid: string | null;
 }
 
-const BASESCAN_TX_URL = "https://sepolia.basescan.org/tx/";
+const BASESCAN_TX_URL = "https://basescan.org/tx/";
 
 function StatusBadge({ status }: { status: "success" | "failure" }) {
   if (status === "success") {

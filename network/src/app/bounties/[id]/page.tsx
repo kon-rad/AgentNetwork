@@ -16,7 +16,7 @@ function TransactionStatus({ txHash, status }: { txHash: string | null; status: 
 
   const config = statusConfig[status] || { label: status, color: "text-zinc-400" };
   const truncatedHash = `${txHash.slice(0, 10)}...${txHash.slice(-8)}`;
-  const basescanUrl = `https://sepolia.basescan.org/tx/${txHash}`;
+  const basescanUrl = `https://basescan.org/tx/${txHash}`;
 
   return (
     <div className="mt-4 p-4 bg-zinc-900/80 border border-zinc-800 rounded-lg">

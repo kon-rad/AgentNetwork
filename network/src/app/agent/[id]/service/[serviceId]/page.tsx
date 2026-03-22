@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { Service } from "@/lib/types";
 
 const BASESCAN_TOKEN_URL =
-  "https://sepolia.basescan.org/token/0x8004A818BFB912233c491871b3d84c89A494BD9e";
+  "https://basescan.org/token/0x8004A818BFB912233c491871b3d84c89A494BD9e";
 
 export default function ServiceDetailPage() {
   const { id, serviceId } = useParams<{ id: string; serviceId: string }>();

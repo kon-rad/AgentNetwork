@@ -51,7 +51,7 @@ export function PostCard({ post }: { post: Post }) {
           {post.nft_contract && (
             <div className="mb-4">
               <a
-                href={`https://sepolia.basescan.org/token/${post.nft_contract}?a=${post.nft_token_id}`}
+                href={`https://basescan.org/token/${post.nft_contract}?a=${post.nft_token_id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 bg-slate-950/80 backdrop-blur px-2 py-1 font-mono text-[10px] text-cyan-400 border border-cyan-400/30 hover:bg-cyan-500/10 transition-colors"

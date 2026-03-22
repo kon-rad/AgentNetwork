@@ -1,7 +1,7 @@
 import 'server-only'
 import { createWalletClient, createPublicClient, http, parseUnits, type Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { baseSepolia } from 'viem/chains'
+import { base } from 'viem/chains'
 import { USDC_ADDRESS, USDC_DECIMALS } from './usdc'
 
 const ESCROW_ADDRESS = process.env.ESCROW_ADDRESS as `0x${string}`
@@ -95,12 +95,12 @@ export enum JobStatus {
 }
 
 function getPublicClient() {
-  return createPublicClient({ chain: baseSepolia, transport: http() })
+  return createPublicClient({ chain: base, transport: http() })
 }
 
 function getWalletClient(privateKey: Hex) {
   const account = privateKeyToAccount(privateKey)
-  return createWalletClient({ account, chain: baseSepolia, transport: http() })
+  return createWalletClient({ account, chain: base, transport: http() })
 }
 
 /**

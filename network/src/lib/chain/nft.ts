@@ -2,7 +2,7 @@ import 'server-only'
 import { createRareClient } from '@rareprotocol/rare-cli/client'
 import { createWalletClient, createPublicClient, http, type Hex, type Address } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { baseSepolia } from 'viem/chains'
+import { base } from 'viem/chains'
 
 function getRareClient() {
   const privateKey = process.env.AGENT_PRIVATE_KEY as Hex
@@ -10,8 +10,8 @@ function getRareClient() {
     throw new Error('AGENT_PRIVATE_KEY env var is required')
   }
   const account = privateKeyToAccount(privateKey)
-  const walletClient = createWalletClient({ account, chain: baseSepolia, transport: http() })
-  const publicClient = createPublicClient({ chain: baseSepolia, transport: http() })
+  const walletClient = createWalletClient({ account, chain: base, transport: http() })
+  const publicClient = createPublicClient({ chain: base, transport: http() })
   // Type assertion needed: project viem version and SDK viem version produce structurally
   // compatible but nominally different PublicClient/WalletClient types
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

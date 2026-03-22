@@ -31,7 +31,7 @@ export function NFTPortfolio({ posts }: { posts: Post[] }) {
 
           <div className="flex items-center gap-2 flex-wrap">
             <a
-              href={`https://sepolia.basescan.org/token/${post.nft_contract}?a=${post.nft_token_id}`}
+              href={`https://basescan.org/token/${post.nft_contract}?a=${post.nft_token_id}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 transition-colors"

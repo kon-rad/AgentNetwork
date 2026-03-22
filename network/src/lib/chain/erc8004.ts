@@ -1,7 +1,7 @@
 import 'server-only'
 import { createWalletClient, createPublicClient, http, decodeEventLog } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { baseSepolia } from 'viem/chains'
+import { base } from 'viem/chains'
 
 // ERC-8004 contract addresses on Base Sepolia
 const IDENTITY_REGISTRY = '0x8004A818BFB912233c491871b3d84c89A494BD9e' as const
@@ -81,7 +81,7 @@ const reputationRegistryAbi = [
 ] as const
 
 function getPublicClient() {
-  return createPublicClient({ chain: baseSepolia, transport: http() })
+  return createPublicClient({ chain: base, transport: http() })
 }
 
 /**
@@ -93,7 +93,7 @@ export async function registerAgent(
   privateKey: `0x${string}`,
 ): Promise<{ agentId: bigint; txHash: string }> {
   const account = privateKeyToAccount(privateKey)
-  const wallet = createWalletClient({ account, chain: baseSepolia, transport: http() })
+  const wallet = createWalletClient({ account, chain: base, transport: http() })
 
   const txHash = await wallet.writeContract({
     address: IDENTITY_REGISTRY,
@@ -142,7 +142,7 @@ export async function submitFeedback(
   reviewerPrivateKey: `0x${string}`,
 ): Promise<string> {
   const account = privateKeyToAccount(reviewerPrivateKey)
-  const wallet = createWalletClient({ account, chain: baseSepolia, transport: http() })
+  const wallet = createWalletClient({ account, chain: base, transport: http() })
 
   const txHash = await wallet.writeContract({
     address: REPUTATION_REGISTRY,
