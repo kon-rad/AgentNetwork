@@ -563,6 +563,16 @@ async function main(): Promise<void> {
           return;
         }
       }
+      // Ensure the chat record exists before storing the message.
+      // storeMessage has a FOREIGN KEY constraint on chat_jid → chats(jid).
+      // For webapp channel messages the chat is created on-demand here.
+      storeChatMetadata(
+        chatJid,
+        msg.timestamp,
+        undefined, // name — not known at message time; will be set by register-group
+        undefined, // channel
+        true,      // is_group — webapp JIDs are always treated as groups
+      );
       storeMessage(msg);
     },
     onChatMetadata: (
@@ -573,6 +583,10 @@ async function main(): Promise<void> {
       isGroup?: boolean,
     ) => storeChatMetadata(chatJid, timestamp, name, channel, isGroup),
     registeredGroups: () => registeredGroups,
+    // Allows channels (e.g. webapp) to register groups at runtime, updating
+    // both the in-memory registeredGroups map AND persisting to SQLite.
+    onRegisterGroup: (jid: string, group: RegisteredGroup) =>
+      registerGroup(jid, group),
   };
 
   // Create and connect all registered channels.

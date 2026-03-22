@@ -13,7 +13,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { WEBAPP_PORT, WEBAPP_SHARED_SECRET } from '../../config.js';
-import { setRegisteredGroup } from '../../db.js';
 import { logger } from '../../logger.js';
 import { Channel, NewMessage } from '../../types.js';
 import { ChannelFactory, registerChannel } from '../registry.js';
@@ -107,7 +106,7 @@ const factory: ChannelFactory = (opts): Channel | null => {
   });
 
   // POST /register-group — register a new agent group in NanoClaw SQLite (NC-07)
-  app.post('/register-group', (req, res) => {
+  app.post('/register-group', async (req, res) => {
     const { agentId, folder, claudeMdContent } = req.body as {
       agentId?: string;
       folder?: string;
@@ -119,20 +118,29 @@ const factory: ChannelFactory = (opts): Channel | null => {
     }
     const jid = `${agentId}@webapp`;
     try {
-      setRegisteredGroup(jid, {
+      const group = {
         name: agentId,
         folder,
         trigger: `@${agentId}`,
         added_at: new Date().toISOString(),
         requiresTrigger: false, // webapp agents respond to all messages (no group trigger needed)
-      });
+      };
 
-      // Create workspace directory with optional CLAUDE.md
+      // Write CLAUDE.md before registering so the folder exists when registerGroup runs
       const groupDir = path.join(process.cwd(), 'groups', folder);
       fs.mkdirSync(groupDir, { recursive: true });
 
       if (claudeMdContent) {
         fs.writeFileSync(path.join(groupDir, 'CLAUDE.md'), claudeMdContent, 'utf8');
+      }
+
+      // Use onRegisterGroup callback if available — updates in-memory state + DB.
+      // Fall back to import for standalone/test usage where the callback isn't wired.
+      if (opts.onRegisterGroup) {
+        opts.onRegisterGroup(jid, group);
+      } else {
+        const { setRegisteredGroup } = await import('../../db.js');
+        setRegisteredGroup(jid, group);
       }
 
       logger.info({ jid, folder }, '[webapp] group registered');
