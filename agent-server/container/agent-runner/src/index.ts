@@ -51,20 +51,20 @@ async function main(): Promise<void> {
   const raw = Buffer.concat(chunks).toString('utf8').trim();
   if (!raw) {
     emit({ status: 'error', result: null, error: 'No input received on stdin' });
-    process.exit(1);
+    return;
   }
 
   let input: ContainerInput;
   try {
-    input = JSON.parse(raw);
+    input = JSON.parse(raw) as ContainerInput;
   } catch {
     emit({ status: 'error', result: null, error: `Invalid JSON input: ${raw.slice(0, 200)}` });
-    process.exit(1);
+    return;
   }
 
   if (!input.prompt) {
     emit({ status: 'error', result: null, error: 'Missing prompt in input' });
-    process.exit(1);
+    return;
   }
 
   // Collect the full response text from all assistant messages
@@ -129,7 +129,7 @@ async function main(): Promise<void> {
       newSessionId: sessionId,
       error: errorMessage,
     });
-    process.exit(1);
+    return;
   }
 }
 

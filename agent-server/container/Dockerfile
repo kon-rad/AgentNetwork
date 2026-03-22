@@ -28,4 +28,11 @@ COPY skills/ /app/skills/
 # the credential proxy at http://host.docker.internal:3001 — containers never receive
 # ANTHROPIC_API_KEY directly (NC-04).
 
+# Run as non-root user — Claude Code CLI refuses --dangerously-skip-permissions as root
+# Use uid 1000 (node) — matches NanoClaw's container-runner mount paths (/home/node/.claude)
+RUN mkdir -p /home/node/.claude && \
+    chown -R node:node /app /home/node
+USER node
+ENV HOME=/home/node
+
 CMD ["node", "dist/index.js"]

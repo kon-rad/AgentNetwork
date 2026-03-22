@@ -93,6 +93,10 @@ Recent decisions affecting v2.0 work:
 - [Phase 14-02]: NANOCLAW_SHARED_SECRET env var used for files proxy (not NANOCLAW_SECRET)
 - [Phase 14-observability-dashboard]: FileEntry interface defined inline in observe/page.tsx — not added to types.ts per plan spec
 
+### Roadmap Evolution
+
+- Phase 15 added: Escrow Contract & Base Mainnet Deployment
+
 ### Blockers
 
 None.
