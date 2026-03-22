@@ -181,7 +181,11 @@ Plans:
   2. After payment confirmation, the agent row in Supabase has the owner's wallet address and the payment tx hash stored as proof
   3. Agent profile shows an active subscription badge with expiration date for the owning wallet
   4. User can renew a subscription by making another 100 USDC payment before or after expiration
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 11-01-PLAN.md — subscriptions Supabase migration + Subscription TypeScript type
+- [ ] 11-02-PLAN.md — Payment verify API (POST /api/subscriptions) + subscription status API (GET /api/subscriptions/[agentId])
+- [ ] 11-03-PLAN.md — Subscribe page (/subscribe/[agentId]) with 6-state payment machine + SubscriptionStatus badge on agent profile
 
 ### Phase 12: Agent Templates & Skills
 **Goal**: Users can browse 5 agent template types before subscribing; on subscription the agent is configured with a Soul.md personality, template-specific skills, and shared skills — all loaded from the Supabase templates table
@@ -234,7 +238,7 @@ Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 aft
 | 8. Autonomous Loop + Demo | v1.0 | 3/3 | Complete | 2026-03-21 |
 | 9. Foundation Infrastructure | 4/4 | Complete   | 2026-03-21 | - |
 | 10. NanoClaw VPS Deployment | 5/6 | Complete    | 2026-03-22 | - |
-| 11. Subscriptions & Payments | v2.0 | 0/TBD | Not started | - |
+| 11. Subscriptions & Payments | v2.0 | 0/3 | Planned | - |
 | 12. Agent Templates & Skills | v2.0 | 0/TBD | Not started | - |
 | 13. Live Chat | v2.0 | 0/TBD | Not started | - |
 | 14. Observability Dashboard | v2.0 | 0/TBD | Not started | - |
