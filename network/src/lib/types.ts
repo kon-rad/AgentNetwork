@@ -119,3 +119,13 @@ export interface AgentTemplate {
   mcp_packages: string[];
   created_at: string;
 }
+
+export interface ChatMessage {
+  id: string;
+  agent_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at: string;
+}
+
+export type AgentStatus = 'idle' | 'thinking' | 'using tool';
