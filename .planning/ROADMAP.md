@@ -163,7 +163,7 @@ Plans:
   2. A curl from the Railway environment to the NanoClaw VPS through the WireGuard tunnel returns a valid SSE response (or the HTTPS fallback is confirmed and documented)
   3. Sending a test message to NanoClaw spawns a Docker container, runs a Claude agent turn, and the response streams back to the caller
   4. Pushing agent-server/ changes to main deploys to VPS via SSH without restarting the NanoClaw host process
-**Plans:** 2/6 plans executed
+**Plans:** 3/6 plans executed
 Plans:
 - [ ] 10-01-PLAN.md — VPS provider checkpoint + Ubuntu provisioning (Docker, Node.js, Caddy)
 - [ ] 10-02-PLAN.md — WireGuard Railway spike + transport decision (HTTPS+Caddy vs WireGuard)
@@ -233,7 +233,7 @@ Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 aft
 | 7. Self Protocol ZK | v1.0 | 1/2 | In Progress | - |
 | 8. Autonomous Loop + Demo | v1.0 | 3/3 | Complete | 2026-03-21 |
 | 9. Foundation Infrastructure | 4/4 | Complete   | 2026-03-21 | - |
-| 10. NanoClaw VPS Deployment | 2/6 | In Progress|  | - |
+| 10. NanoClaw VPS Deployment | 3/6 | In Progress|  | - |
 | 11. Subscriptions & Payments | v2.0 | 0/TBD | Not started | - |
 | 12. Agent Templates & Skills | v2.0 | 0/TBD | Not started | - |
 | 13. Live Chat | v2.0 | 0/TBD | Not started | - |

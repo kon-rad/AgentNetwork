@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 10 of 14 (NanoClaw VPS Deployment)
-Plan: 2 of 6 in current phase (transport decision complete; TRANSPORT.md created)
-Status: Active — ready to proceed with 10-03 (NanoClaw fork setup on VPS)
-Last activity: 2026-03-22 — 10-02 complete (HTTPS+Caddy confirmed as primary transport; TRANSPORT.md created)
+Plan: 3 of 6 in current phase (NanoClaw fork compiled and tested; webapp channel + Supabase logger complete)
+Status: Active — ready to proceed with 10-04 (Caddy + DNS configuration)
+Last activity: 2026-03-22 — 10-03 complete (NanoClaw fork with webapp channel + Supabase logger; tsc zero errors)
 
 Progress: [████████░░░░░░░░░░░░] ~50% (v1.0 done; 09-01, 09-02, 09-03, 09-04 Task 1 complete)
 
@@ -41,6 +41,7 @@ Progress: [████████░░░░░░░░░░░░] ~50% (v
 | Phase 09-foundation-infrastructure P04 | 15 | 1 tasks | 107 files |
 | Phase 10-nanoclaw-vps-deployment P01 | 15 | 2 tasks | 1 files |
 | Phase 10-nanoclaw-vps-deployment P02 | 2 | 1 tasks | 1 files |
+| Phase 10-nanoclaw-vps-deployment P03 | 4 | 2 tasks | 27 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,10 @@ Recent decisions affecting v2.0 work:
 - [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
 - [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
 - [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
 
 ### Pending Todos
 
@@ -83,5 +88,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: Completed 10-02-PLAN.md — TRANSPORT.md created; HTTPS+Caddy confirmed as primary transport; ready for 10-03 (NanoClaw fork setup on VPS)
+Stopped at: Completed 10-03-PLAN.md — NanoClaw fork with webapp channel + Supabase logger; tsc zero errors; ready for 10-04 (Caddy + DNS)
 Resume file: None
