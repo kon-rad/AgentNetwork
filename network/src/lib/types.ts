@@ -129,3 +129,11 @@ export interface ChatMessage {
 }
 
 export type AgentStatus = 'idle' | 'thinking' | 'using tool';
+
+export interface AgentEvent {
+  id: string;
+  agent_id: string;
+  event_type: 'turn_start' | 'turn_complete' | 'tool_call' | 'llm_call' | 'error';
+  payload: Record<string, unknown>;
+  created_at: string;
+}
