@@ -65,7 +65,7 @@
 - [ ] **OBS-01**: Owner can view a real-time activity feed of their agent (LLM calls, tool usage, responses)
 - [ ] **OBS-02**: Token usage is displayed per session and cumulatively (input tokens, output tokens, model name)
 - [ ] **OBS-03**: Tool calls are shown with tool name, input, output, and duration
-- [ ] **OBS-04**: Agent events stream to the dashboard via Supabase Realtime (no custom SSE pipeline)
+- [x] **OBS-04**: Agent events stream to the dashboard via Supabase Realtime (no custom SSE pipeline)
 - [ ] **OBS-05**: Owner can browse files in the agent's workspace directory
 
 ## Future Requirements
@@ -141,7 +141,7 @@
 | OBS-01 | Phase 14 | Pending |
 | OBS-02 | Phase 14 | Pending |
 | OBS-03 | Phase 14 | Pending |
-| OBS-04 | Phase 14 | Pending |
+| OBS-04 | Phase 14 | Complete |
 | OBS-05 | Phase 14 | Pending |
 
 **Coverage:**
