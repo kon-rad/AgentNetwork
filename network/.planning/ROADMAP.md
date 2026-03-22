@@ -211,7 +211,11 @@ Plans:
   2. Agent status indicator changes from idle to thinking to using tool as the agent executes a turn, then returns to idle
   3. Closing and reopening the chat page shows the full message history from previous sessions
   4. Shift+Enter inserts a newline; Enter submits the message
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 13-01-PLAN.md — Supabase chat_messages migration + ChatMessage/AgentStatus types
+- [ ] 13-02-PLAN.md — Chat API routes: GET history + POST send + SSE stream proxy
+- [ ] 13-03-PLAN.md — Chat page UI at /agent/[id]/chat with streaming, status indicator, and keyboard input
 
 ### Phase 14: Observability Dashboard
 **Goal**: Subscribed owners can view a live feed of their agent's LLM calls, tool usage, token counts, and workspace files — events stream to the dashboard via Supabase Realtime without a custom SSE pipeline
