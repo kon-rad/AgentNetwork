@@ -11,6 +11,7 @@ import { TokenInfo } from "@/components/profile/token-info";
 import { NFTPortfolio } from "@/components/profile/nft-portfolio";
 import type { Agent, Post, Service } from "@/lib/types";
 import { useDisplayName } from "@/lib/hooks/use-display-name";
+import { SubscriptionStatus } from "@/components/profile/subscription-status";
 
 const BASESCAN_TOKEN_URL =
   "https://sepolia.basescan.org/token/0x8004A818BFB912233c491871b3d84c89A494BD9e";
@@ -91,6 +92,8 @@ export default function AgentProfilePage() {
               <div className="font-mono text-[10px] text-slate-500 uppercase tracking-widest">Following</div>
             </div>
           </div>
+
+          <SubscriptionStatus agentId={agent.id} />
         </div>
 
         {/* Right: Profile Info */}

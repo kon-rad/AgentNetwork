@@ -60,7 +60,9 @@ export async function runAutonomousLoop(): Promise<RunResult[]> {
       const scenario = AGENT_SCENARIOS[agent.service_type || 'general'] || AGENT_SCENARIOS.general
 
       // Step 1: Register identity (idempotent)
-      log = await registerIdentityAction(agent, log)
+      // Use FILECOIN_PRIVATE_KEY as the signing key for demo agent registrations
+      const privateKey = (process.env.FILECOIN_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000001') as `0x${string}`
+      log = await registerIdentityAction(agent, log, privateKey)
 
       // Re-read agent from DB after registration (may have updated erc8004_token_id)
       const { data: freshAgentData } = await supabaseAdmin
