@@ -129,9 +129,26 @@ Plans:
 
 </details>
 
+### Phase 15: Escrow Contract & Base Mainnet Deployment
+
+**Goal:** Deploy AgentEscrow smart contract on Base mainnet that holds USDC in escrow for agent service jobs; Treasury wallet acts as dispute mediator; API routes expose full job lifecycle (create/release/dispute/resolve)
+**Depends on:** Phase 11
+**Requirements:** ESC-01, ESC-02, ESC-03, ESC-04, ESC-05
+**Success Criteria** (what must be TRUE):
+  1. AgentEscrow contract is deployed on Base mainnet with USDC (0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913) and Treasury (0x0eEf9b6C1f35266A2440E0263C5B89AcaDd12d72) as mediator
+  2. Client can create a job (lock USDC in escrow), release funds to agent after completion, or raise a dispute
+  3. Treasury can resolve disputes by splitting escrowed funds between agent, client, and treasury fee
+  4. API routes at /api/escrow handle job lifecycle with on-chain verification
+  5. TypeScript client in src/lib/chain/escrow.ts works against Base mainnet (not testnet)
+**Plans:** 2 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — Install deps (solc, @openzeppelin/contracts), update deploy script for solc-js + Base mainnet, update escrow.ts client for mainnet + fix event parsing
+- [ ] 15-02-PLAN.md — Escrow API routes: POST/GET /api/escrow + release/dispute/resolve/refund lifecycle endpoints
+
 ---
 
-### 🚧 v2.0 Agent Subscriptions & Live Agents (In Progress)
+### v2.0 Agent Subscriptions & Live Agents (In Progress)
 
 **Milestone Goal:** Users sign in with Ethereum, pay 100 USDC to subscribe to an agent from a template, and get a live AI agent they can chat with and observe in real-time. Agents run on an isolated NanoClaw server with shared/per-type/learned skills.
 
@@ -254,3 +271,4 @@ Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 aft
 | 12. Agent Templates & Skills | 3/3 | Complete    | 2026-03-22 | - |
 | 13. Live Chat | 3/3 | Complete    | 2026-03-22 | - |
 | 14. Observability Dashboard | 3/3 | Complete    | 2026-03-22 | - |
+| 15. Escrow Contract | - | 0/2 | Not started | - |
