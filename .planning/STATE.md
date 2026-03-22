@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Users pay to subscribe to live AI agents they can chat with, observe, and manage — agents run in isolated containers with their own personalities, skills, and wallets.
-**Current focus:** Phase 9 — Foundation Infrastructure (v2.0 start)
+**Current focus:** Phase 10 — NanoClaw VPS Deployment
 
 ## Current Position
 
-Phase: 9 of 14 (Foundation Infrastructure)
-Plan: 4 of TBD in current phase
-Status: Checkpoint — awaiting Railway dashboard config + GitHub secrets
-Last activity: 2026-03-22 — 09-04 Task 1 complete (monorepo restructured; pnpm build verified; workflow file created)
+Phase: 10 of 14 (NanoClaw VPS Deployment)
+Plan: 1 of 6 in current phase (script complete; awaiting VPS creation)
+Status: Checkpoint — awaiting user to create Hetzner VPS and provide IP address
+Last activity: 2026-03-22 — 10-01 Task 2 complete (provision-vps.sh created; agent-server git repo initialized)
 
 Progress: [████████░░░░░░░░░░░░] ~50% (v1.0 done; 09-01, 09-02, 09-03, 09-04 Task 1 complete)
 
@@ -39,6 +39,7 @@ Progress: [████████░░░░░░░░░░░░] ~50% (v
 *Updated after each plan completion*
 | Phase 09-foundation-infrastructure P03 | 8 | 3 tasks | 17 files |
 | Phase 09-foundation-infrastructure P04 | 15 | 1 tasks | 107 files |
+| Phase 10-nanoclaw-vps-deployment P01 | 15 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,8 @@ Recent decisions affecting v2.0 work:
 - [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
 - [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
 - [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB ($24/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
 
 ### Pending Todos
 
@@ -78,5 +81,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: Checkpoint in 09-04-PLAN.md Task 2 — monorepo restructure complete (Task 1 committed 844eafb); awaiting user to configure Railway Root Directory + GitHub Secrets for CI/CD
+Stopped at: Checkpoint in 10-01-PLAN.md — provisioning script created (97ce7ae in agent-server repo); awaiting user to create Hetzner VPS and provide IP address to run provision-vps.sh
 Resume file: None

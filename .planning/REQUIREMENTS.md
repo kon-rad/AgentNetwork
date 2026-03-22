@@ -32,7 +32,7 @@
 
 - [ ] **NC-01**: NanoClaw is forked with all messaging channels (Telegram, WhatsApp, Slack, Discord, Gmail) disabled
 - [ ] **NC-02**: Custom webapp HTTP channel accepts messages from Next.js and streams responses via SSE
-- [ ] **NC-03**: NanoClaw is deployed on a VPS with Docker and the nanoclaw-agent Docker image
+- [x] **NC-03**: NanoClaw is deployed on a VPS with Docker and the nanoclaw-agent Docker image
 - [ ] **NC-04**: Credential proxy shares a single Claude subscription (API key or OAuth token) across all agent containers
 - [ ] **NC-05**: WireGuard tunnel or equivalent TLS transport (HTTPS+Caddy with shared secret) encrypts all traffic between Railway (Next.js) and VPS (NanoClaw) — transport approach determined by plan 10-02 research
 - [ ] **NC-06**: Shared secret header authenticates requests from Next.js to NanoClaw (defense-in-depth)
@@ -112,7 +112,7 @@
 | CICD-02 | Phase 9 | Complete |
 | NC-01 | Phase 10 | Pending |
 | NC-02 | Phase 10 | Pending |
-| NC-03 | Phase 10 | Pending |
+| NC-03 | Phase 10 | Complete |
 | NC-04 | Phase 10 | Pending |
 | NC-05 | Phase 10 | Pending |
 | NC-06 | Phase 10 | Pending |
