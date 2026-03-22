@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@filoz/synapse-sdk": "^0.40.0",
+    "@openzeppelin/contracts": "^5.6.1",
     "@rainbow-me/rainbowkit": "^2.2.10",
     "@rareprotocol/rare-cli": "^0.3.0",
     "@selfxyz/core": "1.2.0-beta.1",
@@ -31,6 +32,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "siwe": "^3.0.0",
+    "solc": "^0.8.34",
     "uuid": "^13.0.0",
     "viem": "^2.47.5",
     "wagmi": "^2.19.5",

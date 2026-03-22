@@ -1,12 +1,13 @@
 /**
- * Deploy AgentEscrow to Base Sepolia using solc + viem (no Hardhat needed).
+ * Deploy AgentEscrow to Base mainnet using solc-js + viem (no Hardhat needed).
  *
  * Prerequisites:
- *   npm install -g solc   (or: brew install solidity)
- *   Fund ESCROW_DEPLOYER_PRIVATE_KEY with Base Sepolia ETH
+ *   npm install @openzeppelin/contracts solc
+ *   Fund ESCROW_DEPLOYER_PRIVATE_KEY with Base mainnet ETH
  *
  * Usage:
  *   npx tsx scripts/deploy-escrow.ts
+ *   npx tsx scripts/deploy-escrow.ts --compile-only   (compile + save ABI, skip deploy)
  *
  * After deployment, add the printed address to .env.local as:
  *   NEXT_PUBLIC_ESCROW_ADDRESS=0x...
@@ -15,26 +16,37 @@
 
 import { createWalletClient, createPublicClient, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { baseSepolia } from 'viem/chains'
-import { execSync } from 'child_process'
-import { readFileSync, writeFileSync, mkdirSync } from 'fs'
-import { resolve } from 'path'
+import { base } from 'viem/chains'
+import solc from 'solc'
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
+import { resolve, join } from 'path'
 
-const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e' // Base Sepolia USDC
+const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base mainnet USDC
 const TREASURY_ADDRESS = process.env.TREASURY_ADDRESS || '0x0eEf9b6C1f35266A2440E0263C5B89AcaDd12d72'
-const DEPLOYER_KEY = process.env.ESCROW_DEPLOYER_PRIVATE_KEY as `0x${string}`
 
-if (!DEPLOYER_KEY) {
-  console.error('Set ESCROW_DEPLOYER_PRIVATE_KEY in .env.local')
-  process.exit(1)
+const COMPILE_ONLY = process.argv.includes('--compile-only')
+
+/**
+ * Resolve Solidity imports from node_modules (e.g. @openzeppelin/contracts/...)
+ */
+function findImports(importPath: string): { contents: string } | { error: string } {
+  const candidates = [
+    resolve(__dirname, '../node_modules', importPath),
+    resolve(__dirname, '../../node_modules', importPath),
+  ]
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return { contents: readFileSync(candidate, 'utf8') }
+    }
+  }
+  return { error: `File not found: ${importPath}` }
 }
 
 async function main() {
-  // 1. Compile with solc
+  // 1. Compile with solc-js
   const contractPath = resolve(__dirname, '../contracts/AgentEscrow.sol')
-  console.log('Compiling AgentEscrow.sol...')
+  console.log('Compiling AgentEscrow.sol with solc-js...')
 
-  // Create solc input JSON
   const input = {
     language: 'Solidity',
     sources: {
@@ -46,31 +58,21 @@ async function main() {
     },
   }
 
-  // Try to find OpenZeppelin imports from node_modules
-  const nodeModulesPath = resolve(__dirname, '../node_modules')
+  const output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }))
 
-  const inputPath = resolve(__dirname, '../contracts/solc-input.json')
-  writeFileSync(inputPath, JSON.stringify(input))
-
-  let output: string
-  try {
-    output = execSync(
-      `solc --standard-json --allow-paths "${nodeModulesPath}" < "${inputPath}"`,
-      { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 },
-    )
-  } catch (err) {
-    console.error('solc failed. Install it with: brew install solidity')
-    throw err
-  }
-
-  const compiled = JSON.parse(output)
-
-  if (compiled.errors?.some((e: { severity: string }) => e.severity === 'error')) {
-    console.error('Compilation errors:', compiled.errors)
+  if (output.errors?.some((e: { severity: string }) => e.severity === 'error')) {
+    console.error('Compilation errors:', output.errors)
     process.exit(1)
   }
 
-  const contract = compiled.contracts['AgentEscrow.sol']['AgentEscrow']
+  // Show warnings (non-fatal)
+  if (output.errors?.length) {
+    for (const w of output.errors) {
+      if (w.severity === 'warning') console.warn(`[solc warning] ${w.message}`)
+    }
+  }
+
+  const contract = output.contracts['AgentEscrow.sol']['AgentEscrow']
   const abi = contract.abi
   const bytecode = `0x${contract.evm.bytecode.object}` as `0x${string}`
 
@@ -79,19 +81,31 @@ async function main() {
   mkdirSync(abiDir, { recursive: true })
   writeFileSync(resolve(abiDir, 'AgentEscrow.json'), JSON.stringify(abi, null, 2))
   console.log('ABI saved to src/lib/chain/abi/AgentEscrow.json')
+  console.log(`Bytecode length: ${bytecode.length} chars`)
+
+  if (COMPILE_ONLY) {
+    console.log('\n--compile-only flag set. Skipping deployment.')
+    return
+  }
 
   // 2. Deploy
+  const DEPLOYER_KEY = process.env.ESCROW_DEPLOYER_PRIVATE_KEY as `0x${string}`
+  if (!DEPLOYER_KEY) {
+    console.error('Set ESCROW_DEPLOYER_PRIVATE_KEY in .env.local')
+    process.exit(1)
+  }
+
   const account = privateKeyToAccount(DEPLOYER_KEY)
   console.log(`Deploying from: ${account.address}`)
 
   const walletClient = createWalletClient({
     account,
-    chain: baseSepolia,
+    chain: base,
     transport: http(),
   })
 
   const publicClient = createPublicClient({
-    chain: baseSepolia,
+    chain: base,
     transport: http(),
   })
 
@@ -109,7 +123,7 @@ async function main() {
 
   console.log('\n=== DEPLOYMENT COMPLETE ===')
   console.log(`Escrow Address: ${escrowAddress}`)
-  console.log(`BaseScan: https://sepolia.basescan.org/address/${escrowAddress}`)
+  console.log(`BaseScan: https://basescan.org/address/${escrowAddress}`)
   console.log(`\nAdd to .env.local:`)
   console.log(`ESCROW_ADDRESS=${escrowAddress}`)
   console.log(`NEXT_PUBLIC_ESCROW_ADDRESS=${escrowAddress}`)
