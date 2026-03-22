@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Users pay to subscribe to live AI agents they can chat with, observe, and manage — agents run in isolated containers with their own personalities, skills, and wallets.
-**Current focus:** Phase 10 — NanoClaw VPS Deployment
+**Current focus:** Phase 10 — NanoClaw VPS Deployment (complete; awaiting human-verify checkpoint on 10-06 Task 2)
 
 ## Current Position
 
 Phase: 10 of 14 (NanoClaw VPS Deployment)
-Plan: 5 of 6 in current phase (CI/CD workflow created; awaiting human-verify checkpoint for GitHub Secrets + first deploy)
-Status: Active — checkpoint reached at 10-05 Task 2 (human-verify: add GitHub Secrets + trigger workflow dispatch)
-Last activity: 2026-03-22 — 10-05 Task 1 complete (deploy-agent.yml workflow in agent-server/.github/workflows/)
+Plan: 6 of 6 in current phase (e2e test script created; 4/4 tests passing; awaiting human-verify checkpoint)
+Status: Active — checkpoint reached at 10-06 Task 2 (human-verify: confirm e2e-test.sh output)
+Last activity: 2026-03-22 — 10-06 Task 1 complete (e2e-test.sh created; 2 bugs fixed; all 4 tests pass)
 
-Progress: [████████░░░░░░░░░░░░] ~50% (v1.0 done; 09-01, 09-02, 09-03, 09-04 Task 1 complete)
+Progress: [█████████░░░░░░░░░░░] ~55% (v1.0 done; Phase 09 complete; Phase 10 infra proven)
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Progress: [████████░░░░░░░░░░░░] ~50% (v
 | Phase 10-nanoclaw-vps-deployment P02 | 2 | 1 tasks | 1 files |
 | Phase 10-nanoclaw-vps-deployment P03 | 4 | 2 tasks | 27 files |
 | Phase 10-nanoclaw-vps-deployment P05 | 5 | 1 tasks | 1 files |
+| Phase 10-nanoclaw-vps-deployment P06 | 23 | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,8 @@ Recent decisions affecting v2.0 work:
 - [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
 - [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
 - [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
 
 ### Pending Todos
 
@@ -86,9 +89,10 @@ None yet.
 
 - [Phase 10]: NanoClaw 2s polling latency may create noticeable chat delay — spike before building chat UI in Phase 13
 - [Phase 13]: Claude Agent SDK token streaming through NanoClaw IPC to webapp channel is unconfirmed — may fall back to polling Supabase for completed turns
+- [Phase 10]: container/agent-runner/ not implemented — containers spawn but produce no OUTPUT_MARKER output; full Claude SSE response deferred to Phase 13
 
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: 10-05 Task 2 checkpoint (human-verify) — deploy-agent.yml committed to agent-server; waiting for user to add GitHub Secrets (VPS_HOST, VPS_USER, VPS_SSH_KEY) and trigger workflow_dispatch
+Stopped at: 10-06 Task 2 checkpoint (human-verify) — e2e-test.sh created; 4/4 tests passing; waiting for user to confirm results
 Resume file: None
