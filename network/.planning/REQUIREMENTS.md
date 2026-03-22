@@ -47,10 +47,10 @@
 - [x] **TMPL-01**: Agent templates table in Supabase stores Soul.md content, skill set names, and MCP package lists per agent type
 - [ ] **TMPL-02**: User can browse available agent templates before subscribing
 - [ ] **TMPL-03**: On subscription, the agent's CLAUDE.md is written from the template's Soul.md content
-- [ ] **SKILL-01**: Shared skills (Tier 1) are available to all agents via container/skills/ directory
-- [ ] **SKILL-02**: Template skills (Tier 2) are mounted per agent type based on the template's skill set
-- [ ] **SKILL-03**: Agents can create learned skills (Tier 3) at runtime that persist across sessions
-- [ ] **SKILL-04**: Skills are Claude Code skill files (.md with YAML frontmatter) loaded by the SDK
+- [x] **SKILL-01**: Shared skills (Tier 1) are available to all agents via container/skills/ directory
+- [x] **SKILL-02**: Template skills (Tier 2) are mounted per agent type based on the template's skill set
+- [x] **SKILL-03**: Agents can create learned skills (Tier 3) at runtime that persist across sessions
+- [x] **SKILL-04**: Skills are Claude Code skill files (.md with YAML frontmatter) loaded by the SDK
 
 ### Chat
 
@@ -129,10 +129,10 @@
 | TMPL-01 | Phase 12 | Complete |
 | TMPL-02 | Phase 12 | Pending |
 | TMPL-03 | Phase 12 | Pending |
-| SKILL-01 | Phase 12 | Pending |
-| SKILL-02 | Phase 12 | Pending |
-| SKILL-03 | Phase 12 | Pending |
-| SKILL-04 | Phase 12 | Pending |
+| SKILL-01 | Phase 12 | Complete |
+| SKILL-02 | Phase 12 | Complete |
+| SKILL-03 | Phase 12 | Complete |
+| SKILL-04 | Phase 12 | Complete |
 | CHAT-01 | Phase 13 | Pending |
 | CHAT-02 | Phase 13 | Pending |
 | CHAT-03 | Phase 13 | Pending |
