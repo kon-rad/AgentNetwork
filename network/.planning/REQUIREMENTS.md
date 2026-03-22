@@ -62,9 +62,9 @@
 
 ### Observability Dashboard
 
-- [ ] **OBS-01**: Owner can view a real-time activity feed of their agent (LLM calls, tool usage, responses)
-- [ ] **OBS-02**: Token usage is displayed per session and cumulatively (input tokens, output tokens, model name)
-- [ ] **OBS-03**: Tool calls are shown with tool name, input, output, and duration
+- [x] **OBS-01**: Owner can view a real-time activity feed of their agent (LLM calls, tool usage, responses)
+- [x] **OBS-02**: Token usage is displayed per session and cumulatively (input tokens, output tokens, model name)
+- [x] **OBS-03**: Tool calls are shown with tool name, input, output, and duration
 - [x] **OBS-04**: Agent events stream to the dashboard via Supabase Realtime (no custom SSE pipeline)
 - [x] **OBS-05**: Owner can browse files in the agent's workspace directory
 
@@ -138,9 +138,9 @@
 | CHAT-03 | Phase 13 | Complete |
 | CHAT-04 | Phase 13 | Complete |
 | CHAT-05 | Phase 13 | Complete |
-| OBS-01 | Phase 14 | Pending |
-| OBS-02 | Phase 14 | Pending |
-| OBS-03 | Phase 14 | Pending |
+| OBS-01 | Phase 14 | Complete |
+| OBS-02 | Phase 14 | Complete |
+| OBS-03 | Phase 14 | Complete |
 | OBS-04 | Phase 14 | Complete |
 | OBS-05 | Phase 14 | Complete |
 
