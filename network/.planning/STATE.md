@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Users pay to subscribe to live AI agents they can chat with, observe, and manage — agents run in isolated containers with their own personalities, skills, and wallets.
-**Current focus:** Phase 14 — Observability Dashboard (Plan 2 of 3 complete; file browser backend complete)
+**Current focus:** Phase 15 — Escrow Contract & Base Mainnet Deployment (Plan 1 of 2 complete)
 
 ## Current Position
 
-Phase: 14 of 14 (Observability Dashboard)
-Plan: 3 of 3 in progress (Task 1 done; Task 2 = human-verify checkpoint pending)
-Status: 14-03 Task 1 complete — observe dashboard UI built; awaiting human verification of Realtime + token panel + file browser
-Last activity: 2026-03-22 — 14-03 observe dashboard page created (447 lines, build passing)
+Phase: 15 of 15 (Escrow Contract & Base Mainnet Deployment)
+Plan: 2 of 2 remaining
+Status: 15-01 complete — solc-js compilation pipeline, Base mainnet deploy script, escrow.ts client updated
+Last activity: 2026-03-22 — 15-01 deploy script + escrow client rewritten for Base mainnet
 
-Progress: [████████████░░░░░░░░] ~68% (v1.0 done; Phase 09-13 in progress)
+Progress: [█████████████░░░░░░░] ~70% (v1.0 done; Phase 09-15 in progress)
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [████████████░░░░░░░░] ~68% (v
 | Phase 14-observability-dashboard P01 | 1 | 2 tasks | 2 files |
 | Phase 14-observability-dashboard P02 | 2 | 2 tasks | 2 files |
 | Phase 14-observability-dashboard P03 | 4min | 1 tasks | 1 files |
+| Phase 15-escrow-contract-base-mainnet-deployment P01 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,10 @@ Recent decisions affecting v2.0 work:
 - [Phase 14-02]: Both NanoClaw and Next.js proxy return { files: [] } on errors — graceful degradation when agent folder missing or NanoClaw unreachable
 - [Phase 14-02]: NANOCLAW_SHARED_SECRET env var used for files proxy (not NANOCLAW_SECRET)
 - [Phase 14-observability-dashboard]: FileEntry interface defined inline in observe/page.tsx — not added to types.ts per plan spec
+- [Phase 15-01]: solc-js npm package replaces system solc binary -- no global install needed
+- [Phase 15-01]: ABI imported from generated JSON file rather than inline definition in escrow.ts
+- [Phase 15-01]: decodeEventLog iteration pattern (matching erc8004.ts) replaces fragile logs[0] parsing
+- [Phase 15-01]: --compile-only flag on deploy script for CI/testing use without deployer wallet
 
 ### Roadmap Evolution
 
@@ -104,4 +109,4 @@ None.
 ### Session
 
 Last session: 2026-03-22
-Stopped at: 14-03 Task 1 complete (observe dashboard page) — awaiting human verify checkpoint (Task 2)
+Stopped at: Completed 15-01-PLAN.md
