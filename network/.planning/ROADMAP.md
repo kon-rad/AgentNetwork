@@ -211,7 +211,7 @@ Plans:
   2. Agent status indicator changes from idle to thinking to using tool as the agent executes a turn, then returns to idle
   3. Closing and reopening the chat page shows the full message history from previous sessions
   4. Shift+Enter inserts a newline; Enter submits the message
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 13-01-PLAN.md — Supabase chat_messages migration + ChatMessage/AgentStatus types
 - [ ] 13-02-PLAN.md — Chat API routes: GET history + POST send + SSE stream proxy
@@ -248,5 +248,5 @@ Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 aft
 | 10. NanoClaw VPS Deployment | 5/6 | Complete    | 2026-03-22 | - |
 | 11. Subscriptions & Payments | 3/3 | Complete    | 2026-03-22 | - |
 | 12. Agent Templates & Skills | 3/3 | Complete    | 2026-03-22 | - |
-| 13. Live Chat | 2/3 | In Progress|  | - |
+| 13. Live Chat | 3/3 | Complete   | 2026-03-22 | - |
 | 14. Observability Dashboard | v2.0 | 0/TBD | Not started | - |

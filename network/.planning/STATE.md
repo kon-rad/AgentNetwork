@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Users pay to subscribe to live AI agents they can chat with, observe, and manage — agents run in isolated containers with their own personalities, skills, and wallets.
-**Current focus:** Phase 13 — Live Chat (Plan 2 of N complete; chat API routes done)
+**Current focus:** Phase 13 — Live Chat (Plan 3 of N complete; chat UI built, awaiting human verify checkpoint)
 
 ## Current Position
 
 Phase: 13 of 14 (Live Chat)
-Plan: 2 of N complete in current phase
-Status: 13-02 complete — GET/POST chat route + SSE stream proxy done; ready for 13-03 chat UI
-Last activity: 2026-03-22 — 13-02 complete (chat API routes: history, send, SSE stream proxy)
+Plan: 3 of N complete in current phase (paused at Task 2 human-verify checkpoint)
+Status: 13-03 chat UI built — /agent/[id]/chat page ready; awaiting human verification of SSE streaming and keyboard behavior
+Last activity: 2026-03-22 — 13-03 Task 1 complete (chat page with SSE streaming, status indicator, history, keyboard shortcuts)
 
 Progress: [████████████░░░░░░░░] ~68% (v1.0 done; Phase 09-13 in progress)
 
@@ -52,6 +52,7 @@ Progress: [████████████░░░░░░░░] ~68% (v
 | Phase 12-agent-templates-skills P03 | 3 | 2 tasks | 3 files |
 | Phase 13-live-chat P01 | 1 | 2 tasks | 2 files |
 | Phase 13-live-chat P02 | 2 | 2 tasks | 2 files |
+| Phase 13-live-chat P03 | 2 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,7 @@ Recent decisions affecting v2.0 work:
 - [Phase 13-02]: NanoClaw forward in POST chat is fire-and-forget — message persists in Supabase even if NanoClaw unreachable
 - [Phase 13-02]: SSE proxy (stream route) does NOT write to Supabase — pure passthrough to avoid double-write race with UI
 - [Phase 13-02]: Synthetic SSE error events emitted when NanoClaw unavailable, so UI always receives a done event
+- [Phase 13-live-chat]: EventSource closed+reopened after done event for multi-turn chat; streamingContentRef avoids stale closure; optimistic status=thinking on send
 
 ### Blockers
 
@@ -89,4 +91,4 @@ None.
 ### Session
 
 Last session: 2026-03-22
-Stopped at: Completed 13-02-PLAN.md (chat API routes done; SSE stream proxy done)
+Stopped at: Reached Task 2 checkpoint in 13-03-PLAN.md — awaiting human verification of chat UI at /agent/[id]/chat

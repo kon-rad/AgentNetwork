@@ -54,11 +54,11 @@
 
 ### Chat
 
-- [ ] **CHAT-01**: User can send messages to their agent via a chat interface
-- [ ] **CHAT-02**: Agent responses stream in real-time via SSE (token-level or turn-level)
-- [ ] **CHAT-03**: Chat message history persists in Supabase and loads on page open
-- [ ] **CHAT-04**: Agent status indicator shows idle / thinking / using tool states
-- [ ] **CHAT-05**: Chat input sends on Enter, Shift+Enter for newlines
+- [x] **CHAT-01**: User can send messages to their agent via a chat interface
+- [x] **CHAT-02**: Agent responses stream in real-time via SSE (token-level or turn-level)
+- [x] **CHAT-03**: Chat message history persists in Supabase and loads on page open
+- [x] **CHAT-04**: Agent status indicator shows idle / thinking / using tool states
+- [x] **CHAT-05**: Chat input sends on Enter, Shift+Enter for newlines
 
 ### Observability Dashboard
 
@@ -133,11 +133,11 @@
 | SKILL-02 | Phase 12 | Complete |
 | SKILL-03 | Phase 12 | Complete |
 | SKILL-04 | Phase 12 | Complete |
-| CHAT-01 | Phase 13 | Pending |
-| CHAT-02 | Phase 13 | Pending |
-| CHAT-03 | Phase 13 | Pending |
-| CHAT-04 | Phase 13 | Pending |
-| CHAT-05 | Phase 13 | Pending |
+| CHAT-01 | Phase 13 | Complete |
+| CHAT-02 | Phase 13 | Complete |
+| CHAT-03 | Phase 13 | Complete |
+| CHAT-04 | Phase 13 | Complete |
+| CHAT-05 | Phase 13 | Complete |
 | OBS-01 | Phase 14 | Pending |
 | OBS-02 | Phase 14 | Pending |
 | OBS-03 | Phase 14 | Pending |
