@@ -227,7 +227,11 @@ Plans:
   3. Each tool call entry shows tool name, input arguments, output, and duration
   4. Owner can browse files in the agent's workspace directory from the dashboard
   5. Observability access is owner-only: visiting another user's agent dashboard returns an access denied state
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 14-01-PLAN.md — agent_events Supabase migration + AgentEvent TypeScript type
+- [ ] 14-02-PLAN.md — NanoClaw files endpoint + Next.js /api/agents/[id]/files proxy
+- [ ] 14-03-PLAN.md — Observability dashboard page at /agent/[id]/observe
 
 ## Progress
 
@@ -249,4 +253,4 @@ Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 aft
 | 11. Subscriptions & Payments | 3/3 | Complete    | 2026-03-22 | - |
 | 12. Agent Templates & Skills | 3/3 | Complete    | 2026-03-22 | - |
 | 13. Live Chat | 3/3 | Complete    | 2026-03-22 | - |
-| 14. Observability Dashboard | v2.0 | 0/TBD | Not started | - |
+| 14. Observability Dashboard | v2.0 | 0/3 | Not started | - |
