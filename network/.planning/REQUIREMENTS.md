@@ -22,11 +22,11 @@
 
 - [ ] **PAY-01**: User can initiate a 100 USDC transfer on Base to subscribe to an agent
 - [ ] **PAY-02**: UI shows payment states: wallet prompt → pending (with tx hash + BaseScan link) → confirmed → agent launching
-- [ ] **PAY-03**: Payment tx hash is stored as proof of subscription in Supabase
-- [ ] **PAY-04**: Agent is only launched after payment confirmation on-chain
+- [x] **PAY-03**: Payment tx hash is stored as proof of subscription in Supabase
+- [x] **PAY-04**: Agent is only launched after payment confirmation on-chain
 - [ ] **SUB-01**: User can see their active subscription status on the agent profile
-- [ ] **SUB-02**: Subscription is monthly (100 USDC/month) with expiration tracked in Supabase
-- [ ] **SUB-03**: User can renew subscription before expiration via another 100 USDC payment
+- [x] **SUB-02**: Subscription is monthly (100 USDC/month) with expiration tracked in Supabase
+- [x] **SUB-03**: User can renew subscription before expiration via another 100 USDC payment
 
 ### NanoClaw & Infrastructure
 
@@ -121,11 +121,11 @@
 | CICD-04 | Phase 10 | Complete |
 | PAY-01 | Phase 11 | Pending |
 | PAY-02 | Phase 11 | Pending |
-| PAY-03 | Phase 11 | Pending |
-| PAY-04 | Phase 11 | Pending |
+| PAY-03 | Phase 11 | Complete |
+| PAY-04 | Phase 11 | Complete |
 | SUB-01 | Phase 11 | Pending |
-| SUB-02 | Phase 11 | Pending |
-| SUB-03 | Phase 11 | Pending |
+| SUB-02 | Phase 11 | Complete |
+| SUB-03 | Phase 11 | Complete |
 | TMPL-01 | Phase 12 | Pending |
 | TMPL-02 | Phase 12 | Pending |
 | TMPL-03 | Phase 12 | Pending |

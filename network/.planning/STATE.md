@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Users pay to subscribe to live AI agents they can chat with, observe, and manage — agents run in isolated containers with their own personalities, skills, and wallets.
-**Current focus:** Phase 11 — Subscriptions & Payments (Plan 01 complete; subscriptions table DDL + TypeScript types done)
+**Current focus:** Phase 11 — Subscriptions & Payments (Plan 02 complete; payment verification API + subscription status API done)
 
 ## Current Position
 
 Phase: 11 of 14 (Subscriptions & Payments)
-Plan: 1 of 4 in current phase (subscriptions table DDL + TypeScript types complete)
-Status: Active — Plan 01 complete; manual migration pending (Supabase CLI not linked)
-Last activity: 2026-03-22 — 11-01 complete (002_subscriptions.sql + Subscription type added to types.ts)
+Plan: 2 of 4 in current phase (payment verification + subscription status API complete)
+Status: Active — Plan 02 complete; Plans 03-04 remaining
+Last activity: 2026-03-22 — 11-02 complete (POST /api/subscriptions + GET /api/subscriptions/[agentId])
 
 Progress: [█████████░░░░░░░░░░░] ~57% (v1.0 done; Phase 09 complete; Phase 10 infra proven; Phase 11 started)
 
@@ -45,6 +45,7 @@ Progress: [█████████░░░░░░░░░░░] ~57% (v
 | Phase 10-nanoclaw-vps-deployment P05 | 5 | 1 tasks | 1 files |
 | Phase 10-nanoclaw-vps-deployment P06 | 23 | 1 tasks | 4 files |
 | Phase 11-subscriptions-payments P01 | 2 | 2 tasks | 2 files |
+| Phase 11-subscriptions-payments P02 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting v2.0 work:
 - [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
 - [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
 - [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
 
 ### Pending Todos
 
@@ -97,5 +101,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: Completed 11-01-PLAN.md — subscriptions table migration + TypeScript types; manual SQL migration required
+Stopped at: Completed 11-02-PLAN.md — payment verification API (POST /api/subscriptions) + subscription status API (GET /api/subscriptions/[agentId])
 Resume file: None
