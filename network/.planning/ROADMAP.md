@@ -196,7 +196,7 @@ Plans:
   2. After subscription payment confirms, the new agent's CLAUDE.md is written from the template's Soul.md content and persists across sessions
   3. Shared skills (Tier 1) are available in every agent container; template skills (Tier 2) are mounted per agent type; agents can write learned skills (Tier 3) that persist
   4. Skill files follow the Claude Code skill format (.md with YAML frontmatter) and are loaded by the Claude Agent SDK inside the container
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
 - [ ] 12-01-PLAN.md — agent_templates Supabase migration + seed 5 templates + AgentTemplate TypeScript type
 - [ ] 12-02-PLAN.md — Skill files: Tier 1 shared (container/skills/) + Tier 2 template (templates/{type}/.claude/skills/)
@@ -243,6 +243,6 @@ Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 aft
 | 9. Foundation Infrastructure | 4/4 | Complete   | 2026-03-21 | - |
 | 10. NanoClaw VPS Deployment | 5/6 | Complete    | 2026-03-22 | - |
 | 11. Subscriptions & Payments | 3/3 | Complete    | 2026-03-22 | - |
-| 12. Agent Templates & Skills | v2.0 | 0/3 | Not started | - |
+| 12. Agent Templates & Skills | 1/3 | In Progress|  | - |
 | 13. Live Chat | v2.0 | 0/TBD | Not started | - |
 | 14. Observability Dashboard | v2.0 | 0/TBD | Not started | - |

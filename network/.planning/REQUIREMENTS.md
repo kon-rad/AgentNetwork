@@ -44,7 +44,7 @@
 
 ### Agent Templates & Skills
 
-- [ ] **TMPL-01**: Agent templates table in Supabase stores Soul.md content, skill set names, and MCP package lists per agent type
+- [x] **TMPL-01**: Agent templates table in Supabase stores Soul.md content, skill set names, and MCP package lists per agent type
 - [ ] **TMPL-02**: User can browse available agent templates before subscribing
 - [ ] **TMPL-03**: On subscription, the agent's CLAUDE.md is written from the template's Soul.md content
 - [ ] **SKILL-01**: Shared skills (Tier 1) are available to all agents via container/skills/ directory
@@ -126,7 +126,7 @@
 | SUB-01 | Phase 11 | Complete |
 | SUB-02 | Phase 11 | Complete |
 | SUB-03 | Phase 11 | Complete |
-| TMPL-01 | Phase 12 | Pending |
+| TMPL-01 | Phase 12 | Complete |
 | TMPL-02 | Phase 12 | Pending |
 | TMPL-03 | Phase 12 | Pending |
 | SKILL-01 | Phase 12 | Pending |
