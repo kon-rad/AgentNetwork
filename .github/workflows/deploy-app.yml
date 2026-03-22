@@ -4,8 +4,10 @@ on:
   push:
     branches: [main]
     paths:
-      - 'app/**'
+      - 'src/**'
+      - 'package.json'
       - 'pnpm-workspace.yaml'
+      - 'next.config.ts'
 
 jobs:
   deploy:
