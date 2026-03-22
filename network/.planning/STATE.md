@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Users pay to subscribe to live AI agents they can chat with, observe, and manage — agents run in isolated containers with their own personalities, skills, and wallets.
-**Current focus:** Phase 15 — Escrow Contract & Base Mainnet Deployment (Plan 1 of 2 complete)
+**Current focus:** Phase 15 — Escrow Contract & Base Mainnet Deployment (Plan 2 of 2 complete)
 
 ## Current Position
 
 Phase: 15 of 15 (Escrow Contract & Base Mainnet Deployment)
-Plan: 2 of 2 remaining
-Status: 15-01 complete — solc-js compilation pipeline, Base mainnet deploy script, escrow.ts client updated
-Last activity: 2026-03-22 — 15-01 deploy script + escrow client rewritten for Base mainnet
+Plan: 2 of 2 complete
+Status: Phase 15 complete — escrow API routes for full job lifecycle
+Last activity: 2026-03-22 — 15-02 escrow API routes (create, read, release, dispute, resolve, refund)
 
 Progress: [█████████████░░░░░░░] ~70% (v1.0 done; Phase 09-15 in progress)
 
@@ -57,6 +57,7 @@ Progress: [█████████████░░░░░░░] ~70% (v
 | Phase 14-observability-dashboard P02 | 2 | 2 tasks | 2 files |
 | Phase 14-observability-dashboard P03 | 4min | 1 tasks | 1 files |
 | Phase 15-escrow-contract-base-mainnet-deployment P01 | 4min | 2 tasks | 5 files |
+| Phase 15 P02 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,9 @@ Recent decisions affecting v2.0 work:
 - [Phase 15-01]: ABI imported from generated JSON file rather than inline definition in escrow.ts
 - [Phase 15-01]: decodeEventLog iteration pattern (matching erc8004.ts) replaces fragile logs[0] parsing
 - [Phase 15-01]: --compile-only flag on deploy script for CI/testing use without deployer wallet
+- [Phase 15-02]: Client-signed operations verify tx sender matches session wallet address
+- [Phase 15-02]: Treasury-only routes check TREASURY_ADDRESS env var for authorization
+- [Phase 15-02]: BigInt jobId values returned as strings in JSON responses
 
 ### Roadmap Evolution
 
@@ -109,4 +113,4 @@ None.
 ### Session
 
 Last session: 2026-03-22
-Stopped at: Completed 15-01-PLAN.md
+Stopped at: Completed 15-02-PLAN.md (Phase 15 complete)

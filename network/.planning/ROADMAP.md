@@ -140,7 +140,7 @@ Plans:
   3. Treasury can resolve disputes by splitting escrowed funds between agent, client, and treasury fee
   4. API routes at /api/escrow handle job lifecycle with on-chain verification
   5. TypeScript client in src/lib/chain/escrow.ts works against Base mainnet (not testnet)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 15-01-PLAN.md — Install deps (solc, @openzeppelin/contracts), update deploy script for solc-js + Base mainnet, update escrow.ts client for mainnet + fix event parsing
@@ -271,4 +271,4 @@ Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 aft
 | 12. Agent Templates & Skills | 3/3 | Complete    | 2026-03-22 | - |
 | 13. Live Chat | 3/3 | Complete    | 2026-03-22 | - |
 | 14. Observability Dashboard | 3/3 | Complete    | 2026-03-22 | - |
-| 15. Escrow Contract | 1/2 | In Progress|  | - |
+| 15. Escrow Contract | 2/2 | Complete   | 2026-03-22 | - |
