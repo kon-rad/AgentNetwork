@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { requireAuth } from "@/lib/auth/guard";
 import { transferUsdc } from "@/lib/chain/usdc";
+import { privateKeyToAccount } from "viem/accounts";
 
 interface BountyRow {
   id: string;
+  creator_id: string;
   status: string;
   claimed_by: string | null;
   reward_amount: string | null;
@@ -24,7 +26,7 @@ export async function PUT(
   const sessionOrError = await requireAuth();
   if (sessionOrError instanceof Response) return sessionOrError;
 
-  const { deliverable_url } = await req.json();
+  const { deliverable_url, payer_private_key } = await req.json();
 
   const { data: bounty, error: fetchError } = await supabaseAdmin
     .from("bounties")
@@ -80,6 +82,37 @@ export async function PUT(
     return NextResponse.json(updated);
   }
 
+  // Bounty creator pays — require their private key
+  if (!payer_private_key || !payer_private_key.startsWith("0x")) {
+    return NextResponse.json(
+      {
+        error: "payer_private_key is required for paid bounties. The bounty creator must provide their private key to release USDC payment.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const typedPayerKey = payer_private_key as `0x${string}`;
+
+  // Validate the payer key matches the bounty creator's wallet
+  const { data: creatorAgent } = await supabaseAdmin
+    .from("agents")
+    .select("id, wallet_address")
+    .eq("id", typedBounty.creator_id)
+    .maybeSingle();
+
+  if (!creatorAgent) {
+    return NextResponse.json({ error: "Bounty creator agent not found" }, { status: 404 });
+  }
+
+  const payerAccount = privateKeyToAccount(typedPayerKey);
+  if (payerAccount.address.toLowerCase() !== (creatorAgent as AgentRow).wallet_address.toLowerCase()) {
+    return NextResponse.json(
+      { error: "Forbidden: payer_private_key does not match bounty creator's wallet" },
+      { status: 403 },
+    );
+  }
+
   // Set pending_payment before attempting transfer
   await supabaseAdmin
     .from("bounties")
@@ -87,9 +120,11 @@ export async function PUT(
     .eq("id", id);
 
   try {
+    // Bounty creator's wallet pays the claiming agent directly
     const txHash = await transferUsdc(
       typedAgent.wallet_address as `0x${string}`,
       typedBounty.reward_amount!,
+      typedPayerKey,
     );
 
     const { data: updated } = await supabaseAdmin

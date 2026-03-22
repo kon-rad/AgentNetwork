@@ -51,19 +51,21 @@ const resA = await fetch(`${BASE_URL}/api/agents`, {
 const agentA = await resA.json();
 assert(resA.status === 201, `Agent A created (${agentA.id})`);
 
-// --- Step 2: Register Agent A on ERC-8004 ---
+// --- Step 2: Register Agent A on ERC-8004 (agent registers themselves) ---
 console.log('\n=== Step 2: Register Agent A on ERC-8004 ===');
 const regRes = await fetch(`${BASE_URL}/api/agents/${agentA.id}/register`, {
   method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ private_key: privateKeyA }),
 });
 if (regRes.status === 201 || regRes.status === 200) {
   const registration = await regRes.json();
   console.log('  ERC-8004 Token ID:', registration.agentId);
   console.log('  Tx:', registration.txHash);
-  console.log('  PASS: Agent A registered on-chain');
+  console.log('  PASS: Agent A registered on-chain (self-sovereign)');
 } else {
   const err = await regRes.text();
-  console.log('  SKIP: ERC-8004 registration failed (expected if env vars not set):', err);
+  console.log('  SKIP: ERC-8004 registration failed (expected if wallet not funded):', err);
 }
 
 // --- Step 3: Create a Post ---
@@ -114,17 +116,19 @@ const resB = await fetch(`${BASE_URL}/api/agents`, {
 const agentB = await resB.json();
 assert(resB.status === 201, `Agent B created (${agentB.id})`);
 
-// --- Step 6: Register Agent B on ERC-8004 ---
+// --- Step 6: Register Agent B on ERC-8004 (agent registers themselves) ---
 console.log('\n=== Step 6: Register Agent B on ERC-8004 ===');
 const regResB = await fetch(`${BASE_URL}/api/agents/${agentB.id}/register`, {
   method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ private_key: privateKeyB }),
 });
 if (regResB.status === 201 || regResB.status === 200) {
   const registrationB = await regResB.json();
   console.log('  ERC-8004 Token ID:', registrationB.agentId);
-  console.log('  PASS: Agent B registered on-chain');
+  console.log('  PASS: Agent B registered on-chain (self-sovereign)');
 } else {
-  console.log('  SKIP: ERC-8004 registration failed (expected if env vars not set)');
+  console.log('  SKIP: ERC-8004 registration failed (expected if wallet not funded)');
 }
 
 // --- Step 7: Agent B Creates a Bounty ---
@@ -176,13 +180,14 @@ if (x402Res.status === 402) {
   console.log('  WARN: Unexpected status', x402Res.status, errText);
 }
 
-// --- Step 10: Agent A Completes the Bounty ---
+// --- Step 10: Agent A Completes the Bounty (Agent B pays via their key) ---
 console.log('\n=== Step 10: Agent A Completes Bounty ===');
 const completeRes = await fetch(`${BASE_URL}/api/bounties/${bounty.id}/complete`, {
   method: 'PUT',
   headers: await getAuthHeaders(privateKeyA),
   body: JSON.stringify({
     deliverable_url: 'https://example.com/audit-report.pdf',
+    payer_private_key: privateKeyB, // Bounty creator (Agent B) pays Agent A
   }),
 });
 const completed = await completeRes.json();
@@ -199,12 +204,17 @@ if (completeRes.status === 200) {
   console.log('  WARN: Unexpected status', completeRes.status, JSON.stringify(completed));
 }
 
-// --- Step 11: Agent B Leaves a Review ---
+// --- Step 11: Agent B Leaves a Review (Agent B signs with their own key) ---
 console.log('\n=== Step 11: Agent B Leaves Review ===');
 const feedbackRes = await fetch(`${BASE_URL}/api/agents/${agentA.id}/feedback`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ value: 8, tag1: 'quality', tag2: 'auditor' }),
+  body: JSON.stringify({
+    value: 8,
+    tag1: 'quality',
+    tag2: 'auditor',
+    reviewer_private_key: privateKeyB, // Agent B reviews Agent A
+  }),
 });
 if (feedbackRes.status === 201) {
   const feedback = await feedbackRes.json();

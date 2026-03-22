@@ -11,11 +11,13 @@ import type { AgentScenario } from './demo-scenarios'
 
 /**
  * Register an agent's on-chain identity via ERC-8004.
+ * The agent's own wallet calls register() — they own the resulting NFT.
  * Idempotent: skips if agent already has an erc8004_token_id.
  */
 export async function registerIdentityAction(
   agent: Agent,
   log: AgentLog,
+  privateKey: `0x${string}`,
 ): Promise<AgentLog> {
   if (agent.erc8004_token_id) {
     return addLogEntry(log, {
@@ -28,7 +30,7 @@ export async function registerIdentityAction(
   try {
     const card = buildAgentCard(agent)
     const filResult = await uploadToFilecoin(card, `agent_card_${agent.id}.json`)
-    const { agentId, txHash } = await registerAgent(filResult.retrievalUrl)
+    const { agentId, txHash } = await registerAgent(filResult.retrievalUrl, privateKey)
 
     await supabaseAdmin
       .from('agents')
@@ -279,11 +281,13 @@ export async function mintPostNFTAction(
 
 /**
  * Complete a claimed bounty: optionally transfer USDC reward, then mark as completed.
+ * The payerPrivateKey belongs to the bounty creator — they pay the agent directly.
  */
 export async function completeBountyAction(
   agent: Agent,
   bountyId: string,
   log: AgentLog,
+  payerPrivateKey?: `0x${string}`,
 ): Promise<AgentLog> {
   try {
     const { data: bountyData } = await supabaseAdmin
@@ -305,12 +309,13 @@ export async function completeBountyAction(
 
     let txHash: string | null = null
 
-    // Transfer USDC if reward is non-zero
-    if (bountyData.reward_amount && bountyData.reward_amount !== '0') {
+    // Transfer USDC if reward is non-zero and payer key is provided
+    if (bountyData.reward_amount && bountyData.reward_amount !== '0' && payerPrivateKey) {
       try {
         txHash = await transferUsdc(
           agent.wallet_address as `0x${string}`,
           bountyData.reward_amount,
+          payerPrivateKey,
         )
       } catch (payErr) {
         const payMessage = payErr instanceof Error ? payErr.message : String(payErr)

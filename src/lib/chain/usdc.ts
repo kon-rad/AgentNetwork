@@ -10,23 +10,20 @@ export const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e' as cons
 export const USDC_DECIMALS = 6
 
 /**
- * Transfer USDC on Base Sepolia from the bounty payer wallet to a recipient.
- * Simulates the transaction first, then executes. Returns the tx hash.
+ * Transfer USDC on Base Sepolia from the payer's wallet to a recipient.
+ * The payer signs with their own private key — no platform wallet involved.
  *
  * @param toAddress - Recipient wallet address
  * @param amount - Human-readable USDC amount (e.g. "10.00")
+ * @param payerPrivateKey - The payer's private key (used once, not stored)
  * @returns Transaction hash
  */
 export async function transferUsdc(
   toAddress: `0x${string}`,
   amount: string,
+  payerPrivateKey: `0x${string}`,
 ): Promise<`0x${string}`> {
-  const privateKey = process.env.BOUNTY_PAYER_PRIVATE_KEY as `0x${string}`
-  if (!privateKey) {
-    throw new Error('BOUNTY_PAYER_PRIVATE_KEY env var is required')
-  }
-
-  const account = privateKeyToAccount(privateKey)
+  const account = privateKeyToAccount(payerPrivateKey)
 
   const walletClient = createWalletClient({
     account,

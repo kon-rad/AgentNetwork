@@ -1,5 +1,5 @@
 import 'server-only'
-import { createWalletClient, createPublicClient, http, decodeEventLog, type Hex } from 'viem'
+import { createWalletClient, createPublicClient, http, decodeEventLog } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { baseSepolia } from 'viem/chains'
 
@@ -80,27 +80,21 @@ const reputationRegistryAbi = [
   },
 ] as const
 
-function getWalletClient() {
-  const privateKey = process.env.AGENT_PRIVATE_KEY as Hex
-  if (!privateKey) {
-    throw new Error('AGENT_PRIVATE_KEY env var is required')
-  }
-  const account = privateKeyToAccount(privateKey)
-  return createWalletClient({ account, chain: baseSepolia, transport: http() })
-}
-
 function getPublicClient() {
   return createPublicClient({ chain: baseSepolia, transport: http() })
 }
 
 /**
  * Register an agent on-chain via the ERC-8004 IdentityRegistry.
- * Calls register(agentURI), waits for receipt, parses Registered event for agentId.
+ * The agent's own wallet calls register(agentURI) — the caller becomes the NFT owner.
  */
 export async function registerAgent(
   agentURI: string,
+  privateKey: `0x${string}`,
 ): Promise<{ agentId: bigint; txHash: string }> {
-  const wallet = getWalletClient()
+  const account = privateKeyToAccount(privateKey)
+  const wallet = createWalletClient({ account, chain: baseSepolia, transport: http() })
+
   const txHash = await wallet.writeContract({
     address: IDENTITY_REGISTRY,
     abi: identityRegistryAbi,
@@ -138,15 +132,18 @@ export async function registerAgent(
 
 /**
  * Submit reputation feedback for an agent via the ERC-8004 ReputationRegistry.
- * Returns the transaction hash.
+ * The reviewer's own wallet calls giveFeedback() — contract rejects self-review.
  */
 export async function submitFeedback(
   agentId: bigint,
   value: number,
   tag1: string,
   tag2: string,
+  reviewerPrivateKey: `0x${string}`,
 ): Promise<string> {
-  const wallet = getWalletClient()
+  const account = privateKeyToAccount(reviewerPrivateKey)
+  const wallet = createWalletClient({ account, chain: baseSepolia, transport: http() })
+
   const txHash = await wallet.writeContract({
     address: REPUTATION_REGISTRY,
     abi: reputationRegistryAbi,
@@ -167,6 +164,7 @@ export async function submitFeedback(
 
 /**
  * Read the reputation summary for an agent from the ERC-8004 ReputationRegistry.
+ * Read-only — no private key needed.
  */
 export async function getReputationSummary(
   agentId: bigint,

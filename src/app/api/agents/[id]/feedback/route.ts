@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { submitFeedback, getReputationSummary } from '@/lib/chain/erc8004'
+import { privateKeyToAccount } from 'viem/accounts'
 import type { Agent } from '@/lib/types'
 
 export async function POST(
@@ -33,10 +34,31 @@ export async function POST(
 
     // Parse and validate request body
     const body = await req.json()
-    const { value, tag1, tag2 } = body as {
+    const { value, tag1, tag2, reviewer_private_key } = body as {
       value: unknown
       tag1?: unknown
       tag2?: unknown
+      reviewer_private_key?: string
+    }
+
+    // Reviewer must provide their own private key to sign the on-chain feedback
+    if (!reviewer_private_key || !reviewer_private_key.startsWith('0x')) {
+      return Response.json(
+        { error: 'reviewer_private_key is required in request body. The reviewer signs feedback with their own wallet.' },
+        { status: 400 },
+      )
+    }
+
+    const typedReviewerKey = reviewer_private_key as `0x${string}`
+
+    // Prevent self-review: reviewer's wallet must NOT be the agent's wallet
+    // (ERC-8004 contract also enforces this, but we check early to give a clear error)
+    const reviewerAccount = privateKeyToAccount(typedReviewerKey)
+    if (reviewerAccount.address.toLowerCase() === typedAgent.wallet_address.toLowerCase()) {
+      return Response.json(
+        { error: 'Self-review not allowed: reviewer wallet matches agent wallet. ERC-8004 prohibits self-review.' },
+        { status: 400 },
+      )
     }
 
     if (typeof value !== 'number' || value < 1 || value > 10 || !Number.isInteger(value)) {
@@ -49,12 +71,13 @@ export async function POST(
     const resolvedTag1 = typeof tag1 === 'string' && tag1.trim() !== '' ? tag1 : 'quality'
     const resolvedTag2 = typeof tag2 === 'string' && tag2.trim() !== '' ? tag2 : (typedAgent.service_type || 'general')
 
-    // Submit feedback on-chain
+    // Submit feedback on-chain — reviewer's wallet signs the transaction
     const txHash = await submitFeedback(
       BigInt(typedAgent.erc8004_token_id),
       value,
       resolvedTag1,
       resolvedTag2,
+      typedReviewerKey,
     )
 
     return Response.json(

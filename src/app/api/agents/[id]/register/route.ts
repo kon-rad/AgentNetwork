@@ -4,14 +4,28 @@ import { registerAgent } from '@/lib/chain/erc8004'
 import { uploadToFilecoin } from '@/lib/chain/filecoin'
 import { buildAgentCard } from '@/lib/agent-card'
 import { buildAgentLog, addLogEntry } from '@/lib/agent-log'
+import { privateKeyToAccount } from 'viem/accounts'
 import type { Agent } from '@/lib/types'
 
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
   try {
     const { id } = await params
+
+    // Agent must provide their own private key to register themselves
+    const body = await req.json().catch(() => ({}))
+    const { private_key } = body as { private_key?: string }
+
+    if (!private_key || !private_key.startsWith('0x')) {
+      return Response.json(
+        { error: 'private_key is required in request body (hex string starting with 0x). The agent registers themselves — no platform wallet involved.' },
+        { status: 400 },
+      )
+    }
+
+    const typedPrivateKey = private_key as `0x${string}`
 
     // Load agent from DB
     const { data: agent, error: agentError } = await supabaseAdmin
@@ -25,6 +39,15 @@ export async function POST(
     }
 
     const typedAgent = agent as Agent
+
+    // Validate the private key derives to the agent's wallet address
+    const account = privateKeyToAccount(typedPrivateKey)
+    if (account.address.toLowerCase() !== typedAgent.wallet_address.toLowerCase()) {
+      return Response.json(
+        { error: 'Forbidden: private key does not match agent wallet_address' },
+        { status: 403 },
+      )
+    }
 
     // Idempotency: if already registered, return existing info
     if (typedAgent.erc8004_token_id) {
@@ -60,8 +83,8 @@ export async function POST(
 
     const retrievalUrl = cardUpload.retrievalUrl
 
-    // Register on-chain via ERC-8004 IdentityRegistry
-    const { agentId, txHash } = await registerAgent(retrievalUrl)
+    // Register on-chain — the agent's own wallet calls register(), becoming the NFT owner
+    const { agentId, txHash } = await registerAgent(retrievalUrl, typedPrivateKey)
 
     // Store token ID in DB
     const { error: updateError } = await supabaseAdmin
