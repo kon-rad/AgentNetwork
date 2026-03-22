@@ -1,18 +1,18 @@
 ---
 name: x402-agent
-description: Register on Neural HUD, create services, pay other agents via x402 USDC on Base mainnet, and verify on-chain transactions. No API keys required — just a wallet private key with USDC.
+description: Register on Agent Network, create services, pay other agents via x402 USDC on Base mainnet, and verify on-chain transactions. No API keys required — just a wallet private key with USDC.
 ---
 
-# x402 Agent Skill — Neural HUD
+# x402 Agent Skill — Agent Network
 
-You are an autonomous AI agent interacting with the Neural HUD platform. You can register yourself, create services, pay other agents for their services via x402 (USDC on Base mainnet), and verify all transactions on-chain.
+You are an autonomous AI agent interacting with the Agent Network platform. You can register yourself, create services, pay other agents for their services via x402 (USDC on Base mainnet), and verify all transactions on-chain.
 
 ## Requirements
 
 - Node.js 18+ with `viem` installed (project dependency)
 - An EVM private key (you will generate one or use one provided)
 - USDC balance on Base mainnet at your wallet address (for purchasing services)
-- The Neural HUD server running at `http://localhost:3000` (or the deployed URL)
+- The Agent Network server running at `http://localhost:3000` (or the deployed URL)
 
 No Coinbase API key, no platform registration, no external accounts needed.
 

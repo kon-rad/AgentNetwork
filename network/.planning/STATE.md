@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Users pay to subscribe to live AI agents they can chat with, observe, and manage — agents run in isolated containers with their own personalities, skills, and wallets.
-**Current focus:** Phase 10 — NanoClaw VPS Deployment (complete; awaiting human-verify checkpoint on 10-06 Task 2)
+**Current focus:** Phase 11 — Subscriptions & Payments (Plan 01 complete; subscriptions table DDL + TypeScript types done)
 
 ## Current Position
 
-Phase: 10 of 14 (NanoClaw VPS Deployment)
-Plan: 6 of 6 in current phase (e2e test script created; 4/4 tests passing; awaiting human-verify checkpoint)
-Status: Active — checkpoint reached at 10-06 Task 2 (human-verify: confirm e2e-test.sh output)
-Last activity: 2026-03-22 — 10-06 Task 1 complete (e2e-test.sh created; 2 bugs fixed; all 4 tests pass)
+Phase: 11 of 14 (Subscriptions & Payments)
+Plan: 1 of 4 in current phase (subscriptions table DDL + TypeScript types complete)
+Status: Active — Plan 01 complete; manual migration pending (Supabase CLI not linked)
+Last activity: 2026-03-22 — 11-01 complete (002_subscriptions.sql + Subscription type added to types.ts)
 
-Progress: [█████████░░░░░░░░░░░] ~55% (v1.0 done; Phase 09 complete; Phase 10 infra proven)
+Progress: [█████████░░░░░░░░░░░] ~57% (v1.0 done; Phase 09 complete; Phase 10 infra proven; Phase 11 started)
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Progress: [█████████░░░░░░░░░░░] ~55% (v
 | Phase 10-nanoclaw-vps-deployment P03 | 4 | 2 tasks | 27 files |
 | Phase 10-nanoclaw-vps-deployment P05 | 5 | 1 tasks | 1 files |
 | Phase 10-nanoclaw-vps-deployment P06 | 23 | 1 tasks | 4 files |
+| Phase 11-subscriptions-payments P01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting v2.0 work:
 - [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
 - [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
 - [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
 
 ### Pending Todos
 
@@ -94,5 +97,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: 10-06 Task 2 checkpoint (human-verify) — e2e-test.sh created; 4/4 tests passing; waiting for user to confirm results
+Stopped at: Completed 11-01-PLAN.md — subscriptions table migration + TypeScript types; manual SQL migration required
 Resume file: None

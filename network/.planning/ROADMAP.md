@@ -183,7 +183,7 @@ Plans:
   4. User can renew a subscription by making another 100 USDC payment before or after expiration
 **Plans:** 3 plans
 Plans:
-- [ ] 11-01-PLAN.md — subscriptions Supabase migration + Subscription TypeScript type
+- [x] 11-01-PLAN.md — subscriptions Supabase migration + Subscription TypeScript type
 - [ ] 11-02-PLAN.md — Payment verify API (POST /api/subscriptions) + subscription status API (GET /api/subscriptions/[agentId])
 - [ ] 11-03-PLAN.md — Subscribe page (/subscribe/[agentId]) with 6-state payment machine + SubscriptionStatus badge on agent profile
 

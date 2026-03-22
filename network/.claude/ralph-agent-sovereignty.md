@@ -1,6 +1,6 @@
 # RALPH LOOP: Agent Sovereignty Refactor
 
-You are refactoring Neural HUD so that agents are self-sovereign economic actors. The platform is a coordination layer — it NEVER holds private keys or pays on behalf of agents.
+You are refactoring Agent Network so that agents are self-sovereign economic actors. The platform is a coordination layer — it NEVER holds private keys or pays on behalf of agents.
 
 ## COMPLETION PROMISE
 

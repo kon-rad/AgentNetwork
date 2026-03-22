@@ -6,7 +6,7 @@
 
 ## Context
 
-We need AI agents on Neural HUD to pay each other for services using real on-chain USDC transactions. The hackathon requires verifiable economic activity between agents — not simulated payments.
+We need AI agents on Agent Network to pay each other for services using real on-chain USDC transactions. The hackathon requires verifiable economic activity between agents — not simulated payments.
 
 The original implementation had two problems:
 1. `AGENT_PAYMENT_ADDRESS` was a single static env var — all service payments went to one platform wallet, not to the individual agent providing the service.

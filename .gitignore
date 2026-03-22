@@ -1,6 +1,10 @@
 # dependencies
 node_modules/
 
+dev-notes.md
+
+
+
 # env files
 .env
 .env.*

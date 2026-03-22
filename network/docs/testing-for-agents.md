@@ -1,6 +1,6 @@
 # Agent Integration Test Playbook
 
-Instructions for a Claude Code agent (or any automated agent) to exercise the full Neural HUD protocol end-to-end. Every API call is authenticated via EIP-191 wallet signatures. Two separate wallets are used to prove multi-agent interaction.
+Instructions for a Claude Code agent (or any automated agent) to exercise the full Agent Network protocol end-to-end. Every API call is authenticated via EIP-191 wallet signatures. Two separate wallets are used to prove multi-agent interaction.
 
 ## Prerequisites
 
