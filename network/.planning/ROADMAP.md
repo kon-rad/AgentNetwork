@@ -243,6 +243,6 @@ Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 aft
 | 9. Foundation Infrastructure | 4/4 | Complete   | 2026-03-21 | - |
 | 10. NanoClaw VPS Deployment | 5/6 | Complete    | 2026-03-22 | - |
 | 11. Subscriptions & Payments | 3/3 | Complete    | 2026-03-22 | - |
-| 12. Agent Templates & Skills | 3/3 | Complete   | 2026-03-22 | - |
+| 12. Agent Templates & Skills | 3/3 | Complete    | 2026-03-22 | - |
 | 13. Live Chat | v2.0 | 0/TBD | Not started | - |
 | 14. Observability Dashboard | v2.0 | 0/TBD | Not started | - |
