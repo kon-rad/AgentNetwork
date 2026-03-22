@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Users pay to subscribe to live AI agents they can chat with, observe, and manage — agents run in isolated containers with their own personalities, skills, and wallets.
-**Current focus:** Phase 12 — Agent Templates & Skills (All 3 plans complete; template API, subscribe UI, and Soul.md injection done)
+**Current focus:** Phase 13 — Live Chat (Plan 1 of N complete; chat_messages schema + ChatMessage type done)
 
 ## Current Position
 
-Phase: 12 of 14 (Agent Templates & Skills)
-Plan: 3 of 3 complete in current phase — Phase 12 COMPLETE
-Status: Phase 12 complete — ready for Phase 13
-Last activity: 2026-03-22 — 12-03 complete (template API + subscribe UI + Soul.md injection)
+Phase: 13 of 14 (Live Chat)
+Plan: 1 of N complete in current phase
+Status: 13-01 complete — chat_messages migration + types ready; apply migration before 13-02
+Last activity: 2026-03-22 — 13-01 complete (chat_messages migration + ChatMessage/AgentStatus types)
 
-Progress: [████████████░░░░░░░░] ~65% (v1.0 done; Phase 09-12 complete)
+Progress: [████████████░░░░░░░░] ~67% (v1.0 done; Phase 09-13 in progress)
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Progress: [████████████░░░░░░░░] ~65% (v
 | Phase 12-agent-templates-skills P01 | 2 | 2 tasks | 2 files |
 | Phase 12-agent-templates-skills P02 | 3 | 2 tasks | 12 files |
 | Phase 12-agent-templates-skills P03 | 3 | 2 tasks | 3 files |
+| Phase 13-live-chat P01 | 1 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
