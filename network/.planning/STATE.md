@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Users pay to subscribe to live AI agents they can chat with, observe, and manage — agents run in isolated containers with their own personalities, skills, and wallets.
-**Current focus:** Phase 12 — Agent Templates & Skills (Plan 01 complete; agent_templates table migration + AgentTemplate type)
+**Current focus:** Phase 12 — Agent Templates & Skills (All 3 plans complete; template API, subscribe UI, and Soul.md injection done)
 
 ## Current Position
 
 Phase: 12 of 14 (Agent Templates & Skills)
-Plan: 1 of 3 complete in current phase (agent_templates DB migration + AgentTemplate TS type)
-Status: Active — Plan 01 complete; manual SQL migration required before proceeding
-Last activity: 2026-03-22 — 12-01 complete (agent_templates migration + AgentTemplate type)
+Plan: 3 of 3 complete in current phase — Phase 12 COMPLETE
+Status: Phase 12 complete — ready for Phase 13
+Last activity: 2026-03-22 — 12-03 complete (template API + subscribe UI + Soul.md injection)
 
-Progress: [██████████░░░░░░░░░░] ~60% (v1.0 done; Phase 09-11 complete; Phase 12 started)
+Progress: [████████████░░░░░░░░] ~65% (v1.0 done; Phase 09-12 complete)
 
 ## Performance Metrics
 
@@ -49,12 +49,1933 @@ Progress: [██████████░░░░░░░░░░] ~60% (v
 | Phase 11-subscriptions-payments P03 | 3 | 2 tasks | 4 files |
 | Phase 12-agent-templates-skills P01 | 2 | 2 tasks | 2 files |
 | Phase 12-agent-templates-skills P02 | 3 | 2 tasks | 12 files |
+| Phase 12-agent-templates-skills P03 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.0 work:
+
+- [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
+- [v2.0]: NanoClaw fork on VPS — Railway blocks Docker-in-Docker
+- [v2.0]: WireGuard tunnel Railway↔VPS; HTTPS+Caddy as fallback if UDP 51820 blocked on Railway
+- [v2.0]: SIWE + iron-session v8 (stateless encrypted cookie; no session table in Supabase)
+- [v2.0]: SSE direct from NanoClaw for chat streaming; Supabase Realtime only for observability events
+- [v1.0/01-01]: wagmi pinned to v2.x — do NOT upgrade to v3 (incompatible with RainbowKit 2.x)
+- [09-01]: Composite-PK tables (follows) need onConflict: 'follower_id,following_id' not 'id' in supabase-js upsert
+- [09-01]: agents.owner_wallet is nullable text — null for existing agents, SIWE address for new v2.0 agents
+- [09-02]: 'use server' directive is for Server Action modules only (async function exports) — use 'server-only' import for files that export plain objects (e.g. supabaseAdmin const)
+- [09-02]: requireAgentOwnership() is now async — all callers must await it
+- [09-02]: seed() is now async — seed route updated accordingly
+- [Phase 09-03]: Deleted src/lib/auth.ts: EIP-191 per-request auth fully replaced by SIWE iron-session
+- [Phase 09-03]: requireOwnership() returns 403 when owner_wallet is null — legacy agents must claim ownership before management access
+- [Phase 09-03]: Legacy routes (posts, bounties, follows) still check wallet_address for ownership; requireOwnership() migration deferred to Phase 11
+- [Phase 09-04]: app/.env.local is a symlink to root .env.local — keeps env vars at root, Next.js reads from app/
+- [Phase 09-04]: pnpm.onlyBuiltDependencies moved from app/package.json to root package.json (workspace root requirement)
+- [Phase 09-04]: Railway Root Directory must be set to app manually in dashboard — cannot be automated
+- [Phase 10-nanoclaw-vps-deployment]: Chose Hetzner CPX22 (Ashburn VA $7.59/mo) over DigitalOcean Basic 4GB (Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
 - [v2.0]: Migrate SQLite → Supabase (multi-service access + Realtime subscriptions)
@@ -1237,6 +3158,1638 @@ Recent decisions affecting v2.0 work:
 - [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
 - [Phase 12-agent-templates-skills]: Three-tier skill pattern: container/skills/ (shared all agents), templates/{type}/.claude/skills/ (per type), workspace/.claude/skills/ (runtime-learned)
 - [Phase 12-agent-templates-skills]: Dockerfile COPY skills/ /app/skills/ bakes Tier 1 skills into every agent container at build time
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+- [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+- [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
+- [Phase 12-agent-templates-skills]: Three-tier skill pattern: container/skills/ (shared all agents), templates/{type}/.claude/skills/ (per type), workspace/.claude/skills/ (runtime-learned)
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+- [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+- [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
+- [Phase 12-agent-templates-skills]: Three-tier skill pattern: container/skills/ (shared all agents), templates/{type}/.claude/skills/ (per type), workspace/.claude/skills/ (runtime-learned)
+- [Phase 12-agent-templates-skills]: Dockerfile COPY skills/ /app/skills/ bakes Tier 1 skills into every agent container at build time
+- [Phase 12-agent-templates-skills]: soul_md excluded from public GET /api/templates/[type] API — server-side only for subscription provisioning
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+- [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+- [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
+- [Phase 12-agent-templates-skills]: Three-tier skill pattern: container/skills/ (shared all agents), templates/{type}/.claude/skills/ (per type), workspace/.claude/skills/ (runtime-learned)
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+- [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+- [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
+- [Phase 12-agent-templates-skills]: Three-tier skill pattern: container/skills/ (shared all agents), templates/{type}/.claude/skills/ (per type), workspace/.claude/skills/ (runtime-learned)
+- [Phase 12-agent-templates-skills]: Dockerfile COPY skills/ /app/skills/ bakes Tier 1 skills into every agent container at build time
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+- [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+- [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
+- [Phase 12-agent-templates-skills]: Three-tier skill pattern: container/skills/ (shared all agents), templates/{type}/.claude/skills/ (per type), workspace/.claude/skills/ (runtime-learned)
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+- [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+4/mo) for 3x cost savings
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy as primary Railway-to-VPS transport; WireGuard optional hardening only after core working
+- [Phase 10-nanoclaw-vps-deployment]: HTTPS+Caddy confirmed as primary Railway-to-VPS transport — Railway lacks NET_ADMIN capability (wg-quick returns RTNETLINK Operation not permitted)
+- [Phase 10-nanoclaw-vps-deployment]: NanoClaw URL from Railway: https://nanoclaw.<DOMAIN>; auth via x-shared-secret header (32-byte hex); VPS at 146.190.161.168
+- [10-03]: NanoClaw upstream: qwibitai/nanoclaw@d768a04 — Channel interface has no sendDone(); done signaled inline in sendMessage() with {done:true} SSE event
+- [10-03]: OnInboundMessage signature is (chatJid, NewMessage) not (chatJid, IncomingMessage) — NewMessage is the correct upstream type with id, chat_jid, sender, sender_name, content, timestamp
+- [10-03]: setRegisteredGroup takes full RegisteredGroup object (name, folder, trigger, added_at) not just folder string
+- [10-03]: ESM module format required in agent-server/ — NodeNext moduleResolution, .js extensions in all imports
+- [10-05]: CI/CD workflow deploy-agent.yml placed in agent-server repo (separate git repo), not network/ repo; path filter agent-server/** prevents false triggers on Next.js changes
+- [Phase 10]: SSE-first pattern: webapp callers must open /stream/:agentId before POST /message to avoid agent-turn race condition (~300ms container turns)
+- [Phase 10]: onRegisterGroup callback pattern: webapp channel uses channelOpts.onRegisterGroup to update in-memory registeredGroups AND DB atomically — direct setRegisteredGroup() only writes DB
+- [Phase 11-01]: subscriptions table uses one-row-per-payment model; active subscription = max expires_at query per (owner_wallet, agent_id)
+- [Phase 11-01]: UNIQUE tx_hash is the double-spend prevention mechanism at DB layer
+- [Phase 11-02]: owner_wallet stored lowercased for consistent equality checks across SIWE session.address comparisons
+- [Phase 11-02]: Dual duplicate guard (pre-insert query + Postgres 23505) ensures no race-condition double-spend
+- [Phase 11-02]: Public GET /api/subscriptions/[agentId] returns { has_active, expires_at } only — no wallet address leaked to unauthenticated callers
+- [Phase 11-03]: State machine driven by useEffect watching txHash/isConfirmed — avoids inline callback complexity
+- [Phase 11-03]: NEXT_PUBLIC_TREASURY_ADDRESS for client-side wagmi call; server-side TREASURY_ADDRESS in API route
+- [Phase 12-agent-templates-skills]: agent_type TEXT PRIMARY KEY (not UUID) — agent type name is the natural key; ON CONFLICT DO UPDATE makes seeds idempotent; mcp_packages left empty for Phase 13/14
+- [Phase 12-agent-templates-skills]: Three-tier skill pattern: container/skills/ (shared all agents), templates/{type}/.claude/skills/ (per type), workspace/.claude/skills/ (runtime-learned)
+- [Phase 12-agent-templates-skills]: Dockerfile COPY skills/ /app/skills/ bakes Tier 1 skills into every agent container at build time
+- [Phase 12-agent-templates-skills]: soul_md excluded from public GET /api/templates/[type] API — server-side only for subscription provisioning
+- [Phase 12-agent-templates-skills]: NanoClaw register-group body uses agentId (not name) and claudeMdContent — matches webapp channel handler signature
 
 ### Pending Todos
 
