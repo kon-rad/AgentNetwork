@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { WEBAPP_PORT, WEBAPP_SHARED_SECRET } from '../../config.js';
+import { resolveGroupFolderPath } from '../../group-folder.js';
 import { logger } from '../../logger.js';
 import { Channel, NewMessage } from '../../types.js';
 import { ChannelFactory, registerChannel } from '../registry.js';
@@ -24,6 +25,43 @@ const sseClients = new Map<string, express.Response>();
 let messageCounter = 0;
 function nextMessageId(): string {
   return `webapp-${Date.now()}-${++messageCounter}`;
+}
+
+interface FileEntry {
+  name: string;
+  path: string;       // relative to group root
+  type: 'file' | 'dir';
+  size?: number;      // bytes, only for files
+  modified?: string;  // ISO string
+}
+
+function listDir(base: string, dir: string, depth: number): FileEntry[] {
+  if (depth > 2) return [];
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const results: FileEntry[] = [];
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    const relPath = path.relative(base, fullPath);
+    if (entry.isDirectory()) {
+      results.push({ name: entry.name, path: relPath, type: 'dir' });
+      results.push(...listDir(base, fullPath, depth + 1));
+    } else if (entry.isFile()) {
+      let size: number | undefined;
+      let modified: string | undefined;
+      try {
+        const stat = fs.statSync(fullPath);
+        size = stat.size;
+        modified = stat.mtime.toISOString();
+      } catch { /* ignore stat errors */ }
+      results.push({ name: entry.name, path: relPath, type: 'file', size, modified });
+    }
+  }
+  return results;
 }
 
 const factory: ChannelFactory = (opts): Channel | null => {
@@ -148,6 +186,28 @@ const factory: ChannelFactory = (opts): Channel | null => {
     } catch (err) {
       logger.error({ err }, '[webapp] register-group error');
       res.status(500).json({ error: 'failed to register group' });
+    }
+  });
+
+  // GET /agents/:agentId/files — list files in the agent's group workspace (OBS-05)
+  app.get('/agents/:agentId/files', (req, res) => {
+    const { agentId } = req.params;
+    if (!agentId) {
+      res.status(400).json({ error: 'agentId required' });
+      return;
+    }
+    // Resolve the group folder for this agent (matches the folder registered in /register-group)
+    // The folder name is the agentId (see register-group handler: folder: agentId)
+    const folder = agentId;
+    try {
+      const groupPath = resolveGroupFolderPath(folder);
+      // Recursively list files (2 levels deep max — avoid dumping entire container FS)
+      const entries = listDir(groupPath, groupPath, 0);
+      res.json({ files: entries });
+    } catch (err) {
+      // Folder doesn't exist yet (agent never ran) or invalid agentId
+      logger.warn({ agentId, err }, '[webapp] files: folder not found');
+      res.json({ files: [] });
     }
   });
 
