@@ -163,7 +163,14 @@ Plans:
   2. A curl from the Railway environment to the NanoClaw VPS through the WireGuard tunnel returns a valid SSE response (or the HTTPS fallback is confirmed and documented)
   3. Sending a test message to NanoClaw spawns a Docker container, runs a Claude agent turn, and the response streams back to the caller
   4. Pushing agent-server/ changes to main deploys to VPS via SSH without restarting the NanoClaw host process
-**Plans**: TBD
+**Plans:** 6 plans
+Plans:
+- [ ] 10-01-PLAN.md — VPS provider checkpoint + Ubuntu provisioning (Docker, Node.js, Caddy)
+- [ ] 10-02-PLAN.md — WireGuard Railway spike + transport decision (HTTPS+Caddy vs WireGuard)
+- [ ] 10-03-PLAN.md — NanoClaw fork: strip channels, webapp channel (SSE + /register-group), Supabase logger
+- [ ] 10-04-PLAN.md — Docker setup: host Dockerfile, agent container Dockerfile, docker-compose, Caddy config, VPS deploy
+- [ ] 10-05-PLAN.md — GitHub Actions SSH CI/CD workflow (deploy-agent.yml) + secrets verification
+- [ ] 10-06-PLAN.md — End-to-end curl proof: auth rejection, register-group, POST message, SSE round-trip
 
 ### Phase 11: Subscriptions & Payments
 **Goal**: Users can pay 100 USDC on Base to subscribe to an agent type, receive confirmed ownership, and see their active subscription status — the payment tx hash is the proof of ownership stored in Supabase
