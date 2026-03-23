@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 Phase: 15 of 14 (Escrow Contract & Base Mainnet Deployment)
 Plan: 2 of 2 complete
 Status: Phase 15 complete — escrow API routes for full job lifecycle
-Last activity: 2026-03-22 — 15-02 escrow API routes (create, read, release, dispute, resolve, refund)
+Last activity: 2026-03-23 - Completed quick task 1: Create agent launch flow UI with hero, wizard, payment, and nav updates
 
 Progress: [█████████████░░░░░░░] ~70% (v1.0 done; Phase 09-15 in progress)
 
@@ -111,7 +111,13 @@ Recent decisions affecting v2.0 work:
 
 None.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 1 | Create agent launch flow UI with hero, wizard, payment, and nav updates | 2026-03-23 | f7eff27 | [1-create-agent-launch-flow-ui-with-hero-wi](./quick/1-create-agent-launch-flow-ui-with-hero-wi/) |
+
 ### Session
 
-Last session: 2026-03-22
-Stopped at: Completed 15-02-PLAN.md (Phase 15 complete)
+Last session: 2026-03-23
+Stopped at: Completed quick task 1 — agent launch flow UI
