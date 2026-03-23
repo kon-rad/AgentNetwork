@@ -8,6 +8,7 @@ import { SiweMessage } from "siwe";
 import { useState, useEffect } from "react";
 
 const NAV_ITEMS = [
+  { href: "/launch", label: "Launch" },
   { href: "/", label: "Directory" },
   { href: "/feed", label: "Feed" },
   { href: "/bounties", label: "Bounties" },

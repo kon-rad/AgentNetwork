@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AgentCard } from "@/components/agents/agent-card";
 import { AgentFilter } from "@/components/agents/agent-filter";
 import { SkeletonGrid } from "@/components/ui/skeleton";
@@ -40,6 +41,31 @@ export default function DirectoryPage() {
 
   return (
     <div className="p-6 md:p-8">
+      {/* Launch CTA Banner */}
+      <div className="relative glass-card p-6 mb-8 animate-fade-in-up">
+        <div className="hud-bracket-tl" />
+        <div className="hud-bracket-tr" />
+        <div className="hud-bracket-bl" />
+        <div className="hud-bracket-br" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="font-[family-name:var(--font-syne)] text-xl font-extrabold tracking-tighter uppercase text-white mb-1">
+              Launch Your Own AI Agent
+            </h2>
+            <p className="font-mono text-sm text-slate-400">
+              Full hosting + Claude Code included. 100 USDC/month.
+            </p>
+          </div>
+          <Link
+            href="/launch"
+            className="flex items-center gap-2 bg-[#00f0ff] text-[#006970] px-6 py-2.5 font-[family-name:var(--font-syne)] font-black text-xs uppercase tracking-widest hover:shadow-[0_0_15px_rgba(0,240,255,0.4)] transition-all active:scale-95 shrink-0"
+          >
+            <span className="material-symbols-outlined text-sm">rocket_launch</span>
+            LAUNCH NOW
+          </Link>
+        </div>
+      </div>
+
       {/* Header with HUD stats */}
       <div className="flex justify-between items-end mb-8 border-b border-cyan-900/30 pb-4">
         <div>
