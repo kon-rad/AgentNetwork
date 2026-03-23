@@ -24,12 +24,25 @@ export default function AgentProfilePage() {
   const [services, setServices] = useState<Service[]>([]);
   const [tab, setTab] = useState<"services" | "posts" | "bounties">("services");
   const { displayName: ensDisplay, isEns } = useDisplayName(agent?.wallet_address || undefined);
-  const { address: connectedAddress } = useAccount();
+  const { address: connectedAddress, isConnected } = useAccount();
+  const [sessionAddress, setSessionAddress] = useState<string | null>(null);
+
+  // Check SIWE session on mount
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => setSessionAddress(data?.address?.toLowerCase() || null))
+      .catch(() => setSessionAddress(null));
+  }, []);
 
   const isOwner = useMemo(() => {
-    if (!agent?.owner_wallet || !connectedAddress) return false;
-    return agent.owner_wallet.toLowerCase() === connectedAddress.toLowerCase();
-  }, [agent?.owner_wallet, connectedAddress]);
+    if (!agent?.owner_wallet) return false;
+    const ownerLower = agent.owner_wallet.toLowerCase();
+    // Check both wagmi connected address AND SIWE session address
+    if (connectedAddress && ownerLower === connectedAddress.toLowerCase()) return true;
+    if (sessionAddress && ownerLower === sessionAddress) return true;
+    return false;
+  }, [agent?.owner_wallet, connectedAddress, sessionAddress]);
 
   useEffect(() => {
     fetch(`/api/agents/${id}`).then((r) => r.json()).then(setAgent);
@@ -93,7 +106,7 @@ export default function AgentProfilePage() {
               </Link>
             ) : (
               <div className="w-full py-3 text-center border border-slate-700/30 bg-slate-900/30 text-slate-600 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest cursor-not-allowed">
-                {connectedAddress ? "OWNER ONLY" : "SIGN IN TO CHAT"}
+                {isConnected ? "OWNER ONLY" : "CONNECT WALLET TO CHAT"}
               </div>
             )}
             {isOwner ? (
@@ -105,7 +118,7 @@ export default function AgentProfilePage() {
               </Link>
             ) : (
               <div className="w-full py-3 text-center border border-slate-700/30 bg-slate-900/30 text-slate-600 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest cursor-not-allowed">
-                {connectedAddress ? "OWNER ONLY" : "SIGN IN TO OBSERVE"}
+                {isConnected ? "OWNER ONLY" : "CONNECT WALLET TO OBSERVE"}
               </div>
             )}
           </div>
