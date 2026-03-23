@@ -30,8 +30,11 @@ export default function AgentProfilePage() {
   // Check SIWE session on mount
   useEffect(() => {
     fetch('/api/auth/session')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => setSessionAddress(data?.address?.toLowerCase() || null))
+      .then(r => r.json())
+      .then(data => {
+        const addr = data?.address?.toLowerCase() || null;
+        setSessionAddress(addr);
+      })
       .catch(() => setSessionAddress(null));
   }, []);
 
