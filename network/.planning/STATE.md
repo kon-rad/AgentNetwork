@@ -9,7 +9,7 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 
 ## Current Position
 
-Phase: 15 of 15 (Escrow Contract & Base Mainnet Deployment)
+Phase: 15 of 14 (Escrow Contract & Base Mainnet Deployment)
 Plan: 2 of 2 complete
 Status: Phase 15 complete — escrow API routes for full job lifecycle
 Last activity: 2026-03-22 — 15-02 escrow API routes (create, read, release, dispute, resolve, refund)

@@ -2,13 +2,13 @@
 
 ## Milestones
 
-- ✅ **v1.0 Hackathon Platform** - Phases 1-8 (shipped 2026-03-21)
+- ✅ **v1.0 Hackathon Platform** - Phases 1-8 (shipped 2015-03-21)
 - 🚧 **v2.0 Agent Subscriptions & Live Agents** - Phases 9-14 (in progress)
 
 ## Phases
 
 <details>
-<summary>✅ v1.0 Hackathon Platform (Phases 1-8) - SHIPPED 2026-03-21</summary>
+<summary>✅ v1.0 Hackathon Platform (Phases 1-8) - SHIPPED 2015-03-21</summary>
 
 ### Phase 1: Foundation
 **Goal**: Users can connect a wallet, see ENS names across the platform, and experience a polished cyberpunk UI — all on-chain interactions are unblocked
@@ -129,31 +129,6 @@ Plans:
 
 </details>
 
-### Phase 15: Escrow Contract & Base Mainnet Deployment
-
-**Goal:** Deploy AgentEscrow smart contract on Base mainnet that holds USDC in escrow for agent service jobs; Treasury wallet acts as dispute mediator; API routes expose full job lifecycle (create/release/dispute/resolve)
-**Depends on:** Phase 11
-**Requirements:** ESC-01, ESC-02, ESC-03, ESC-04, ESC-05
-**Success Criteria** (what must be TRUE):
-  1. AgentEscrow contract is deployed on Base mainnet with USDC (0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913) and Treasury (0x0eEf9b6C1f35266A2440E0263C5B89AcaDd12d72) as mediator
-  2. Client can create a job (lock USDC in escrow), release funds to agent after completion, or raise a dispute
-  3. Treasury can resolve disputes by splitting escrowed funds between agent, client, and treasury fee
-  4. API routes at /api/escrow handle job lifecycle with on-chain verification
-  5. TypeScript client in src/lib/chain/escrow.ts works against Base mainnet (not testnet)
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 15-01-PLAN.md — Install deps (solc, @openzeppelin/contracts), update deploy script for solc-js + Base mainnet, update escrow.ts client for mainnet + fix event parsing
-- [ ] 15-02-PLAN.md — Escrow API routes: POST/GET /api/escrow + release/dispute/resolve/refund lifecycle endpoints
-
----
-
-### v2.0 Agent Subscriptions & Live Agents (In Progress)
-
-**Milestone Goal:** Users sign in with Ethereum, pay 100 USDC to subscribe to an agent from a template, and get a live AI agent they can chat with and observe in real-time. Agents run on an isolated NanoClaw server with shared/per-type/learned skills.
-
-## Phase Details
-
 ### Phase 9: Foundation Infrastructure
 **Goal**: Users can sign in with their Ethereum wallet, stay signed in across page refreshes, and the platform runs against Supabase Postgres — both the Next.js app and the NanoClaw VPS share the same database
 **Depends on**: Phase 8
@@ -258,17 +233,16 @@ Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 aft
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation | v1.0 | 2/3 | In Progress | - |
-| 2. Filecoin Storage | v1.0 | 2/2 | Complete | 2026-03-20 |
+| 2. Filecoin Storage | v1.0 | 2/2 | Complete | 2015-03-20 |
 | 3. ERC-8004 Identity | v1.0 | 0/3 | Not started | - |
 | 4. Clanker Tokens | v1.0 | 1/2 | In Progress | - |
 | 5. x402 Payments | v1.0 | 0/2 | Not started | - |
 | 6. NFT Minting | v1.0 | 0/2 | Not started | - |
 | 7. Self Protocol ZK | v1.0 | 1/2 | In Progress | - |
-| 8. Autonomous Loop + Demo | v1.0 | 3/3 | Complete | 2026-03-21 |
-| 9. Foundation Infrastructure | 4/4 | Complete   | 2026-03-21 | - |
-| 10. NanoClaw VPS Deployment | 5/6 | Complete    | 2026-03-22 | - |
-| 11. Subscriptions & Payments | 3/3 | Complete    | 2026-03-22 | - |
-| 12. Agent Templates & Skills | 3/3 | Complete    | 2026-03-22 | - |
-| 13. Live Chat | 3/3 | Complete    | 2026-03-22 | - |
-| 14. Observability Dashboard | 3/3 | Complete    | 2026-03-22 | - |
-| 15. Escrow Contract | 2/2 | Complete   | 2026-03-22 | - |
+| 8. Autonomous Loop + Demo | v1.0 | 3/3 | Complete | 2015-03-21 |
+| 9. Foundation Infrastructure | 4/4 | Complete   | 2015-03-21 | - |
+| 10. NanoClaw VPS Deployment | 5/6 | Complete    | 2015-03-22 | - |
+| 11. Subscriptions & Payments | 3/3 | Complete    | 2015-03-22 | - |
+| 12. Agent Templates & Skills | 3/3 | Complete    | 2015-03-22 | - |
+| 13. Live Chat | 3/3 | Complete    | 2015-03-22 | - |
+| 14. Observability Dashboard | 3/3 | Complete    | 2015-03-22 | - |
