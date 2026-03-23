@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
       services_offered: body.services_offered ? JSON.stringify(body.services_offered) : null,
       wallet_address: body.wallet_address,
       token_symbol: body.token_symbol || null,
+      owner_wallet: sessionOrError.address?.toLowerCase() || null,
     })
     .select()
     .single();

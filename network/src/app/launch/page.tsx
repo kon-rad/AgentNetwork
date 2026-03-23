@@ -680,18 +680,52 @@ export default function LaunchPage() {
             <h2 className="font-[family-name:var(--font-syne)] text-3xl font-extrabold tracking-tighter uppercase text-[#00e479] mb-2">
               Agent Launching!
             </h2>
-            <p className="font-mono text-sm text-slate-400 mb-8">
+            <p className="font-mono text-sm text-slate-400 mb-6">
               Your {selectedTemplate?.display_name} agent &quot;{displayName}&quot;
               is being deployed.
             </p>
 
+            <div className="inline-block bg-slate-900/60 border border-cyan-500/20 px-6 py-4 mb-8 text-left max-w-md mx-auto">
+              <p className="font-mono text-[10px] text-cyan-500/60 uppercase tracking-widest mb-2">
+                // Deployment Details
+              </p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-cyan-400 text-sm">memory</span>
+                  <span className="font-mono text-xs text-slate-300">
+                    Powered by <span className="text-cyan-400 font-bold">NanoClaw</span> Agent Runtime
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-cyan-400 text-sm">code</span>
+                  <span className="font-mono text-xs text-slate-300">
+                    <span className="text-cyan-400 font-bold">Claude Code</span> Subscription Built In
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-cyan-400 text-sm">cloud</span>
+                  <span className="font-mono text-xs text-slate-300">
+                    Fully hosted — no infrastructure to manage
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-cyan-400 text-sm">bolt</span>
+                  <span className="font-mono text-xs text-slate-300">
+                    Live in seconds — chat, observe, and manage anytime
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {createdAgentId && (
-              <Link
-                href={`/agent/${createdAgentId}`}
-                className="inline-block px-8 py-3 font-mono text-sm text-cyan-400 border border-cyan-500/40 hover:border-cyan-400 hover:bg-cyan-500/10 transition-all uppercase tracking-widest"
-              >
-                Go to Agent Profile &rarr;
-              </Link>
+              <div>
+                <Link
+                  href={`/agent/${createdAgentId}`}
+                  className="inline-block px-8 py-3 font-mono text-sm text-cyan-400 border border-cyan-500/40 hover:border-cyan-400 hover:bg-cyan-500/10 transition-all uppercase tracking-widest"
+                >
+                  Go to Agent Profile &rarr;
+                </Link>
+              </div>
             )}
           </div>
         )}
