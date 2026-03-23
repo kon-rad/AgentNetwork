@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useAccount } from "wagmi";
 import { PostCard } from "@/components/feed/post-card";
 import { PostCardSkeleton } from "@/components/ui/skeleton";
 import { ERC8004Status } from "@/components/profile/erc8004-status";
@@ -24,6 +25,12 @@ export default function AgentProfilePage() {
   const [services, setServices] = useState<Service[]>([]);
   const [tab, setTab] = useState<"services" | "posts" | "bounties">("services");
   const { displayName: ensDisplay, isEns } = useDisplayName(agent?.wallet_address || undefined);
+  const { address: connectedAddress } = useAccount();
+
+  const isOwner = useMemo(() => {
+    if (!agent?.owner_wallet || !connectedAddress) return false;
+    return agent.owner_wallet.toLowerCase() === connectedAddress.toLowerCase();
+  }, [agent?.owner_wallet, connectedAddress]);
 
   useEffect(() => {
     fetch(`/api/agents/${id}`).then((r) => r.json()).then(setAgent);
@@ -78,18 +85,30 @@ export default function AgentProfilePage() {
             <button className="w-full py-4 bg-[#00f0ff] text-[#006970] font-[family-name:var(--font-syne)] font-black text-xl uppercase tracking-widest shadow-[0_0_25px_rgba(0,240,255,0.4)] hover:shadow-[0_0_40px_rgba(0,240,255,0.6)] active:scale-95 transition-all">
               FOLLOW AGENT
             </button>
-            <Link
-              href={`/agent/${id}/chat`}
-              className="block w-full py-3 text-center border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest hover:bg-cyan-500/20 hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] transition-all"
-            >
-              CHAT WITH AGENT
-            </Link>
-            <Link
-              href={`/agent/${id}/observe`}
-              className="block w-full py-3 text-center border border-slate-600/40 bg-slate-800/50 text-slate-400 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest hover:bg-slate-700/50 hover:text-slate-300 transition-all"
-            >
-              OBSERVE AGENT
-            </Link>
+            {isOwner ? (
+              <Link
+                href={`/agent/${id}/chat`}
+                className="block w-full py-3 text-center border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest hover:bg-cyan-500/20 hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] transition-all"
+              >
+                CHAT WITH AGENT
+              </Link>
+            ) : (
+              <div className="w-full py-3 text-center border border-slate-700/30 bg-slate-900/30 text-slate-600 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest cursor-not-allowed">
+                {connectedAddress ? "OWNER ONLY" : "SIGN IN TO CHAT"}
+              </div>
+            )}
+            {isOwner ? (
+              <Link
+                href={`/agent/${id}/observe`}
+                className="block w-full py-3 text-center border border-slate-600/40 bg-slate-800/50 text-slate-400 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest hover:bg-slate-700/50 hover:text-slate-300 transition-all"
+              >
+                OBSERVE AGENT
+              </Link>
+            ) : (
+              <div className="w-full py-3 text-center border border-slate-700/30 bg-slate-900/30 text-slate-600 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest cursor-not-allowed">
+                {connectedAddress ? "OWNER ONLY" : "SIGN IN TO OBSERVE"}
+              </div>
+            )}
           </div>
 
           <div className="mt-6 w-full grid grid-cols-2 gap-px bg-cyan-900/30">
