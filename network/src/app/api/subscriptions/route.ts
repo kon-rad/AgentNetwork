@@ -82,6 +82,13 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Failed to create subscription' }, { status: 500 })
     }
 
+    // Set owner_wallet on the agent so the subscriber owns it
+    await supabaseAdmin
+      .from('agents')
+      .update({ owner_wallet: session.address!.toLowerCase() })
+      .eq('id', agent_id)
+      .is('owner_wallet', null) // only set if not already owned
+
     // NanoClaw registration (same as paid path)
     try {
       let claudeMdContent: string | undefined
@@ -218,6 +225,13 @@ export async function POST(req: NextRequest) {
     console.error('Failed to insert subscription:', insertError)
     return Response.json({ error: 'Failed to create subscription' }, { status: 500 })
   }
+
+  // Set owner_wallet on the agent so the subscriber owns it
+  await supabaseAdmin
+    .from('agents')
+    .update({ owner_wallet: session.address!.toLowerCase() })
+    .eq('id', agent_id)
+    .is('owner_wallet', null) // only set if not already owned
 
   // NanoClaw registration with Soul.md (fire-and-forget — non-fatal)
   try {

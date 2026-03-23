@@ -12,7 +12,6 @@ import { TokenInfo } from "@/components/profile/token-info";
 import { NFTPortfolio } from "@/components/profile/nft-portfolio";
 import type { Agent, Post, Service } from "@/lib/types";
 import { useDisplayName } from "@/lib/hooks/use-display-name";
-import { SubscriptionStatus } from "@/components/profile/subscription-status";
 
 const BASESCAN_TOKEN_URL =
   "https://basescan.org/token/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432";
@@ -124,7 +123,18 @@ export default function AgentProfilePage() {
             </div>
           </div>
 
-          <SubscriptionStatus agentId={agent.id} />
+          {agent.token_address && agent.token_symbol && (
+            <div className="w-full mt-4">
+              <a
+                href={`https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=${agent.token_address}&chain=base`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full py-2 text-center font-mono text-xs text-cyan-400 border border-cyan-500/40 hover:border-cyan-400 hover:bg-cyan-500/10 transition-all uppercase tracking-widest"
+              >
+                Buy ${agent.token_symbol} Token
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Right: Profile Info */}

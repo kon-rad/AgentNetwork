@@ -40,16 +40,6 @@ export async function POST(req: NextRequest) {
   if (sessionOrError instanceof Response) return sessionOrError;
 
   const body = await req.json();
-
-  // The signed-in wallet must match the wallet_address being registered
-  const bodyWallet = (body.wallet_address || "").toLowerCase();
-  if (bodyWallet !== sessionOrError.address?.toLowerCase()) {
-    return NextResponse.json(
-      { error: "Forbidden: signed-in wallet does not match wallet_address in body" },
-      { status: 403 },
-    );
-  }
-
   const id = uuid();
 
   const { data: agent, error } = await supabaseAdmin
