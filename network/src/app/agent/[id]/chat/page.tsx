@@ -76,7 +76,9 @@ export default function AgentChatPage() {
             setStatus("using tool");
           } else if (parsed.type === "response") {
             setStatus("idle");
-            setStreamingContent(parsed.content ?? "");
+            const content = parsed.content ?? "";
+            streamingContentRef.current = content;
+            setStreamingContent(content);
           } else if (parsed.type === "done") {
             const finalContent = streamingContentRef.current;
             if (finalContent) {

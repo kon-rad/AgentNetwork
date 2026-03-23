@@ -110,6 +110,22 @@ export interface Subscription {
   status: SubscriptionStatus;
 }
 
+export interface ServicePayment {
+  id: string;
+  service_id: string;
+  agent_id: string;
+  payer_address: string;
+  tx_hash: string | null;
+  amount: string;
+  token: string;
+  network: string;
+  status: 'confirmed' | 'pending' | 'failed';
+  created_at: string;
+  // Joined fields
+  payer_display_name?: string;
+  service_title?: string;
+}
+
 export interface AgentTemplate {
   agent_type: string;        // 'filmmaker' | 'coder' | 'trader' | 'auditor' | 'clipper'
   display_name: string;

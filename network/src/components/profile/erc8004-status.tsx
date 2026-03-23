@@ -14,13 +14,21 @@ export function ERC8004Status({ agentId, tokenId }: ERC8004StatusProps) {
   const [currentTokenId, setCurrentTokenId] = useState<string | null>(tokenId);
   const [registering, setRegistering] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [privateKey, setPrivateKey] = useState("");
+  const [showKeyInput, setShowKeyInput] = useState(false);
 
   async function handleRegister() {
+    if (!privateKey.startsWith("0x") || privateKey.length < 66) {
+      setError("Enter a valid private key (hex string starting with 0x)");
+      return;
+    }
     setRegistering(true);
     setError(null);
     try {
       const res = await fetch(`/api/agents/${agentId}/register`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ private_key: privateKey }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -34,6 +42,7 @@ export function ERC8004Status({ agentId, tokenId }: ERC8004StatusProps) {
       setTimeout(() => setError(null), 4000);
     } finally {
       setRegistering(false);
+      setPrivateKey("");
     }
   }
 

@@ -74,13 +74,6 @@ export default function AgentProfilePage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
-      {/* Debug ownership — remove after testing */}
-      <div className="mb-4 p-3 bg-yellow-900/50 border border-yellow-500/30 text-yellow-300 text-xs font-mono rounded">
-        <div>wagmi address: {connectedAddress || 'not connected'}</div>
-        <div>session address: {sessionAddress || 'no session'}</div>
-        <div>agent owner: {agent?.owner_wallet || 'null'}</div>
-        <div>isConnected: {String(isConnected)} | isOwner: {String(isOwner)}</div>
-      </div>
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         {/* Left: Avatar & Actions */}
         <div className="md:col-span-4 flex flex-col items-center">
@@ -213,31 +206,64 @@ export default function AgentProfilePage() {
               </p>
             </section>
 
-            {/* Token + Market stats */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-[#282a30] p-4 flex flex-col justify-between">
-                <div className="font-mono text-[10px] text-slate-500 uppercase mb-2">Token ({agent.token_symbol || "N/A"})</div>
-                <div className="font-mono text-2xl text-[#f6be37] font-bold">
-                  {agent.token_address ? (
+            {/* Agent Details */}
+            <section className="bg-[#282a30] p-5 space-y-4">
+              <h3 className="font-mono text-cyan-400 text-xs uppercase opacity-60">// Agent Details</h3>
+
+              {/* Agent Wallet Address */}
+              <div>
+                <div className="font-mono text-[10px] text-slate-500 uppercase mb-1">Agent Wallet Address</div>
+                <a
+                  href={`https://basescan.org/address/${agent.wallet_address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono text-xs text-cyan-400 hover:text-cyan-300 hover:underline break-all"
+                >
+                  {agent.wallet_address}
+                </a>
+              </div>
+
+              {/* Token Address */}
+              {agent.token_address && (
+                <div>
+                  <div className="font-mono text-[10px] text-slate-500 uppercase mb-1">Token ({agent.token_symbol || "N/A"})</div>
+                  <div className="flex items-center gap-3">
                     <a
                       href={`https://basescan.org/token/${agent.token_address}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:underline"
+                      className="font-mono text-xs text-[#f6be37] hover:underline break-all"
                     >
-                      ${agent.token_symbol}
+                      {agent.token_address}
                     </a>
-                  ) : (
-                    agent.token_symbol ? `$${agent.token_symbol}` : "—"
-                  )}
+                  </div>
                 </div>
-              </div>
-              <div className="bg-[#282a30] p-4 flex flex-col justify-between">
-                <div className="font-mono text-[10px] text-slate-500 uppercase mb-2">Wallet</div>
-                <div className="font-mono text-xs text-cyan-400 truncate">
-                  {agent.wallet_address.slice(0, 10)}...{agent.wallet_address.slice(-6)}
+              )}
+
+              {/* ERC-8004 Registry */}
+              {agent.erc8004_token_id && (
+                <div>
+                  <div className="font-mono text-[10px] text-slate-500 uppercase mb-1">ERC-8004 Identity</div>
+                  <div className="flex flex-col gap-1.5">
+                    <a
+                      href={`${BASESCAN_TOKEN_URL}?a=${agent.erc8004_token_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-xs text-[#00f0ff] hover:underline inline-flex items-center gap-1"
+                    >
+                      Token #{agent.erc8004_token_id} on BaseScan &rarr;
+                    </a>
+                    <a
+                      href={BASESCAN_TOKEN_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-xs text-slate-400 hover:text-cyan-400 hover:underline inline-flex items-center gap-1"
+                    >
+                      ERC-8004 Registry Contract &rarr;
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
             </section>
 
             {/* Identity cards */}

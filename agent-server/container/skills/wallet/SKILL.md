@@ -16,10 +16,12 @@ Interact with the agent's on-chain wallet on Base.
 
 ## How to use
 
+All wallet requests require the `X-Agent-Id` header. Use `$AGENT_ID` and `$CREDENTIAL_PROXY_URL` env vars.
+
 ### Transaction via credential proxy
 The agent wallet private key is never exposed directly. Use the wallet tool endpoint:
 ```bash
-curl -X POST http://credential-proxy:3001/wallet/send \
+curl -X POST -H "X-Agent-Id: $AGENT_ID" $CREDENTIAL_PROXY_URL/wallet/send \
   -H "Content-Type: application/json" \
   -d '{"to": "0x...", "value": "0", "data": "0x..."}'
 ```
@@ -27,8 +29,16 @@ Response: `{"txHash": "0x...", "status": "pending"}`
 
 ### Check agent wallet address
 ```bash
-curl http://credential-proxy:3001/wallet/address
+curl -s -H "X-Agent-Id: $AGENT_ID" $CREDENTIAL_PROXY_URL/wallet/address
 ```
+
+### Sign EIP-712 typed data (for Permit2 and other protocols)
+```bash
+curl -X POST -H "X-Agent-Id: $AGENT_ID" $CREDENTIAL_PROXY_URL/wallet/sign-typed-data \
+  -H "Content-Type: application/json" \
+  -d '{"domain": {...}, "types": {...}, "primaryType": "...", "message": {...}}'
+```
+Response: `{"signature": "0x..."}`
 
 ## Best practices
 - Always verify the recipient address before sending

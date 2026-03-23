@@ -15,6 +15,7 @@ import * as path from 'path';
 import { WEBAPP_PORT, WEBAPP_SHARED_SECRET } from '../../config.js';
 import { resolveGroupFolderPath } from '../../group-folder.js';
 import { logger } from '../../logger.js';
+import { createAgentWallet } from '../../wallet-manager.js';
 import { Channel, NewMessage } from '../../types.js';
 import { ChannelFactory, registerChannel } from '../registry.js';
 
@@ -181,8 +182,16 @@ const factory: ChannelFactory = (opts): Channel | null => {
         setRegisteredGroup(jid, group);
       }
 
-      logger.info({ jid, folder }, '[webapp] group registered');
-      res.json({ success: true, groupId: agentId, folder });
+      // Generate an agent wallet (non-blocking — failures are logged but don't block registration)
+      let walletAddress: string | undefined;
+      try {
+        walletAddress = await createAgentWallet(agentId);
+      } catch (walletErr) {
+        logger.warn({ err: walletErr, agentId }, '[webapp] wallet generation failed (non-fatal)');
+      }
+
+      logger.info({ jid, folder, walletAddress }, '[webapp] group registered');
+      res.json({ success: true, groupId: agentId, folder, walletAddress });
     } catch (err) {
       logger.error({ err }, '[webapp] register-group error');
       res.status(500).json({ error: 'failed to register group' });

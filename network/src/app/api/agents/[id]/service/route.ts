@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { Agent } from '@/lib/types'
 
 // Base mainnet CAIP-2 identifier
-const X402_NETWORK = 'eip155:8453'
+const X402_NETWORK = process.env.X402_NETWORK || 'eip155:8453'
 
 async function handler(req: NextRequest): Promise<NextResponse> {
   // Extract agent ID from URL path: /api/agents/[id]/service
