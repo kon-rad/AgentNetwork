@@ -1,69 +1,98 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { deployAgentToken } from '@/lib/chain/clanker'
+import { privateKeyToAccount } from 'viem/accounts'
+import type { Agent } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
-  let body: { agentId?: string }
+  let body: { agentId?: string; private_key?: string }
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { agentId } = body
+  const { agentId, private_key } = body
+
   if (!agentId) {
-    return NextResponse.json({ error: 'agentId is required' }, { status: 400 })
+    return Response.json({ error: 'agentId is required' }, { status: 400 })
   }
 
+  if (!private_key || !private_key.startsWith('0x')) {
+    return Response.json(
+      { error: 'private_key is required (hex string starting with 0x). The agent deploys its own token.' },
+      { status: 400 },
+    )
+  }
+
+  const typedPrivateKey = private_key as `0x${string}`
+
+  // Load agent from DB
   const { data: agent, error: fetchError } = await supabaseAdmin
     .from('agents')
-    .select('id, display_name, token_symbol, token_address')
+    .select('id, display_name, token_symbol, token_address, wallet_address')
     .eq('id', agentId)
     .maybeSingle()
 
   if (fetchError || !agent) {
-    return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
+    return Response.json({ error: 'Agent not found' }, { status: 404 })
   }
 
-  if (!agent.token_symbol) {
-    return NextResponse.json(
+  const typedAgent = agent as Agent
+
+  // Validate the private key derives to the agent's wallet address
+  const account = privateKeyToAccount(typedPrivateKey)
+  if (account.address.toLowerCase() !== typedAgent.wallet_address.toLowerCase()) {
+    return Response.json(
+      { error: 'Forbidden: private key does not match agent wallet_address' },
+      { status: 403 },
+    )
+  }
+
+  if (!typedAgent.token_symbol) {
+    return Response.json(
       { error: 'Agent has no token_symbol configured' },
       { status: 400 },
     )
   }
 
-  if (agent.token_address) {
-    return NextResponse.json(
-      {
-        error: 'Agent already has a deployed token',
-        agentId: agent.id,
-        symbol: agent.token_symbol,
-        tokenAddress: agent.token_address,
-      },
-      { status: 409 },
-    )
+  // Idempotency: if already deployed, return existing info
+  if (typedAgent.token_address) {
+    return Response.json({
+      agentId: typedAgent.id,
+      symbol: typedAgent.token_symbol,
+      tokenAddress: typedAgent.token_address,
+      message: 'Agent already has a deployed token',
+    })
   }
 
   try {
     const { tokenAddress, txHash } = await deployAgentToken(
-      `${agent.display_name} Token`,
-      agent.token_symbol,
+      `${typedAgent.display_name} Token`,
+      typedAgent.token_symbol,
+      typedPrivateKey,
     )
 
     await supabaseAdmin
       .from('agents')
       .update({ token_address: tokenAddress, updated_at: new Date().toISOString() })
-      .eq('id', agent.id)
+      .eq('id', typedAgent.id)
 
-    return NextResponse.json({
-      agentId: agent.id,
-      symbol: agent.token_symbol,
-      tokenAddress,
-      txHash,
-    })
+    return Response.json(
+      {
+        agentId: typedAgent.id,
+        symbol: typedAgent.token_symbol,
+        tokenAddress,
+        txHash,
+        uniswapUrl: `https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=${tokenAddress}&chain=base`,
+        baseScanUrl: `https://basescan.org/token/${tokenAddress}`,
+      },
+      { status: 201 },
+    )
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Clanker SDK failure', details: String(error) },
+    const message = error instanceof Error ? error.message : String(error)
+    return Response.json(
+      { error: 'Token deployment failed', details: message },
       { status: 502 },
     )
   }

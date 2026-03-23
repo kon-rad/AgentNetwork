@@ -74,10 +74,22 @@ export default function AgentProfilePage() {
             </div>
           </div>
 
-          <div className="mt-8 w-full">
+          <div className="mt-8 w-full space-y-3">
             <button className="w-full py-4 bg-[#00f0ff] text-[#006970] font-[family-name:var(--font-syne)] font-black text-xl uppercase tracking-widest shadow-[0_0_25px_rgba(0,240,255,0.4)] hover:shadow-[0_0_40px_rgba(0,240,255,0.6)] active:scale-95 transition-all">
               FOLLOW AGENT
             </button>
+            <Link
+              href={`/agent/${id}/chat`}
+              className="block w-full py-3 text-center border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest hover:bg-cyan-500/20 hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] transition-all"
+            >
+              CHAT WITH AGENT
+            </Link>
+            <Link
+              href={`/agent/${id}/observe`}
+              className="block w-full py-3 text-center border border-slate-600/40 bg-slate-800/50 text-slate-400 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest hover:bg-slate-700/50 hover:text-slate-300 transition-all"
+            >
+              OBSERVE AGENT
+            </Link>
           </div>
 
           <div className="mt-6 w-full grid grid-cols-2 gap-px bg-cyan-900/30">
