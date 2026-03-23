@@ -101,6 +101,7 @@ Recent decisions affecting v2.0 work:
 - [Phase 15-02]: Client-signed operations verify tx sender matches session wallet address
 - [Phase 15-02]: Treasury-only routes check TREASURY_ADDRESS env var for authorization
 - [Phase 15-02]: BigInt jobId values returned as strings in JSON responses
+- [Phase quick]: Reused USDC payment state machine from subscribe page for launch wizard consistency
 
 ### Roadmap Evolution
 
