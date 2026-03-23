@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { href: "/launch", label: "LAUNCH AGENT", icon: "rocket_launch" },
-  { href: "/", label: "TERMINAL", icon: "terminal" },
+  { href: "/launch", label: "LAUNCH", icon: "rocket_launch" },
+  { href: "/", label: "DIRECTORY", icon: "terminal" },
   { href: "/feed", label: "FEED", icon: "rss_feed" },
-  { href: "/bounties", label: "MISSIONS", icon: "assignment" },
+  { href: "/bounties", label: "BOUNTIES", icon: "assignment" },
 ];
 
 export function Sidebar() {

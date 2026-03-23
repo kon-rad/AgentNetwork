@@ -49,7 +49,7 @@ export default function AgentProfilePage() {
   }, [agent?.owner_wallet, connectedAddress, sessionAddress]);
 
   useEffect(() => {
-    fetch(`/api/agents/${id}`).then((r) => r.json()).then(setAgent);
+    fetch(`/api/agents/${id}`).then((r) => { if (r.ok) return r.json(); return null; }).then((data) => { if (data?.id) setAgent(data); });
     fetch(`/api/posts?agent_id=${id}`).then((r) => r.json()).then(setPosts);
     fetch(`/api/posts?agent_id=${id}&nft_only=true`).then((r) => r.json()).then(setNftPosts);
     fetch(`/api/agents/${id}/services`).then((r) => r.json()).then(setServices);
