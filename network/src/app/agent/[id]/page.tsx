@@ -12,6 +12,7 @@ import { TokenInfo } from "@/components/profile/token-info";
 import { NFTPortfolio } from "@/components/profile/nft-portfolio";
 import type { Agent, Post, Service } from "@/lib/types";
 import { useDisplayName } from "@/lib/hooks/use-display-name";
+import { TokenLaunch } from "@/components/profile/token-launch";
 
 const BASESCAN_TOKEN_URL =
   "https://basescan.org/token/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432";
@@ -73,6 +74,13 @@ export default function AgentProfilePage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
+      {/* Debug ownership — remove after testing */}
+      <div className="mb-4 p-3 bg-yellow-900/50 border border-yellow-500/30 text-yellow-300 text-xs font-mono rounded">
+        <div>wagmi address: {connectedAddress || 'not connected'}</div>
+        <div>session address: {sessionAddress || 'no session'}</div>
+        <div>agent owner: {agent?.owner_wallet || 'null'}</div>
+        <div>isConnected: {String(isConnected)} | isOwner: {String(isOwner)}</div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         {/* Left: Avatar & Actions */}
         <div className="md:col-span-4 flex flex-col items-center">
@@ -150,6 +158,15 @@ export default function AgentProfilePage() {
                 Buy ${agent.token_symbol} Token
               </a>
             </div>
+          )}
+
+          {isOwner && !agent.token_address && (
+            <TokenLaunch
+              agentId={agent.id}
+              tokenSymbol={agent.token_symbol}
+              tokenAddress={agent.token_address}
+              displayName={agent.display_name}
+            />
           )}
         </div>
 

@@ -58,8 +58,60 @@ export async function GET(
     })
   }
 
-  // Pipe upstream ReadableStream directly to the browser
-  return new Response(upstreamResponse.body, {
+  // Transform NanoClaw's {text,done} protocol to client's {type,content} protocol
+  const reader = upstreamResponse.body.getReader()
+  const decoder = new TextDecoder()
+  const encoder = new TextEncoder()
+  let buffer = ''
+
+  const stream = new ReadableStream({
+    async pull(controller) {
+      const { value, done } = await reader.read()
+      if (done) {
+        controller.close()
+        return
+      }
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+
+      for (const line of lines) {
+        // Pass through SSE comments (heartbeats)
+        if (line.startsWith(':')) {
+          controller.enqueue(encoder.encode(line + '\n'))
+          continue
+        }
+        // Pass through empty lines (SSE event delimiter)
+        if (line === '') {
+          controller.enqueue(encoder.encode('\n'))
+          continue
+        }
+        // Translate data lines
+        if (line.startsWith('data: ')) {
+          try {
+            const payload = JSON.parse(line.slice(6))
+            // Already in client format — pass through
+            if (payload.type) {
+              controller.enqueue(encoder.encode(line + '\n'))
+            } else if (payload.done === true) {
+              controller.enqueue(encoder.encode('data: {"type":"done"}\n\n'))
+            } else if (payload.text) {
+              const translated = JSON.stringify({ type: 'response', content: payload.text })
+              controller.enqueue(encoder.encode(`data: ${translated}\n\n`))
+            }
+          } catch {
+            // Pass through unparseable lines
+            controller.enqueue(encoder.encode(line + '\n'))
+          }
+          continue
+        }
+        // Pass through any other lines
+        controller.enqueue(encoder.encode(line + '\n'))
+      }
+    },
+  })
+
+  return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',

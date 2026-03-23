@@ -111,6 +111,9 @@ export default function AgentChatPage() {
       es.onerror = () => {
         es.close();
         esRef.current = null;
+        setStatus("idle");
+        setStreamingContent("");
+        streamingContentRef.current = "";
         // Attempt reconnect after delay
         setTimeout(() => {
           if (!cancelled) openEventSource();
