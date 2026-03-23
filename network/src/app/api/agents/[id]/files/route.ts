@@ -21,6 +21,7 @@ export async function GET(
   try {
     const upstream = await fetch(`${nanoclawUrl}/agents/${agentId}/files`, {
       headers: { "x-shared-secret": sharedSecret },
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!upstream.ok) {

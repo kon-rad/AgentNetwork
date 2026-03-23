@@ -29,7 +29,7 @@ export async function GET(
   try {
     upstreamResponse = await fetch(`${nanoclawUrl}/stream/${agentId}`, {
       headers: {
-        'Authorization': `Bearer ${nanoclawSecret}`,
+        'x-shared-secret': nanoclawSecret,
       },
     })
   } catch (err) {

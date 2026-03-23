@@ -54,7 +54,7 @@ export async function POST(
       return Response.json({
         agentId: typedAgent.erc8004_token_id,
         message: 'Agent is already registered on ERC-8004',
-        basescanUrl: `https://basescan.org/token/0x8004A818BFB912233c491871b3d84c89A494BD9e?a=${typedAgent.erc8004_token_id}`,
+        basescanUrl: `https://basescan.org/token/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432?a=${typedAgent.erc8004_token_id}`,
       })
     }
 
@@ -127,7 +127,7 @@ export async function POST(
       {
         agentId: agentId.toString(),
         txHash,
-        basescanUrl: `https://basescan.org/token/0x8004A818BFB912233c491871b3d84c89A494BD9e?a=${agentId}`,
+        basescanUrl: `https://basescan.org/token/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432?a=${agentId}`,
         filecoinUrl: retrievalUrl,
       },
       { status: 201 },

@@ -67,11 +67,12 @@ export async function POST(
     if (nanoclawUrl && nanoclawSecret) {
       const nanoclawRes = await fetch(`${nanoclawUrl}/message`, {
         method: 'POST',
+        signal: AbortSignal.timeout(15000),
         headers: {
-          'Authorization': `Bearer ${nanoclawSecret}`,
+          'x-shared-secret': nanoclawSecret,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ agentId, content: trimmedContent, sender: 'user' }),
+        body: JSON.stringify({ agentId, message: trimmedContent, sender: 'user' }),
       })
       if (!nanoclawRes.ok) {
         console.error(

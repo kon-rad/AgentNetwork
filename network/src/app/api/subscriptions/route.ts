@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
         claudeMdContent = template?.soul_md
       }
 
-      await fetch(`${process.env.NANOCLAW_URL}/register-group`, {
+      await fetch(`${process.env.NANOCLAW_URL}/register-group`, { signal: AbortSignal.timeout(15000),
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -238,7 +238,7 @@ export async function POST(req: NextRequest) {
       claudeMdContent = template?.soul_md
     }
 
-    await fetch(`${process.env.NANOCLAW_URL}/register-group`, {
+    await fetch(`${process.env.NANOCLAW_URL}/register-group`, { signal: AbortSignal.timeout(15000),
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

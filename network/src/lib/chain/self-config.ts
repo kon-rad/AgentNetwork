@@ -4,4 +4,4 @@
 
 export const SELF_SCOPE = 'network-agents'
 export const SELF_DISCLOSURES = { minimumAge: 18 }
-export const SELF_MOCK_PASSPORT = true // dev/hackathon mode
+export const SELF_MOCK_PASSPORT = process.env.NODE_ENV === 'development' // false in production

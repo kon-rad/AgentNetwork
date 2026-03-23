@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 const BASESCAN_TOKEN_URL =
-  "https://basescan.org/token/0x8004A818BFB912233c491871b3d84c89A494BD9e";
+  "https://basescan.org/token/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432";
 
 interface ERC8004StatusProps {
   agentId: string;
