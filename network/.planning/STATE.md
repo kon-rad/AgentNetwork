@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Users pay to subscribe to live AI agents they can chat with, observe, and manage — agents run in isolated containers with their own personalities, skills, and wallets.
-**Current focus:** Phase 15 — Chat History (Plan 1 of 3 complete)
+**Current focus:** Phase 15 — Chat History (Plan 2 of 3 complete)
 
 ## Current Position
 
 Phase: 15 of 14 (Chat History)
-Plan: 1 of 3 complete
-Status: Plan 15-01 complete — chat_sessions migration and ChatSession types
-Last activity: 2026-03-24 - Completed 15-01: chat_sessions Supabase migration and ChatSession TypeScript interface
+Plan: 2 of 3 complete
+Status: Plan 15-02 complete — session API routes (list, create, per-session messages) and session-aware chat POST
+Last activity: 2026-03-24 - Completed 15-02: session API routes and chat POST session_id support
 
 Progress: [█████████████░░░░░░░] ~70% (v1.0 done; Phase 09-15 in progress)
 
@@ -59,6 +59,7 @@ Progress: [█████████████░░░░░░░] ~70% (v
 | Phase 15-escrow-contract-base-mainnet-deployment P01 | 4min | 2 tasks | 5 files |
 | Phase 15 P02 | 2min | 2 tasks | 5 files |
 | Phase 15-chat-history P01 | 4min | 2 tasks | 2 files |
+| Phase 15-chat-history P02 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,9 @@ Recent decisions affecting v2.0 work:
 - [Phase 15-02]: BigInt jobId values returned as strings in JSON responses
 - [Phase quick]: Reused USDC payment state machine from subscribe page for launch wizard consistency
 - [Phase 15-chat-history]: No backfill in 008_chat_sessions migration — legacy chat_messages rows stay session_id=NULL; Plan 02 API routes associate sessions lazily
+- [Phase 15-02]: __legacy__ synthetic session ID maps session_id=NULL rows — no migration needed for pre-existing chat messages
+- [Phase 15-02]: Session title auto-set from first 60 chars of first user message when title is null
+- [Phase 15-02]: Session metadata updates (last_message_at, title) are non-fatal best-effort after successful message insert
 
 ### Roadmap Evolution
 
@@ -123,4 +127,4 @@ None.
 ### Session
 
 Last session: 2026-03-24
-Stopped at: Completed 15-01-PLAN.md (chat_sessions migration + ChatSession types)
+Stopped at: Completed 15-02-PLAN.md (session API routes + session-aware chat POST)
