@@ -33,14 +33,14 @@ export async function POST(
   const ownerOrError = await requireOwnership(agentId)
   if (ownerOrError instanceof Response) return ownerOrError
 
-  let body: { content?: unknown }
+  let body: { content?: unknown; session_id?: unknown }
   try {
     body = await request.json()
   } catch {
     return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { content } = body
+  const { content, session_id } = body
   if (!content || typeof content !== 'string' || content.trim().length === 0) {
     return Response.json({ error: 'content must be a non-empty string' }, { status: 400 })
   }
@@ -50,14 +50,42 @@ export async function POST(
 
   const trimmedContent = content.trim()
 
-  // Persist user message
+  // Persist user message (include session_id if provided)
   const { error: insertError } = await supabaseAdmin
     .from('chat_messages')
-    .insert({ agent_id: agentId, role: 'user', content: trimmedContent })
+    .insert({
+      agent_id: agentId,
+      role: 'user',
+      content: trimmedContent,
+      ...(typeof session_id === 'string' ? { session_id } : {}),
+    })
 
   if (insertError) {
     console.error('Failed to insert chat message:', insertError)
     return Response.json({ error: 'Failed to save message' }, { status: 500 })
+  }
+
+  // Update session metadata if a real session_id was provided
+  if (typeof session_id === 'string' && session_id !== '__legacy__') {
+    // Update last_message_at
+    await supabaseAdmin
+      .from('chat_sessions')
+      .update({ last_message_at: new Date().toISOString() })
+      .eq('id', session_id)
+
+    // Auto-set title from first message if title is still null
+    const { data: sessionRow } = await supabaseAdmin
+      .from('chat_sessions')
+      .select('title')
+      .eq('id', session_id)
+      .single()
+
+    if (sessionRow && sessionRow.title === null) {
+      await supabaseAdmin
+        .from('chat_sessions')
+        .update({ title: trimmedContent.slice(0, 60) })
+        .eq('id', session_id)
+    }
   }
 
   // Forward to NanoClaw (fire-and-forget — non-fatal if it fails)
