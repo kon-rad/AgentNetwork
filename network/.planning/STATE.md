@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Users pay to subscribe to live AI agents they can chat with, observe, and manage — agents run in isolated containers with their own personalities, skills, and wallets.
-**Current focus:** Phase 15 — Escrow Contract & Base Mainnet Deployment (Plan 2 of 2 complete)
+**Current focus:** Phase 15 — Chat History (Plan 1 of 3 complete)
 
 ## Current Position
 
-Phase: 15 of 14 (Escrow Contract & Base Mainnet Deployment)
-Plan: 2 of 2 complete
-Status: Phase 15 complete — escrow API routes for full job lifecycle
-Last activity: 2026-03-23 - Completed quick task 1: Create agent launch flow UI with hero, wizard, payment, and nav updates
+Phase: 15 of 14 (Chat History)
+Plan: 1 of 3 complete
+Status: Plan 15-01 complete — chat_sessions migration and ChatSession types
+Last activity: 2026-03-24 - Completed 15-01: chat_sessions Supabase migration and ChatSession TypeScript interface
 
 Progress: [█████████████░░░░░░░] ~70% (v1.0 done; Phase 09-15 in progress)
 
@@ -58,6 +58,7 @@ Progress: [█████████████░░░░░░░] ~70% (v
 | Phase 14-observability-dashboard P03 | 4min | 1 tasks | 1 files |
 | Phase 15-escrow-contract-base-mainnet-deployment P01 | 4min | 2 tasks | 5 files |
 | Phase 15 P02 | 2min | 2 tasks | 5 files |
+| Phase 15-chat-history P01 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -102,10 +103,12 @@ Recent decisions affecting v2.0 work:
 - [Phase 15-02]: Treasury-only routes check TREASURY_ADDRESS env var for authorization
 - [Phase 15-02]: BigInt jobId values returned as strings in JSON responses
 - [Phase quick]: Reused USDC payment state machine from subscribe page for launch wizard consistency
+- [Phase 15-chat-history]: No backfill in 008_chat_sessions migration — legacy chat_messages rows stay session_id=NULL; Plan 02 API routes associate sessions lazily
 
 ### Roadmap Evolution
 
 - Phase 15 added: Escrow Contract & Base Mainnet Deployment
+- Phase 15 renumbered/repurposed: Chat History (agent chat session sidebar with Supabase persistence)
 
 ### Blockers
 
@@ -119,5 +122,5 @@ None.
 
 ### Session
 
-Last session: 2026-03-23
-Stopped at: Completed quick task 1 — agent launch flow UI
+Last session: 2026-03-24
+Stopped at: Completed 15-01-PLAN.md (chat_sessions migration + ChatSession types)

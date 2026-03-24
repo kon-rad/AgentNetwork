@@ -257,7 +257,7 @@ Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 aft
   3. Chat page shows a left sidebar listing previous sessions with active highlighting
   4. User can start a new chat session via plus button in the sidebar
   5. Existing messages with no session are accessible via a legacy session entry
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 15-01-PLAN.md — chat_sessions Supabase migration + ChatSession TypeScript type
