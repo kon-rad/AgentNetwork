@@ -142,6 +142,16 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
+  session_id?: string | null;
+}
+
+export interface ChatSession {
+  id: string;
+  agent_id: string;
+  title: string | null;
+  nanoclaw_session_id: string | null;
+  created_at: string;
+  last_message_at: string;
 }
 
 export type AgentStatus = 'idle' | 'thinking' | 'using tool';
