@@ -198,6 +198,58 @@ const factory: ChannelFactory = (opts): Channel | null => {
     }
   });
 
+  // GET /agents/:agentId/files/content — read a single file's content (read-only)
+  app.get('/agents/:agentId/files/content', (req, res) => {
+    const { agentId } = req.params;
+    const filePath = req.query.path as string | undefined;
+    if (!agentId || !filePath) {
+      res.status(400).json({ error: 'agentId and path query param required' });
+      return;
+    }
+
+    try {
+      const groupPath = resolveGroupFolderPath(agentId);
+      const resolved = path.resolve(groupPath, filePath);
+
+      // Ensure resolved path stays within the group folder (prevent traversal)
+      const rel = path.relative(groupPath, resolved);
+      if (rel.startsWith('..') || path.isAbsolute(rel)) {
+        res.status(403).json({ error: 'path escapes group folder' });
+        return;
+      }
+
+      // Use lstat to avoid following symlinks that might escape the jail
+      const stat = fs.lstatSync(resolved);
+      if (stat.isSymbolicLink()) {
+        res.status(403).json({ error: 'symlinks not allowed' });
+        return;
+      }
+      if (!stat.isFile()) {
+        res.status(400).json({ error: 'not a file' });
+        return;
+      }
+
+      // Cap readable file size at 1MB to prevent memory issues
+      const MAX_SIZE = 1 * 1024 * 1024;
+      if (stat.size > MAX_SIZE) {
+        res.status(413).json({ error: 'file too large', size: stat.size, maxSize: MAX_SIZE });
+        return;
+      }
+
+      const content = fs.readFileSync(resolved, 'utf8');
+      res.json({
+        path: rel,
+        name: path.basename(resolved),
+        size: stat.size,
+        modified: stat.mtime.toISOString(),
+        content,
+      });
+    } catch (err) {
+      logger.warn({ agentId, filePath, err }, '[webapp] files/content: error');
+      res.status(404).json({ error: 'file not found' });
+    }
+  });
+
   // GET /agents/:agentId/files — list files in the agent's group workspace (OBS-05)
   app.get('/agents/:agentId/files', (req, res) => {
     const { agentId } = req.params;

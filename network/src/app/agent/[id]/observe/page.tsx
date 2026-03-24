@@ -198,7 +198,13 @@ function EventDetailPanel({ event }: { event: AgentEvent }) {
 
 // ─── File tree ─────────────────────────────────────────────────────────────────
 
-function FileTree({ files }: { files: FileEntry[] }) {
+function FileTree({
+  files,
+  onSelectFile,
+}: {
+  files: FileEntry[];
+  onSelectFile: (path: string) => void;
+}) {
   if (files.length === 0) {
     return (
       <p className="text-center font-mono text-xs text-slate-500 py-8 uppercase tracking-widest">
@@ -218,7 +224,12 @@ function FileTree({ files }: { files: FileEntry[] }) {
           ) : (
             <>
               <span className="text-slate-500">&#128196;</span>
-              <span className="text-slate-300">{f.name}</span>
+              <button
+                onClick={() => onSelectFile(f.path)}
+                className="text-slate-300 hover:text-cyan-400 transition-colors text-left truncate"
+              >
+                {f.name}
+              </button>
               {f.size != null && (
                 <span className="text-slate-600 ml-auto">{formatBytes(f.size)}</span>
               )}
@@ -235,6 +246,71 @@ function FileTree({ files }: { files: FileEntry[] }) {
   );
 }
 
+function FileViewer({
+  agentId,
+  filePath,
+  onClose,
+}: {
+  agentId: string;
+  filePath: string;
+  onClose: () => void;
+}) {
+  const [content, setContent] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    setContent(null);
+    fetch(`/api/agents/${agentId}/files/content?path=${encodeURIComponent(filePath)}`)
+      .then((r) => {
+        if (!r.ok) return r.json().then((d) => Promise.reject(d.error || "Failed to load"));
+        return r.json();
+      })
+      .then((data: { content: string }) => {
+        setContent(data.content);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(typeof err === "string" ? err : "Failed to load file");
+        setLoading(false);
+      });
+  }, [agentId, filePath]);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onClose}
+          className="font-mono text-xs text-slate-400 hover:text-cyan-400 transition-colors uppercase tracking-widest"
+        >
+          &larr; Back
+        </button>
+        <span className="font-mono text-xs text-slate-500">|</span>
+        <span className="font-mono text-xs text-cyan-400 truncate">{filePath}</span>
+      </div>
+      <div className="bg-black/40 border border-slate-700 p-3 overflow-auto max-h-[60vh]">
+        {loading && (
+          <div className="animate-pulse space-y-2">
+            <div className="h-3 bg-cyan-500/10 rounded w-3/4" />
+            <div className="h-3 bg-cyan-500/10 rounded w-1/2" />
+            <div className="h-3 bg-cyan-500/10 rounded w-2/3" />
+          </div>
+        )}
+        {error && (
+          <p className="font-mono text-xs text-red-400">{error}</p>
+        )}
+        {content !== null && (
+          <pre className="font-mono text-xs text-slate-300 whitespace-pre-wrap break-words">
+            {content}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ObservePage() {
@@ -248,6 +324,7 @@ export default function ObservePage() {
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [filesLoading, setFilesLoading] = useState(false);
   const [filesFetched, setFilesFetched] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
 
   // Token usage memo
@@ -514,8 +591,14 @@ export default function ObservePage() {
               <div className="h-3 bg-cyan-500/10 rounded w-3/4" />
               <div className="h-3 bg-cyan-500/10 rounded w-2/5" />
             </div>
+          ) : selectedFile ? (
+            <FileViewer
+              agentId={id}
+              filePath={selectedFile}
+              onClose={() => setSelectedFile(null)}
+            />
           ) : (
-            <FileTree files={files} />
+            <FileTree files={files} onSelectFile={setSelectedFile} />
           )}
         </div>
       )}
