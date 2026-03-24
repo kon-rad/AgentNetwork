@@ -154,6 +154,37 @@ export interface ChatSession {
   last_message_at: string;
 }
 
+export interface AgentTrade {
+  id: string;
+  agent_id: string;
+  tx_hash: string | null;
+  token_in_address: string;
+  token_out_address: string;
+  token_in_symbol: string | null;
+  token_out_symbol: string | null;
+  amount_in: string;
+  amount_out: string;
+  amount_in_formatted: string | null;
+  amount_out_formatted: string | null;
+  price_impact: string | null;
+  gas_fee: string | null;
+  status: 'pending' | 'confirmed' | 'failed';
+  chain_id: number;
+  created_at: string;
+}
+
+export interface AgentTokenHolding {
+  id: string;
+  agent_id: string;
+  token_address: string;
+  token_symbol: string | null;
+  token_name: string | null;
+  decimals: number;
+  balance: string;
+  balance_formatted: string | null;
+  last_updated: string;
+}
+
 export type AgentStatus = 'idle' | 'thinking' | 'using tool';
 
 export interface AgentEvent {

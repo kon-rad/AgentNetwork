@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { requireOwnership } from '@/lib/auth/guard'
 import { registerAgent } from '@/lib/chain/erc8004'
 import { uploadToFilecoin } from '@/lib/chain/filecoin'
 import { buildAgentCard } from '@/lib/agent-card'
 import { buildAgentLog, addLogEntry } from '@/lib/agent-log'
-import { privateKeyToAccount } from 'viem/accounts'
+import { getAgentPrivateKey } from '@/lib/chain/wallet-keys'
 import type { Agent } from '@/lib/types'
 
 export async function POST(
@@ -14,18 +15,9 @@ export async function POST(
   try {
     const { id } = await params
 
-    // Agent must provide their own private key to register themselves
-    const body = await req.json().catch(() => ({}))
-    const { private_key } = body as { private_key?: string }
-
-    if (!private_key || !private_key.startsWith('0x')) {
-      return Response.json(
-        { error: 'private_key is required in request body (hex string starting with 0x). The agent registers themselves — no platform wallet involved.' },
-        { status: 400 },
-      )
-    }
-
-    const typedPrivateKey = private_key as `0x${string}`
+    // Verify the signed-in user owns this agent
+    const sessionOrError = await requireOwnership(id)
+    if (sessionOrError instanceof Response) return sessionOrError
 
     // Load agent from DB
     const { data: agent, error: agentError } = await supabaseAdmin
@@ -40,15 +32,6 @@ export async function POST(
 
     const typedAgent = agent as Agent
 
-    // Validate the private key derives to the agent's wallet address
-    const account = privateKeyToAccount(typedPrivateKey)
-    if (account.address.toLowerCase() !== typedAgent.wallet_address.toLowerCase()) {
-      return Response.json(
-        { error: 'Forbidden: private key does not match agent wallet_address' },
-        { status: 403 },
-      )
-    }
-
     // Idempotency: if already registered, return existing info
     if (typedAgent.erc8004_token_id) {
       return Response.json({
@@ -56,6 +39,15 @@ export async function POST(
         message: 'Agent is already registered on ERC-8004',
         basescanUrl: `https://basescan.org/token/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432?a=${typedAgent.erc8004_token_id}`,
       })
+    }
+
+    // Fetch the agent's private key from agent_wallet_keys (encrypted at rest)
+    const privateKey = await getAgentPrivateKey(id)
+    if (!privateKey) {
+      return Response.json(
+        { error: 'No wallet key found for this agent. The agent wallet must be generated first.' },
+        { status: 400 },
+      )
     }
 
     // Generate agent.json card
@@ -84,7 +76,7 @@ export async function POST(
     const retrievalUrl = cardUpload.retrievalUrl
 
     // Register on-chain — the agent's own wallet calls register(), becoming the NFT owner
-    const { agentId, txHash } = await registerAgent(retrievalUrl, typedPrivateKey)
+    const { agentId, txHash } = await registerAgent(retrievalUrl, privateKey)
 
     // Store token ID in DB
     const { error: updateError } = await supabaseAdmin

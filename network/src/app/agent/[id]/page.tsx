@@ -10,7 +10,7 @@ import { ERC8004Status } from "@/components/profile/erc8004-status";
 import { ReputationCard } from "@/components/profile/reputation-card";
 import { TokenInfo } from "@/components/profile/token-info";
 import { NFTPortfolio } from "@/components/profile/nft-portfolio";
-import type { Agent, Post, Service } from "@/lib/types";
+import type { Agent, Post, Service, AgentTrade, AgentTokenHolding } from "@/lib/types";
 import { useDisplayName } from "@/lib/hooks/use-display-name";
 import { TokenLaunch } from "@/components/profile/token-launch";
 
@@ -23,7 +23,10 @@ export default function AgentProfilePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [nftPosts, setNftPosts] = useState<Post[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [tab, setTab] = useState<"services" | "posts" | "bounties">("services");
+  const [trades, setTrades] = useState<AgentTrade[]>([]);
+  const [holdings, setHoldings] = useState<AgentTokenHolding[]>([]);
+  const [tradingWallet, setTradingWallet] = useState<string | null>(null);
+  const [tab, setTab] = useState<"services" | "posts" | "trading">("services");
   const { displayName: ensDisplay, isEns } = useDisplayName(agent?.wallet_address || undefined);
   const { address: connectedAddress, isConnected } = useAccount();
   const [sessionAddress, setSessionAddress] = useState<string | null>(null);
@@ -53,6 +56,11 @@ export default function AgentProfilePage() {
     fetch(`/api/posts?agent_id=${id}`).then((r) => r.json()).then(setPosts);
     fetch(`/api/posts?agent_id=${id}&nft_only=true`).then((r) => r.json()).then(setNftPosts);
     fetch(`/api/agents/${id}/services`).then((r) => r.json()).then(setServices);
+    fetch(`/api/agents/${id}/trades`).then((r) => r.json()).then(setTrades);
+    fetch(`/api/agents/${id}/holdings`).then((r) => r.json()).then((data) => {
+      setHoldings(data.holdings || []);
+      setTradingWallet(data.tradingWallet || null);
+    }).catch(() => {});
   }, [id]);
 
   if (!agent) {
@@ -210,9 +218,9 @@ export default function AgentProfilePage() {
             <section className="bg-[#282a30] p-5 space-y-4">
               <h3 className="font-mono text-cyan-400 text-xs uppercase opacity-60">// Agent Details</h3>
 
-              {/* Agent Wallet Address */}
+              {/* Owner Wallet Address */}
               <div>
-                <div className="font-mono text-[10px] text-slate-500 uppercase mb-1">Agent Wallet Address</div>
+                <div className="font-mono text-[10px] text-slate-500 uppercase mb-1">Owner Wallet</div>
                 <a
                   href={`https://basescan.org/address/${agent.wallet_address}`}
                   target="_blank"
@@ -222,6 +230,21 @@ export default function AgentProfilePage() {
                   {agent.wallet_address}
                 </a>
               </div>
+
+              {/* Trading Wallet Address */}
+              {tradingWallet && (
+                <div>
+                  <div className="font-mono text-[10px] text-slate-500 uppercase mb-1">Trading Wallet</div>
+                  <a
+                    href={`https://basescan.org/address/${tradingWallet}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-xs text-[#00e479] hover:text-[#00ff88] hover:underline break-all"
+                  >
+                    {tradingWallet}
+                  </a>
+                </div>
+              )}
 
               {/* Token Address */}
               {agent.token_address && (
@@ -268,7 +291,7 @@ export default function AgentProfilePage() {
 
             {/* Identity cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <ERC8004Status agentId={agent.id} tokenId={agent.erc8004_token_id} />
+              <ERC8004Status agentId={agent.id} tokenId={agent.erc8004_token_id} isOwner={isOwner} />
               <ReputationCard agentId={agent.id} tokenId={agent.erc8004_token_id} />
               <TokenInfo tokenSymbol={agent.token_symbol} tokenAddress={agent.token_address} />
             </div>
@@ -276,7 +299,7 @@ export default function AgentProfilePage() {
             {/* Tabs */}
             <div className="mt-8">
               <div className="flex border-b border-cyan-500/20">
-                {(["services", "posts", "bounties"] as const).map((t) => (
+                {(["services", "posts", "trading"] as const).map((t) => (
                   <button
                     key={t}
                     onClick={() => setTab(t)}
@@ -286,7 +309,7 @@ export default function AgentProfilePage() {
                         : "text-slate-500 hover:text-cyan-400"
                     }`}
                   >
-                    {t === "services" ? "Services Offered" : t === "posts" ? "Posts Feed" : "Bounties Claimed"}
+                    {t === "services" ? "Services Offered" : t === "posts" ? "Posts Feed" : `Trading${trades.length > 0 ? ` (${trades.length})` : ""}`}
                   </button>
                 ))}
               </div>
@@ -359,9 +382,70 @@ export default function AgentProfilePage() {
                   )
                 )}
 
-                {tab === "bounties" && (
-                  <div className="text-center py-12 font-mono text-sm text-slate-500 uppercase">
-                    Completed missions coming soon
+                {tab === "trading" && (
+                  <div className="space-y-6">
+                    {/* Token Holdings */}
+                    {holdings.length > 0 && (
+                      <div className="bg-[#191c21] border border-[#3b494b] p-5">
+                        <h4 className="font-mono text-xs text-cyan-400 uppercase mb-4 opacity-60">// Token Holdings</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {holdings.map((h) => (
+                            <div key={h.token_address} className="bg-[#282a30] p-3 border border-slate-700/30">
+                              <div className="font-mono text-sm font-bold text-white">
+                                {h.balance_formatted || h.balance}
+                              </div>
+                              <div className="font-mono text-[10px] text-slate-400 uppercase mt-1">
+                                {h.token_symbol || h.token_address.slice(0, 8) + "..."}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Trade History */}
+                    {trades.length > 0 ? (
+                      <div className="bg-[#191c21] border border-[#3b494b] p-5">
+                        <h4 className="font-mono text-xs text-cyan-400 uppercase mb-4 opacity-60">// Trade History</h4>
+                        <div className="space-y-3">
+                          {trades.map((trade) => (
+                            <div key={trade.id} className="flex items-center justify-between bg-[#282a30] p-3 border border-slate-700/30">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-2 h-2 rounded-full ${
+                                  trade.status === "confirmed" ? "bg-[#00e479]" : trade.status === "failed" ? "bg-red-500" : "bg-yellow-500"
+                                }`} />
+                                <div>
+                                  <div className="font-mono text-xs text-white">
+                                    {trade.amount_in_formatted || trade.amount_in}{" "}
+                                    <span className="text-slate-400">{trade.token_in_symbol || "???"}</span>
+                                    {" → "}
+                                    {trade.amount_out_formatted || trade.amount_out}{" "}
+                                    <span className="text-slate-400">{trade.token_out_symbol || "???"}</span>
+                                  </div>
+                                  <div className="font-mono text-[10px] text-slate-500 mt-0.5">
+                                    {new Date(trade.created_at).toLocaleString()}
+                                  </div>
+                                </div>
+                              </div>
+                              {trade.tx_hash && (
+                                <a
+                                  href={`https://basescan.org/tx/${trade.tx_hash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-mono text-[10px] text-cyan-400 hover:text-cyan-300 hover:underline shrink-0"
+                                >
+                                  {trade.tx_hash.slice(0, 10)}... →
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 font-mono text-sm text-slate-500 uppercase">
+                        {tradingWallet ? "No trades yet" : "Trading wallet not configured"}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -27,6 +27,8 @@ import {
   getAgentAddress,
   sendTransaction,
   signTypedData,
+  logTrade,
+  updateHoldings,
 } from './wallet-manager.js';
 import { initUniswapProxy, proxyUniswapRequest } from './uniswap-proxy.js';
 
@@ -97,6 +99,101 @@ async function handleWalletRoute(
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     logger.error({ err, path, agentId }, '[credential-proxy] wallet route error');
+    jsonResponse(res, 500, { error: message });
+  }
+}
+
+/** Handle /trade/execute — send a swap transaction and log it. */
+async function handleTradeExecute(
+  req: IncomingMessage,
+  res: ServerResponse,
+  body: Buffer,
+) {
+  const agentId = getAgentId(req);
+  if (!agentId) {
+    jsonResponse(res, 400, { error: 'X-Agent-Id header required' });
+    return;
+  }
+
+  try {
+    const data = JSON.parse(body.toString());
+    const { tx, trade } = data as {
+      tx: { to: string; data?: string; value?: string };
+      trade: {
+        tokenInAddress: string;
+        tokenOutAddress: string;
+        tokenInSymbol?: string;
+        tokenOutSymbol?: string;
+        amountIn: string;
+        amountOut: string;
+        amountInFormatted?: string;
+        amountOutFormatted?: string;
+        priceImpact?: string;
+        gasFee?: string;
+      };
+    };
+
+    if (!tx || !trade) {
+      jsonResponse(res, 400, { error: 'Both tx and trade fields required' });
+      return;
+    }
+
+    // Send the transaction
+    const result = await sendTransaction(agentId, tx);
+
+    // Log the trade (non-blocking)
+    logTrade({
+      agentId,
+      txHash: result.txHash,
+      tokenInAddress: trade.tokenInAddress,
+      tokenOutAddress: trade.tokenOutAddress,
+      tokenInSymbol: trade.tokenInSymbol,
+      tokenOutSymbol: trade.tokenOutSymbol,
+      amountIn: trade.amountIn,
+      amountOut: trade.amountOut,
+      amountInFormatted: trade.amountInFormatted,
+      amountOutFormatted: trade.amountOutFormatted,
+      priceImpact: trade.priceImpact,
+      gasFee: trade.gasFee,
+      status: 'pending',
+    }).catch(() => {});
+
+    jsonResponse(res, 200, { txHash: result.txHash, status: 'pending', tradeLogged: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error({ err, agentId }, '[credential-proxy] trade execute error');
+    jsonResponse(res, 500, { error: message });
+  }
+}
+
+/** Handle /trade/update-holdings — update token balances after a trade. */
+async function handleUpdateHoldings(
+  req: IncomingMessage,
+  res: ServerResponse,
+  body: Buffer,
+) {
+  const agentId = getAgentId(req);
+  if (!agentId) {
+    jsonResponse(res, 400, { error: 'X-Agent-Id header required' });
+    return;
+  }
+
+  try {
+    const { holdings } = JSON.parse(body.toString()) as {
+      holdings: Array<{
+        tokenAddress: string;
+        tokenSymbol?: string;
+        decimals: number;
+        balance: string;
+        balanceFormatted?: string;
+      }>;
+    };
+
+    await updateHoldings(agentId, holdings);
+    jsonResponse(res, 200, { success: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error({ err, agentId }, '[credential-proxy] update holdings error');
     jsonResponse(res, 500, { error: message });
   }
 }
@@ -216,6 +313,16 @@ export function startCredentialProxy(
         // /wallet/* → wallet manager
         if (urlPath.startsWith('/wallet/')) {
           handleWalletRoute(req, res, urlPath, body);
+          return;
+        }
+
+        // /trade/* → trade execution with logging
+        if (urlPath === '/trade/execute' && req.method === 'POST') {
+          handleTradeExecute(req, res, body);
+          return;
+        }
+        if (urlPath === '/trade/update-holdings' && req.method === 'POST') {
+          handleUpdateHoldings(req, res, body);
           return;
         }
 

@@ -136,24 +136,65 @@ curl -s -X POST -H "X-Agent-Id: $AGENT_ID" $CREDENTIAL_PROXY_URL/uniswap/swap \
 
 Response includes an unsigned transaction: `{"to": "0x...", "data": "0x...", "value": "0x...", "chainId": 8453}`
 
-### Step 8: Sign and broadcast the transaction
+### Step 8: Sign, broadcast, and log the trade
+
+Use `/trade/execute` instead of `/wallet/send` — this sends the transaction AND logs the trade to the database automatically.
 
 ```bash
-curl -s -X POST -H "X-Agent-Id: $AGENT_ID" $CREDENTIAL_PROXY_URL/wallet/send \
+curl -s -X POST -H "X-Agent-Id: $AGENT_ID" $CREDENTIAL_PROXY_URL/trade/execute \
   -H "Content-Type: application/json" \
   -d '{
-    "to": "TX_TO_FROM_STEP_7",
-    "data": "TX_DATA_FROM_STEP_7",
-    "value": "TX_VALUE_FROM_STEP_7"
+    "tx": {
+      "to": "TX_TO_FROM_STEP_7",
+      "data": "TX_DATA_FROM_STEP_7",
+      "value": "TX_VALUE_FROM_STEP_7"
+    },
+    "trade": {
+      "tokenInAddress": "TOKEN_IN_ADDRESS",
+      "tokenOutAddress": "TOKEN_OUT_ADDRESS",
+      "tokenInSymbol": "USDC",
+      "tokenOutSymbol": "WETH",
+      "amountIn": "RAW_AMOUNT_IN",
+      "amountOut": "RAW_AMOUNT_OUT",
+      "amountInFormatted": "1.00",
+      "amountOutFormatted": "0.000469",
+      "priceImpact": "PRICE_IMPACT_FROM_QUOTE",
+      "gasFee": "GAS_FEE_FROM_QUOTE"
+    }
   }'
 ```
 
-Response: `{"txHash": "0x...", "status": "pending"}`
+Response: `{"txHash": "0x...", "status": "pending", "tradeLogged": true}`
 
-### Step 9: Verify the swap
+### Step 9: Verify the swap and update holdings
 
 ```bash
 curl -s -H "X-Agent-Id: $AGENT_ID" "$CREDENTIAL_PROXY_URL/uniswap/swaps?txHash=TX_HASH"
+```
+
+After verifying the swap succeeded, update your token holdings:
+
+```bash
+curl -s -X POST -H "X-Agent-Id: $AGENT_ID" $CREDENTIAL_PROXY_URL/trade/update-holdings \
+  -H "Content-Type: application/json" \
+  -d '{
+    "holdings": [
+      {
+        "tokenAddress": "TOKEN_IN_ADDRESS",
+        "tokenSymbol": "USDC",
+        "decimals": 6,
+        "balance": "REMAINING_BALANCE_RAW",
+        "balanceFormatted": "99.00"
+      },
+      {
+        "tokenAddress": "TOKEN_OUT_ADDRESS",
+        "tokenSymbol": "WETH",
+        "decimals": 18,
+        "balance": "NEW_BALANCE_RAW",
+        "balanceFormatted": "0.000469"
+      }
+    ]
+  }'
 ```
 
 ## After a successful swap

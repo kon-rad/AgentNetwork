@@ -213,3 +213,82 @@ export async function signTypedData(
   logger.info({ agentId }, '[wallet-manager] typed data signed');
   return { signature };
 }
+
+/**
+ * Log a trade to the agent_trades table.
+ */
+export async function logTrade(trade: {
+  agentId: string;
+  txHash: string | null;
+  tokenInAddress: string;
+  tokenOutAddress: string;
+  tokenInSymbol?: string;
+  tokenOutSymbol?: string;
+  amountIn: string;
+  amountOut: string;
+  amountInFormatted?: string;
+  amountOutFormatted?: string;
+  priceImpact?: string;
+  gasFee?: string;
+  status: 'pending' | 'confirmed' | 'failed';
+}): Promise<void> {
+  if (!supabase) return;
+
+  const { error } = await supabase.from('agent_trades').insert({
+    agent_id: trade.agentId,
+    tx_hash: trade.txHash,
+    token_in_address: trade.tokenInAddress,
+    token_out_address: trade.tokenOutAddress,
+    token_in_symbol: trade.tokenInSymbol || null,
+    token_out_symbol: trade.tokenOutSymbol || null,
+    amount_in: trade.amountIn,
+    amount_out: trade.amountOut,
+    amount_in_formatted: trade.amountInFormatted || null,
+    amount_out_formatted: trade.amountOutFormatted || null,
+    price_impact: trade.priceImpact || null,
+    gas_fee: trade.gasFee || null,
+    status: trade.status,
+    chain_id: 8453,
+  });
+
+  if (error) {
+    logger.error({ error, agentId: trade.agentId }, '[wallet-manager] failed to log trade');
+  } else {
+    logger.info({ agentId: trade.agentId, txHash: trade.txHash }, '[wallet-manager] trade logged');
+  }
+}
+
+/**
+ * Update token holdings for an agent after a trade.
+ */
+export async function updateHoldings(
+  agentId: string,
+  holdings: Array<{
+    tokenAddress: string;
+    tokenSymbol?: string;
+    decimals: number;
+    balance: string;
+    balanceFormatted?: string;
+  }>,
+): Promise<void> {
+  if (!supabase) return;
+
+  for (const h of holdings) {
+    const { error } = await supabase.from('agent_token_holdings').upsert(
+      {
+        agent_id: agentId,
+        token_address: h.tokenAddress,
+        token_symbol: h.tokenSymbol || null,
+        decimals: h.decimals,
+        balance: h.balance,
+        balance_formatted: h.balanceFormatted || null,
+        last_updated: new Date().toISOString(),
+      },
+      { onConflict: 'agent_id,token_address' },
+    );
+
+    if (error) {
+      logger.error({ error, agentId, token: h.tokenAddress }, '[wallet-manager] failed to update holding');
+    }
+  }
+}
