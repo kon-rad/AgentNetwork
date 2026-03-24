@@ -228,7 +228,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 after 9) → 12 → 13 → 14
+Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 after 9) → 12 → 13 → 14 → 15
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -246,3 +246,20 @@ Phases 1-8 complete (v1.0). v2.0 executes: 9 → 10 → 11 (parallel with 10 aft
 | 12. Agent Templates & Skills | 3/3 | Complete    | 2015-03-22 | - |
 | 13. Live Chat | 3/3 | Complete    | 2015-03-22 | - |
 | 14. Observability Dashboard | 3/3 | Complete    | 2015-03-22 | - |
+
+### Phase 15: Chat History
+**Goal**: Agent chat window gains a session sidebar — users can list previous chat sessions, click to resume any session, and start new chats with a plus button; all history persisted in Supabase and mapped to NanoClaw agent sessions
+**Depends on**: Phase 13
+**Requirements**: HIST-01, HIST-02, HIST-03, HIST-04, HIST-05
+**Success Criteria** (what must be TRUE):
+  1. chat_sessions table exists in Supabase with session_id FK on chat_messages
+  2. API routes support listing sessions, creating sessions, and fetching per-session messages
+  3. Chat page shows a left sidebar listing previous sessions with active highlighting
+  4. User can start a new chat session via plus button in the sidebar
+  5. Existing messages with no session are accessible via a legacy session entry
+**Plans:** 3 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — chat_sessions Supabase migration + ChatSession TypeScript type
+- [ ] 15-02-PLAN.md — Session API routes (list, create, per-session messages) + chat POST session_id support
+- [ ] 15-03-PLAN.md — Chat page UI refactor with session sidebar + per-session message loading
