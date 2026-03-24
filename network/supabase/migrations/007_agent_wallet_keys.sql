@@ -2,7 +2,7 @@
 -- The credential proxy decrypts on-demand; containers never see raw keys.
 
 CREATE TABLE IF NOT EXISTS agent_wallet_keys (
-  agent_id UUID PRIMARY KEY REFERENCES agents(id) ON DELETE CASCADE,
+  agent_id TEXT PRIMARY KEY REFERENCES agents(id) ON DELETE CASCADE,
   encrypted_private_key TEXT NOT NULL,
   iv TEXT NOT NULL,
   auth_tag TEXT NOT NULL,

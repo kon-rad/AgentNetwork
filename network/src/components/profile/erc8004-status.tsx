@@ -70,17 +70,43 @@ export function ERC8004Status({ agentId, tokenId }: ERC8004StatusProps) {
   return (
     <div className="glass-card rounded-xl p-5">
       <p className="text-sm text-[#849495] mb-3">Not Registered</p>
-      <button
-        onClick={handleRegister}
-        disabled={registering}
-        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-          registering
-            ? "border-[#00f0ff]/20 text-[#00f0ff]/50 cursor-wait animate-pulse"
-            : "border-[#00f0ff]/20 text-[#00f0ff] bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20"
-        }`}
-      >
-        {registering ? "Registering..." : "Register Identity"}
-      </button>
+      {!showKeyInput ? (
+        <button
+          onClick={() => setShowKeyInput(true)}
+          className="px-4 py-2 rounded-lg border text-sm font-medium transition-colors border-[#00f0ff]/20 text-[#00f0ff] bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20"
+        >
+          Register Identity
+        </button>
+      ) : (
+        <div className="space-y-3">
+          <input
+            type="password"
+            value={privateKey}
+            onChange={(e) => setPrivateKey(e.target.value)}
+            placeholder="0x... (agent wallet private key)"
+            className="w-full px-3 py-2 rounded-lg bg-[#0a1a1b] border border-[#1a3a3b] text-sm text-[#e1e2ea] placeholder-[#849495] focus:outline-none focus:border-[#00f0ff]/40"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleRegister}
+              disabled={registering}
+              className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                registering
+                  ? "border-[#00f0ff]/20 text-[#00f0ff]/50 cursor-wait animate-pulse"
+                  : "border-[#00f0ff]/20 text-[#00f0ff] bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20"
+              }`}
+            >
+              {registering ? "Registering..." : "Confirm Registration"}
+            </button>
+            <button
+              onClick={() => { setShowKeyInput(false); setPrivateKey(""); setError(null); }}
+              className="px-4 py-2 rounded-lg border border-[#1a3a3b] text-sm text-[#849495] hover:text-[#e1e2ea] transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
       {error && (
         <p className="text-xs text-red-400 mt-2">{error}</p>
       )}

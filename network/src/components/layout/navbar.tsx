@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSignMessage } from "wagmi";
 import { SiweMessage } from "siwe";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 const NAV_ITEMS = [
   { href: "/launch", label: "Launch" },
@@ -26,6 +26,9 @@ export function Navbar() {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [signedAddress, setSignedAddress] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const pendingSignIn = useRef(false);
+  const prevAddress = useRef<string | undefined>(undefined);
 
   // Check session on mount
   useEffect(() => {
@@ -46,18 +49,24 @@ export function Navbar() {
       .catch(() => {
         setIsSignedIn(false);
         setSignedAddress(null);
+      })
+      .finally(() => {
+        setSessionChecked(true);
       });
   }, []);
 
-  // Reset signed-in state when wallet disconnects
+  // Reset signed-in state only on real disconnect (address was set, then removed)
+  // Skip during initial load when wagmi hasn't reconnected yet
   useEffect(() => {
-    if (!address && isSignedIn) {
+    if (prevAddress.current && !address && isSignedIn) {
+      fetch("/api/auth/signout", { method: "POST" });
       setIsSignedIn(false);
       setSignedAddress(null);
     }
+    prevAddress.current = address;
   }, [address, isSignedIn]);
 
-  async function handleSignIn() {
+  const handleSignIn = useCallback(async () => {
     if (!address) return;
     setSigningIn(true);
     try {
@@ -94,8 +103,16 @@ export function Navbar() {
       // User rejected or error — do nothing
     } finally {
       setSigningIn(false);
+      pendingSignIn.current = false;
     }
-  }
+  }, [address, chain?.id, signMessageAsync]);
+
+  // Auto-trigger SIWE sign-in after wallet connects (from Connect button click)
+  useEffect(() => {
+    if (sessionChecked && address && !isSignedIn && !signingIn && pendingSignIn.current) {
+      handleSignIn();
+    }
+  }, [sessionChecked, address, isSignedIn, signingIn, handleSignIn]);
 
   async function handleSignOut() {
     await fetch("/api/auth/signout", { method: "POST" });
@@ -146,7 +163,10 @@ export function Navbar() {
               >
                 {!connected ? (
                   <button
-                    onClick={openConnectModal}
+                    onClick={() => {
+                      pendingSignIn.current = true;
+                      openConnectModal();
+                    }}
                     className="bg-[#00f0ff] text-[#006970] px-4 py-1.5 font-[family-name:var(--font-syne)] font-bold text-xs tracking-widest uppercase hover:shadow-[0_0_15px_rgba(0,240,255,0.4)] transition-all"
                   >
                     CONNECT WALLET
