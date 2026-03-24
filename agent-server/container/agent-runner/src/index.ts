@@ -21,6 +21,8 @@ import { query } from '@anthropic-ai/claude-agent-sdk';
 
 const OUTPUT_START = '---NANOCLAW_OUTPUT_START---';
 const OUTPUT_END = '---NANOCLAW_OUTPUT_END---';
+const EVENT_START = '---NANOCLAW_EVENT_START---';
+const EVENT_END = '---NANOCLAW_EVENT_END---';
 
 interface ContainerInput {
   prompt: string;
@@ -39,6 +41,14 @@ function emit(output: {
   error?: string;
 }): void {
   process.stdout.write(`\n${OUTPUT_START}\n${JSON.stringify(output)}\n${OUTPUT_END}\n`);
+}
+
+/** Emit an observability event (parsed by the agent-server for logging to Supabase) */
+function emitEvent(event: {
+  event_type: string;
+  payload: Record<string, unknown>;
+}): void {
+  process.stdout.write(`\n${EVENT_START}\n${JSON.stringify(event)}\n${EVENT_END}\n`);
 }
 
 async function main(): Promise<void> {
@@ -70,6 +80,7 @@ async function main(): Promise<void> {
   // Collect the full response text from all assistant messages
   let responseText = '';
   let sessionId: string | undefined;
+  const seenMessageIds = new Set<string>();
 
   try {
     // The SDK loads CLAUDE.md from cwd (/workspace/group) automatically via settingSources.
@@ -86,32 +97,78 @@ async function main(): Promise<void> {
       },
     })) {
       // The SDK yields messages of various types. We care about:
-      // - 'assistant' messages (Claude's response text)
-      // - 'result' messages (final summary with session ID)
+      // - 'assistant' messages (Claude's response text + LLM metadata)
+      // - 'result' messages (final summary with session ID, cost, usage)
       const msg = message as Record<string, unknown>;
 
-      if (msg.type === 'assistant' && typeof msg.content === 'string') {
-        responseText += msg.content;
-      } else if (msg.type === 'assistant' && Array.isArray(msg.content)) {
-        // Content blocks: [{ type: 'text', text: '...' }, { type: 'tool_use', ... }]
-        for (const block of msg.content) {
-          const b = block as Record<string, unknown>;
-          if (b.type === 'text' && typeof b.text === 'string') {
-            responseText += b.text;
+      if (msg.type === 'assistant') {
+        // Extract response text from content blocks
+        if (typeof msg.content === 'string') {
+          responseText += msg.content;
+        } else if (Array.isArray(msg.content)) {
+          for (const block of msg.content) {
+            const b = block as Record<string, unknown>;
+            if (b.type === 'text' && typeof b.text === 'string') {
+              responseText += b.text;
+            }
+            // Emit tool_call events for tool_use blocks
+            if (b.type === 'tool_use') {
+              emitEvent({
+                event_type: 'tool_call',
+                payload: {
+                  tool_name: b.name as string,
+                  input: b.input,
+                },
+              });
+            }
           }
+        }
+
+        // Emit llm_call event with token usage (deduplicate by message ID)
+        const betaMsg = msg.message as Record<string, unknown> | undefined;
+        const msgId = betaMsg?.id as string | undefined;
+        if (betaMsg && msgId && !seenMessageIds.has(msgId)) {
+          seenMessageIds.add(msgId);
+          const usage = betaMsg.usage as Record<string, unknown> | undefined;
+          emitEvent({
+            event_type: 'llm_call',
+            payload: {
+              model: (betaMsg.model as string) ?? (msg.model as string) ?? 'unknown',
+              input_tokens: (usage?.input_tokens as number) ?? 0,
+              output_tokens: (usage?.output_tokens as number) ?? 0,
+              cache_read_input_tokens: (usage?.cache_read_input_tokens as number) ?? 0,
+              cache_creation_input_tokens: (usage?.cache_creation_input_tokens as number) ?? 0,
+              message_id: msgId,
+            },
+          });
         }
       }
 
-      // Capture session ID from result message
+      // Capture session ID and final metrics from result message
       if (msg.type === 'result') {
         const result = msg as Record<string, unknown>;
         if (typeof result.session_id === 'string') {
           sessionId = result.session_id;
         }
-        // Also check for response text in result
         if (typeof result.result === 'string' && !responseText) {
           responseText = result.result;
         }
+        // Emit turn_complete with aggregate metrics
+        const usage = result.usage as Record<string, unknown> | undefined;
+        const modelUsage = result.modelUsage as Record<string, Record<string, unknown>> | undefined;
+        emitEvent({
+          event_type: 'turn_complete',
+          payload: {
+            num_turns: (result.num_turns as number) ?? 0,
+            duration_ms: (result.duration_ms as number) ?? 0,
+            duration_api_ms: (result.duration_api_ms as number) ?? 0,
+            total_cost_usd: (result.total_cost_usd as number) ?? 0,
+            is_error: (result.is_error as boolean) ?? false,
+            input_tokens: (usage?.input_tokens as number) ?? 0,
+            output_tokens: (usage?.output_tokens as number) ?? 0,
+            model_usage: modelUsage ?? {},
+          },
+        });
       }
     }
 
@@ -123,6 +180,10 @@ async function main(): Promise<void> {
     });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
+    emitEvent({
+      event_type: 'error',
+      payload: { message: errorMessage },
+    });
     emit({
       status: 'error',
       result: null,

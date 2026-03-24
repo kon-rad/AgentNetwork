@@ -32,6 +32,13 @@ import { RegisteredGroup } from './types.js';
 // Sentinel markers for robust output parsing (must match agent-runner)
 const OUTPUT_START_MARKER = '---NANOCLAW_OUTPUT_START---';
 const OUTPUT_END_MARKER = '---NANOCLAW_OUTPUT_END---';
+const EVENT_START_MARKER = '---NANOCLAW_EVENT_START---';
+const EVENT_END_MARKER = '---NANOCLAW_EVENT_END---';
+
+export interface AgentObservabilityEvent {
+  event_type: string;
+  payload: Record<string, unknown>;
+}
 
 export interface ContainerInput {
   prompt: string;
@@ -279,6 +286,7 @@ export async function runContainerAgent(
   input: ContainerInput,
   onProcess: (proc: ChildProcess, containerName: string) => void,
   onOutput?: (output: ContainerOutput) => Promise<void>,
+  onEvent?: (event: AgentObservabilityEvent) => void,
 ): Promise<ContainerOutput> {
   const startTime = Date.now();
 
@@ -331,8 +339,9 @@ export async function runContainerAgent(
     container.stdin.write(JSON.stringify(input));
     container.stdin.end();
 
-    // Streaming output: parse OUTPUT_START/END marker pairs as they arrive
+    // Streaming output: parse OUTPUT_START/END and EVENT_START/END marker pairs as they arrive
     let parseBuffer = '';
+    let eventBuffer = '';
     let newSessionId: string | undefined;
     let outputChain = Promise.resolve();
 
@@ -351,6 +360,29 @@ export async function runContainerAgent(
           );
         } else {
           stdout += chunk;
+        }
+      }
+
+      // Parse observability event markers (independent of output markers)
+      if (onEvent) {
+        eventBuffer += chunk;
+        let evtStart: number;
+        while ((evtStart = eventBuffer.indexOf(EVENT_START_MARKER)) !== -1) {
+          const evtEnd = eventBuffer.indexOf(EVENT_END_MARKER, evtStart);
+          if (evtEnd === -1) break;
+          const evtJson = eventBuffer
+            .slice(evtStart + EVENT_START_MARKER.length, evtEnd)
+            .trim();
+          eventBuffer = eventBuffer.slice(evtEnd + EVENT_END_MARKER.length);
+          try {
+            const parsed: AgentObservabilityEvent = JSON.parse(evtJson);
+            onEvent(parsed);
+          } catch (err) {
+            logger.warn(
+              { group: group.name, error: err },
+              'Failed to parse event marker',
+            );
+          }
         }
       }
 

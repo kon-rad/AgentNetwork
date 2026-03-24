@@ -16,11 +16,13 @@ import {
   getRegisteredChannelNames,
 } from './channels/registry.js';
 import {
+  AgentObservabilityEvent,
   ContainerOutput,
   runContainerAgent,
   writeGroupsSnapshot,
   writeTasksSnapshot,
 } from './container-runner.js';
+import { logEvent } from './supabase-logger.js';
 import {
   cleanupOrphans,
   ensureContainerRuntimeRunning,
@@ -272,6 +274,17 @@ async function runAgent(
 ): Promise<'success' | 'error'> {
   const isMain = group.isMain === true;
   const sessionId = sessions[group.folder];
+  // agent_id for observability events (group.name is the agentId for webapp groups)
+  const agentId = group.name;
+
+  // Log turn_start event
+  logEvent({
+    agent_id: agentId,
+    event_type: 'turn_start',
+    payload: {
+      message_preview: prompt.slice(0, 200),
+    },
+  });
 
   // Update tasks snapshot for container to read (filtered by group)
   const tasks = getAllTasks();
@@ -309,6 +322,16 @@ async function runAgent(
       }
     : undefined;
 
+  // Handle observability events from the container's agent-runner
+  const handleEvent = (event: AgentObservabilityEvent) => {
+    const eventType = event.event_type as 'turn_start' | 'turn_complete' | 'tool_call' | 'llm_call' | 'error';
+    logEvent({
+      agent_id: agentId,
+      event_type: eventType,
+      payload: event.payload,
+    });
+  };
+
   try {
     const output = await runContainerAgent(
       group,
@@ -323,6 +346,7 @@ async function runAgent(
       (proc, containerName) =>
         queue.registerProcess(chatJid, proc, containerName, group.folder),
       wrappedOnOutput,
+      handleEvent,
     );
 
     if (output.newSessionId) {
@@ -335,12 +359,22 @@ async function runAgent(
         { group: group.name, error: output.error },
         'Container agent error',
       );
+      logEvent({
+        agent_id: agentId,
+        event_type: 'error',
+        payload: { message: output.error ?? 'Unknown container error' },
+      });
       return 'error';
     }
 
     return 'success';
   } catch (err) {
     logger.error({ group: group.name, err }, 'Agent error');
+    logEvent({
+      agent_id: agentId,
+      event_type: 'error',
+      payload: { message: err instanceof Error ? err.message : String(err) },
+    });
     return 'error';
   }
 }

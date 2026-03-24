@@ -54,10 +54,19 @@ function eventSummary(event: AgentEvent): string {
       const dur = p.duration_ms != null ? ` (${p.duration_ms as number}ms)` : "";
       return `${tool}${dur}`;
     }
-    case "turn_start":
-      return "Turn started";
-    case "turn_complete":
-      return "Turn complete";
+    case "turn_start": {
+      const preview = p.message_preview as string | undefined;
+      return preview ? `Turn started — ${preview.slice(0, 80)}…` : "Turn started";
+    }
+    case "turn_complete": {
+      const turns = (p.num_turns as number) ?? 0;
+      const cost = p.total_cost_usd as number | undefined;
+      const dur = p.duration_ms as number | undefined;
+      const parts = [`${turns} turn${turns !== 1 ? "s" : ""}`];
+      if (dur) parts.push(`${(dur / 1000).toFixed(1)}s`);
+      if (cost) parts.push(`$${cost.toFixed(4)}`);
+      return parts.join(" — ");
+    }
     case "error": {
       const msg = (p.message as string) ?? "Unknown error";
       return `Error: ${msg}`;
@@ -84,6 +93,24 @@ function EventDetailPanel({ event }: { event: AgentEvent }) {
           <span className="text-cyan-400/60">output_tokens: </span>
           {String(p.output_tokens ?? "—")}
         </div>
+        {(p.cache_read_input_tokens as number) > 0 && (
+          <div>
+            <span className="text-cyan-400/60">cache_read: </span>
+            {String(p.cache_read_input_tokens)}
+          </div>
+        )}
+        {(p.cache_creation_input_tokens as number) > 0 && (
+          <div>
+            <span className="text-cyan-400/60">cache_creation: </span>
+            {String(p.cache_creation_input_tokens)}
+          </div>
+        )}
+        {typeof p.message_id === "string" && (
+          <div>
+            <span className="text-cyan-400/60">message_id: </span>
+            <span className="text-slate-500">{p.message_id}</span>
+          </div>
+        )}
       </div>
     );
   }
@@ -116,6 +143,53 @@ function EventDetailPanel({ event }: { event: AgentEvent }) {
             </pre>
           </div>
         )}
+      </div>
+    );
+  }
+  if (event.event_type === "turn_complete") {
+    const modelUsage = p.model_usage as Record<string, Record<string, unknown>> | undefined;
+    return (
+      <div className="mt-2 px-3 py-2 bg-black/40 border border-green-500/10 font-mono text-xs text-slate-300 space-y-1">
+        <div>
+          <span className="text-green-400/60">num_turns: </span>
+          {String(p.num_turns ?? "—")}
+        </div>
+        <div>
+          <span className="text-green-400/60">duration: </span>
+          {String(p.duration_ms ?? "—")}ms
+        </div>
+        <div>
+          <span className="text-green-400/60">api_duration: </span>
+          {String(p.duration_api_ms ?? "—")}ms
+        </div>
+        <div>
+          <span className="text-green-400/60">total_cost: </span>
+          ${String(((p.total_cost_usd as number) ?? 0).toFixed(4))}
+        </div>
+        <div>
+          <span className="text-green-400/60">input_tokens: </span>
+          {String(p.input_tokens ?? "—")}
+        </div>
+        <div>
+          <span className="text-green-400/60">output_tokens: </span>
+          {String(p.output_tokens ?? "—")}
+        </div>
+        {modelUsage && Object.keys(modelUsage).length > 0 && (
+          <div>
+            <div className="text-green-400/60 mb-0.5">model_usage:</div>
+            <pre className="overflow-auto max-h-40 text-[10px] text-slate-400 whitespace-pre-wrap">
+              {JSON.stringify(modelUsage, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+    );
+  }
+  if (event.event_type === "turn_start" && p.message_preview) {
+    return (
+      <div className="mt-2 px-3 py-2 bg-black/40 border border-green-500/10 font-mono text-xs text-slate-300">
+        <span className="text-green-400/60">prompt: </span>
+        <span className="text-slate-400">{String(p.message_preview)}</span>
       </div>
     );
   }
@@ -319,7 +393,10 @@ export default function ObservePage() {
   }
 
   const isExpandable = (e: AgentEvent) =>
-    e.event_type === "tool_call" || e.event_type === "llm_call";
+    e.event_type === "tool_call" ||
+    e.event_type === "llm_call" ||
+    e.event_type === "turn_complete" ||
+    (e.event_type === "turn_start" && !!e.payload.message_preview);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
