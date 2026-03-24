@@ -26,14 +26,14 @@ export function ERC8004Status({ agentId, tokenId, isOwner }: ERC8004StatusProps)
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || "Registration failed");
+        const msg = body.details || body.error || "Registration failed";
+        throw new Error(msg);
       }
       const data = await res.json();
       setCurrentTokenId(data.agentId ?? data.tokenId ?? "unknown");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Registration failed";
       setError(message);
-      setTimeout(() => setError(null), 6000);
     } finally {
       setRegistering(false);
     }
@@ -77,7 +77,15 @@ export function ERC8004Status({ agentId, tokenId, isOwner }: ERC8004StatusProps)
             {registering ? "Registering on-chain..." : "Register Identity"}
           </button>
           {error && (
-            <p className="text-xs text-red-400 mt-2">{error}</p>
+            <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded">
+              <p className="text-xs text-red-400 whitespace-pre-wrap">{error}</p>
+              <button
+                onClick={() => setError(null)}
+                className="text-[10px] text-red-400/60 hover:text-red-400 mt-1 underline"
+              >
+                dismiss
+              </button>
+            </div>
           )}
         </>
       ) : (

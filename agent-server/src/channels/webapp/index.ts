@@ -198,6 +198,41 @@ const factory: ChannelFactory = (opts): Channel | null => {
     }
   });
 
+  // POST /delete-group — delete an agent's workspace, SQLite records, and files
+  app.post('/delete-group', async (req, res) => {
+    const { agentId } = req.body as { agentId?: string };
+    if (!agentId) {
+      res.status(400).json({ error: 'agentId required' });
+      return;
+    }
+    const jid = `${agentId}@webapp`;
+    try {
+      // 1. Remove from registered_groups, chats, messages, sessions, scheduled_tasks in SQLite
+      const { deleteGroupData } = await import('../../db.js');
+      deleteGroupData(agentId, jid);
+
+      // 2. Remove workspace folder (groups/{agentId}/)
+      const groupDir = path.join(process.cwd(), 'groups', agentId);
+      if (fs.existsSync(groupDir)) {
+        fs.rmSync(groupDir, { recursive: true, force: true });
+      }
+
+      // 3. Close any active SSE connections for this agent
+      const client = sseClients.get(jid);
+      if (client) {
+        client.write(`data: ${JSON.stringify({ error: 'agent deleted' })}\n\n`);
+        client.end();
+        sseClients.delete(jid);
+      }
+
+      logger.info({ jid, agentId }, '[webapp] group deleted');
+      res.json({ success: true });
+    } catch (err) {
+      logger.error({ err, agentId }, '[webapp] delete-group error');
+      res.status(500).json({ error: 'failed to delete group' });
+    }
+  });
+
   // GET /agents/:agentId/files/content — read a single file's content (read-only)
   app.get('/agents/:agentId/files/content', (req, res) => {
     const { agentId } = req.params;

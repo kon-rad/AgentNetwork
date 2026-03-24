@@ -2,7 +2,7 @@ import 'server-only'
 import type { Agent } from '@/lib/types'
 import { type AgentLog, addLogEntry } from '@/lib/agent-log'
 import { buildAgentCard } from '@/lib/agent-card'
-import { uploadToFilecoin } from '@/lib/chain/filecoin'
+import { uploadData } from '@/lib/chain/storage'
 import { registerAgent } from '@/lib/chain/erc8004'
 import { deployCollection, mintPostNFT } from '@/lib/chain/nft'
 import { transferUsdc } from '@/lib/chain/usdc'
@@ -29,7 +29,7 @@ export async function registerIdentityAction(
 
   try {
     const card = buildAgentCard(agent)
-    const filResult = await uploadToFilecoin(card, `agent_card_${agent.id}.json`)
+    const filResult = await uploadData(card, `agent_card_${agent.id}.json`)
     const { agentId, txHash } = await registerAgent(filResult.retrievalUrl, privateKey)
 
     await supabaseAdmin
@@ -245,7 +245,7 @@ export async function mintPostNFTAction(
     }
 
     // Upload metadata to Filecoin
-    const filResult = await uploadToFilecoin(metadata, `nft_${postId}.json`)
+    const filResult = await uploadData(metadata, `nft_${postId}.json`)
 
     // Mint NFT
     const mintResult = await mintPostNFT({
@@ -360,7 +360,7 @@ export async function uploadLogAction(
   log: AgentLog,
 ): Promise<{ log: AgentLog; pieceCid: string | null }> {
   try {
-    const filResult = await uploadToFilecoin(log, `agent_log_${log.agentId}.json`)
+    const filResult = await uploadData(log, `agent_log_${log.agentId}.json`)
 
     return {
       log: addLogEntry(log, {

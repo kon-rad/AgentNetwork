@@ -1,5 +1,5 @@
 import { deployCollection, mintPostNFT } from '@/lib/chain/nft'
-import { uploadToFilecoin } from '@/lib/chain/filecoin'
+import { uploadData } from '@/lib/chain/storage'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 
 export async function POST(req: Request): Promise<Response> {
@@ -76,7 +76,7 @@ export async function POST(req: Request): Promise<Response> {
     // Upload metadata to Filecoin
     let filResult
     try {
-      filResult = await uploadToFilecoin(metadata, `nft_${postId}.json`)
+      filResult = await uploadData(metadata, `nft_${postId}.json`)
     } catch (filErr) {
       const filMessage = filErr instanceof Error ? filErr.message : String(filErr)
       console.error('[mint-nft] Filecoin upload failed:', filErr)

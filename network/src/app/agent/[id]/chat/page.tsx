@@ -18,9 +18,13 @@ export default function AgentChatPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
+  const [streamDisconnected, setStreamDisconnected] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const esRef = useRef<EventSource | null>(null);
   const streamingContentRef = useRef<string>("");
+  const errorCountRef = useRef(0);
+  const openEventSourceRef = useRef<() => void>(() => {});
 
   // Keep ref in sync with state for SSE handler closure
   useEffect(() => {
@@ -75,6 +79,9 @@ export default function AgentChatPage() {
             content?: string;
           };
 
+          // Reset error count on any successful message
+          errorCountRef.current = 0;
+
           if (parsed.type === "thinking") {
             setStatus("thinking");
           } else if (parsed.type === "tool_use") {
@@ -109,6 +116,11 @@ export default function AgentChatPage() {
             setStatus("idle");
             setStreamingContent("");
             streamingContentRef.current = "";
+            // Stop reconnecting if agent stream is unavailable
+            setStreamDisconnected(true);
+            es.close();
+            esRef.current = null;
+            return;
           }
         } catch {
           // Ignore malformed SSE events
@@ -121,13 +133,21 @@ export default function AgentChatPage() {
         setStatus("idle");
         setStreamingContent("");
         streamingContentRef.current = "";
-        // Attempt reconnect after delay
+        errorCountRef.current += 1;
+        // Stop reconnecting after 3 consecutive errors
+        if (errorCountRef.current >= 3) {
+          setStreamDisconnected(true);
+          return;
+        }
+        // Exponential backoff reconnect
+        const delay = Math.min(3000 * Math.pow(2, errorCountRef.current - 1), 30000);
         setTimeout(() => {
           if (!cancelled) openEventSource();
-        }, 3000);
+        }, delay);
       };
     }
 
+    openEventSourceRef.current = openEventSource;
     openEventSource();
 
     return () => {
@@ -219,6 +239,7 @@ export default function AgentChatPage() {
     });
 
     try {
+      setErrorMessage(null);
       const res = await fetch(`/api/agents/${id}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -226,9 +247,23 @@ export default function AgentChatPage() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
+        const msg = (err as { error?: string }).error || `Send failed (${res.status})`;
+        setErrorMessage(msg);
+        setStatus("idle");
         console.error("Send failed:", err);
+      } else {
+        // Reconnect stream if it was disconnected (auto-registration may have fixed it)
+        if (streamDisconnected) {
+          setStreamDisconnected(false);
+          errorCountRef.current = 0;
+          if (esRef.current) { esRef.current.close(); esRef.current = null; }
+          // Small delay for NanoClaw to process registration
+          setTimeout(() => openEventSourceRef.current(), 1000);
+        }
       }
     } catch (err) {
+      setErrorMessage("Failed to send message — network error");
+      setStatus("idle");
       console.error("Send error:", err);
     }
   }
@@ -343,10 +378,21 @@ export default function AgentChatPage() {
             </div>
             {/* Status chip */}
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${currentStatus.dot}`} />
-              <span className={`font-mono text-xs uppercase tracking-widest ${currentStatus.text}`}>
-                {currentStatus.label}
-              </span>
+              {streamDisconnected ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-orange-400" />
+                  <span className="font-mono text-xs uppercase tracking-widest text-orange-400">
+                    offline — agent server unreachable
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className={`w-2 h-2 rounded-full ${currentStatus.dot}`} />
+                  <span className={`font-mono text-xs uppercase tracking-widest ${currentStatus.text}`}>
+                    {currentStatus.label}
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
@@ -393,6 +439,13 @@ export default function AgentChatPage() {
 
             <div ref={bottomRef} />
           </div>
+
+          {/* Error message */}
+          {errorMessage && (
+            <div className="px-3 py-2 bg-red-500/10 border border-red-500/30 text-red-400 font-mono text-xs shrink-0">
+              {errorMessage}
+            </div>
+          )}
 
           {/* Input area */}
           <div className="glass-card p-3 shrink-0">

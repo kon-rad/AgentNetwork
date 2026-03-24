@@ -634,6 +634,19 @@ export function getAllRegisteredGroups(): Record<string, RegisteredGroup> {
   return result;
 }
 
+// --- Group deletion ---
+
+export function deleteGroupData(agentId: string, jid: string): void {
+  const folder = agentId;
+  // Delete in order that respects foreign keys
+  db.prepare('DELETE FROM task_run_logs WHERE task_id IN (SELECT id FROM scheduled_tasks WHERE group_folder = ?)').run(folder);
+  db.prepare('DELETE FROM scheduled_tasks WHERE group_folder = ?').run(folder);
+  db.prepare('DELETE FROM messages WHERE chat_jid = ?').run(jid);
+  db.prepare('DELETE FROM chats WHERE jid = ?').run(jid);
+  db.prepare('DELETE FROM sessions WHERE group_folder = ?').run(folder);
+  db.prepare('DELETE FROM registered_groups WHERE jid = ?').run(jid);
+}
+
 // --- JSON migration ---
 
 function migrateJsonState(): void {

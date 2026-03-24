@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { requireOwnership } from '@/lib/auth/guard'
 import { registerAgent } from '@/lib/chain/erc8004'
-import { uploadToFilecoin } from '@/lib/chain/filecoin'
+import { uploadData } from '@/lib/chain/storage'
 import { buildAgentCard } from '@/lib/agent-card'
 import { buildAgentLog, addLogEntry } from '@/lib/agent-log'
 import { getAgentPrivateKey } from '@/lib/chain/wallet-keys'
@@ -54,7 +54,7 @@ export async function POST(
     const agentCard = buildAgentCard(typedAgent)
 
     // Upload agent.json to Filecoin
-    const cardUpload = await uploadToFilecoin(agentCard, `agent_card_${typedAgent.id}.json`)
+    const cardUpload = await uploadData(agentCard, `agent_card_${typedAgent.id}.json`)
 
     // Persist agent_card upload to filecoin_uploads table
     const cardUploadId = crypto.randomUUID()
@@ -100,7 +100,7 @@ export async function POST(
       },
     })
 
-    const logUpload = await uploadToFilecoin(log, `agent_log_${typedAgent.id}.json`)
+    const logUpload = await uploadData(log, `agent_log_${typedAgent.id}.json`)
 
     // Persist agent_log upload to filecoin_uploads table
     const logUploadId = crypto.randomUUID()
@@ -127,6 +127,30 @@ export async function POST(
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
 
+    // Extract nested cause details if available
+    const cause = (err as { cause?: { details?: string } })?.cause
+    const fullDetails = cause?.details ? `${message} — ${cause.details}` : message
+
+    // Insufficient funds — parse and surface helpful info
+    const fundsMatch = fullDetails.match(
+      /InsufficientLockupFunds\(.*?\)\s*\(([^,]+),\s*(\d+),\s*(\d+)\)/,
+    )
+    if (fundsMatch) {
+      const [, wallet, requiredWei, availableWei] = fundsMatch
+      const required = (Number(requiredWei) / 1e18).toFixed(2)
+      const available = (Number(availableWei) / 1e18).toFixed(2)
+      return Response.json(
+        {
+          error: 'Insufficient Filecoin storage funds',
+          details: `Wallet ${wallet} needs at least ${required} FIL for storage lockup (current balance: ${available} FIL). Send FIL to this address on Filecoin mainnet.`,
+          wallet,
+          required: `${required} FIL`,
+          available: `${available} FIL`,
+        },
+        { status: 502 },
+      )
+    }
+
     // Filecoin or on-chain failures → 502
     if (
       message.includes('upload') ||
@@ -134,15 +158,18 @@ export async function POST(
       message.includes('PieceCID') ||
       message.includes('register') ||
       message.includes('transaction') ||
-      message.includes('receipt')
+      message.includes('receipt') ||
+      message.includes('commit') ||
+      message.includes('StorageContext') ||
+      message.includes('DataSet')
     ) {
       return Response.json(
-        { error: 'Registration failed', details: message },
+        { error: 'Registration failed', details: fullDetails },
         { status: 502 },
       )
     }
 
     console.error('[register] Unexpected error:', err)
-    return Response.json({ error: 'Internal server error' }, { status: 500 })
+    return Response.json({ error: 'Internal server error', details: fullDetails }, { status: 500 })
   }
 }

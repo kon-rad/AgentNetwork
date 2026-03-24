@@ -57,7 +57,7 @@ export async function POST(
       agent_id: agentId,
       role: 'user',
       content: trimmedContent,
-      ...(typeof session_id === 'string' ? { session_id } : {}),
+      ...(typeof session_id === 'string' && session_id !== '__legacy__' ? { session_id } : {}),
     })
 
   if (insertError) {
@@ -93,6 +93,39 @@ export async function POST(
     const nanoclawUrl = process.env.NANOCLAW_URL
     const nanoclawSecret = process.env.NANOCLAW_SECRET
     if (nanoclawUrl && nanoclawSecret) {
+      // Ensure agent is registered as a group on NanoClaw (idempotent)
+      try {
+        // Fetch agent's soul_md from template for CLAUDE.md content
+        const { data: agentRow } = await supabaseAdmin
+          .from('agents')
+          .select('service_type')
+          .eq('id', agentId)
+          .single()
+        let claudeMdContent: string | undefined
+        if (agentRow?.service_type) {
+          const { data: template } = await supabaseAdmin
+            .from('agent_templates')
+            .select('soul_md')
+            .eq('agent_type', agentRow.service_type)
+            .single()
+          claudeMdContent = template?.soul_md ?? undefined
+        }
+        const regRes = await fetch(`${nanoclawUrl}/register-group`, {
+          method: 'POST',
+          signal: AbortSignal.timeout(10000),
+          headers: {
+            'x-shared-secret': nanoclawSecret,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ agentId, folder: agentId, claudeMdContent }),
+        })
+        if (!regRes.ok) {
+          console.warn('NanoClaw /register-group non-OK:', regRes.status)
+        }
+      } catch (regErr) {
+        console.warn('NanoClaw /register-group failed (non-fatal):', regErr)
+      }
+
       const nanoclawRes = await fetch(`${nanoclawUrl}/message`, {
         method: 'POST',
         signal: AbortSignal.timeout(15000),

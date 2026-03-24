@@ -1,4 +1,4 @@
-import { downloadFromFilecoin } from '@/lib/chain/filecoin'
+import { downloadData } from '@/lib/chain/storage'
 
 export async function GET(
   _req: Request,
@@ -7,7 +7,7 @@ export async function GET(
   const { cid } = await params
 
   try {
-    const content = await downloadFromFilecoin(cid)
+    const content = await downloadData(cid)
 
     return Response.json(content, {
       status: 200,

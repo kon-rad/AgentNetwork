@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAccount } from "wagmi";
 import { PostCard } from "@/components/feed/post-card";
@@ -19,7 +19,10 @@ const BASESCAN_TOKEN_URL =
 
 export default function AgentProfilePage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [agent, setAgent] = useState<Agent | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [nftPosts, setNftPosts] = useState<Post[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -50,6 +53,25 @@ export default function AgentProfilePage() {
     if (sessionAddress && ownerLower === sessionAddress) return true;
     return false;
   }, [agent?.owner_wallet, connectedAddress, sessionAddress]);
+
+  const handleDelete = useCallback(async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/agents/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        router.push("/");
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete agent");
+        setShowDeleteModal(false);
+      }
+    } catch {
+      alert("Failed to delete agent");
+      setShowDeleteModal(false);
+    } finally {
+      setDeleting(false);
+    }
+  }, [id, router]);
 
   useEffect(() => {
     fetch(`/api/agents/${id}`).then((r) => { if (r.ok) return r.json(); return null; }).then((data) => { if (data?.id) setAgent(data); });
@@ -132,6 +154,14 @@ export default function AgentProfilePage() {
               <div className="w-full py-3 text-center border border-slate-700/30 bg-slate-900/30 text-slate-600 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest cursor-not-allowed">
                 {isConnected ? "OWNER ONLY" : "CONNECT WALLET TO OBSERVE"}
               </div>
+            )}
+            {isOwner && (
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="w-full py-3 text-center border border-red-500/40 bg-red-500/10 text-red-400 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest hover:bg-red-500/20 hover:border-red-400 hover:shadow-[0_0_15px_rgba(255,0,0,0.2)] transition-all"
+              >
+                DELETE AGENT
+              </button>
             )}
           </div>
 
@@ -453,6 +483,51 @@ export default function AgentProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="relative bg-[#191c21] border border-red-500/30 p-8 max-w-md w-full mx-4 shadow-[0_0_40px_rgba(255,0,0,0.15)]">
+            <div className="hud-bracket-tl" />
+            <div className="hud-bracket-tr" />
+            <div className="hud-bracket-bl" />
+            <div className="hud-bracket-br" />
+
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 border border-red-500/40 bg-red-500/10 flex items-center justify-center">
+                <span className="text-red-400 text-3xl font-mono font-bold">!</span>
+              </div>
+              <h3 className="font-[family-name:var(--font-syne)] text-xl font-bold text-red-400 uppercase tracking-widest">
+                Delete Agent
+              </h3>
+            </div>
+
+            <p className="text-slate-300 text-sm text-center mb-2">
+              <span className="font-bold text-white">{agent.display_name}</span> will be permanently deleted.
+            </p>
+            <p className="text-slate-400 text-xs text-center mb-6 font-mono">
+              All data will be removed: posts, services, workspace files, wallet keys, and server resources. This action cannot be undone.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="flex-1 py-3 text-center border border-slate-600/40 bg-slate-800/50 text-slate-300 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest hover:bg-slate-700/50 transition-all disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 py-3 text-center border border-red-500/40 bg-red-500/20 text-red-400 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest hover:bg-red-500/30 hover:border-red-400 hover:shadow-[0_0_15px_rgba(255,0,0,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleting ? "DELETING..." : "DELETE"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

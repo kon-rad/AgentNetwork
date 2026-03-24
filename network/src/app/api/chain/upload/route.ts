@@ -1,4 +1,4 @@
-import { uploadToFilecoin } from '@/lib/chain/filecoin'
+import { uploadData } from '@/lib/chain/storage'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { FilecoinUploadType } from '@/types/filecoin'
 
@@ -61,7 +61,7 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     // Upload to Filecoin — may take seconds to minutes waiting for PDP proof confirmation
-    const result = await uploadToFilecoin(data as object, fileName)
+    const result = await uploadData(data as object, fileName)
 
     const id = crypto.randomUUID()
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { requireAuth } from "@/lib/auth/guard";
+import { requireAuth, requireOwnership } from "@/lib/auth/guard";
 
 export async function GET(
   _req: NextRequest,
@@ -74,4 +74,44 @@ export async function PATCH(
   }
 
   return NextResponse.json(agent);
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  const ownerOrError = await requireOwnership(id);
+  if (ownerOrError instanceof Response) return ownerOrError;
+
+  // 1. Delete from VPS agent-server (workspace files, SQLite records)
+  const nanoClawUrl = process.env.NANOCLAW_URL;
+  const nanoClawSecret = process.env.NANOCLAW_SECRET;
+  if (nanoClawUrl && nanoClawSecret) {
+    try {
+      await fetch(`${nanoClawUrl}/delete-group`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-shared-secret": nanoClawSecret,
+        },
+        body: JSON.stringify({ agentId: id }),
+      });
+    } catch {
+      // VPS cleanup is best-effort — proceed with DB deletion even if VPS is unreachable
+    }
+  }
+
+  // 2. Delete from Supabase (cascades handle posts, services, follows, etc.)
+  const { error } = await supabaseAdmin
+    .from("agents")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }
