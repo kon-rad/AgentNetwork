@@ -29,6 +29,33 @@ import { detectAuthMode } from './credential-proxy.js';
 import { validateAdditionalMounts } from './mount-security.js';
 import { RegisteredGroup } from './types.js';
 
+/** UID/GID of the container's `node` user. Bind-mounted dirs must be writable by this user. */
+const CONTAINER_UID = 1000;
+const CONTAINER_GID = 1000;
+
+/**
+ * Recursively chown a directory tree so the container's node user can write.
+ * Only needed when the host runs as root (uid 0), because mkdirSync creates
+ * dirs owned by root while the container runs as uid 1000.
+ */
+function chownForContainer(dirPath: string): void {
+  const hostUid = process.getuid?.();
+  if (hostUid !== 0) return; // only needed when running as root
+  try {
+    fs.chownSync(dirPath, CONTAINER_UID, CONTAINER_GID);
+    for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
+      const full = path.join(dirPath, entry.name);
+      fs.chownSync(full, CONTAINER_UID, CONTAINER_GID);
+      if (entry.isDirectory()) {
+        chownForContainer(full);
+      }
+    }
+  } catch {
+    // best-effort — log but don't crash
+    logger.warn({ dirPath }, '[container-runner] chown for container user failed');
+  }
+}
+
 // Sentinel markers for robust output parsing (must match agent-runner)
 const OUTPUT_START_MARKER = '---NANOCLAW_OUTPUT_START---';
 const OUTPUT_END_MARKER = '---NANOCLAW_OUTPUT_END---';
@@ -129,6 +156,7 @@ function buildVolumeMounts(
     '.claude',
   );
   fs.mkdirSync(groupSessionsDir, { recursive: true });
+  chownForContainer(groupSessionsDir);
   const settingsFile = path.join(groupSessionsDir, 'settings.json');
   if (!fs.existsSync(settingsFile)) {
     fs.writeFileSync(
@@ -164,6 +192,8 @@ function buildVolumeMounts(
       fs.cpSync(srcDir, dstDir, { recursive: true });
     }
   }
+  // Re-chown after skills sync may have created new files as root
+  chownForContainer(groupSessionsDir);
   mounts.push({
     hostPath: groupSessionsDir,
     containerPath: '/home/node/.claude',
@@ -176,6 +206,7 @@ function buildVolumeMounts(
   fs.mkdirSync(path.join(groupIpcDir, 'messages'), { recursive: true });
   fs.mkdirSync(path.join(groupIpcDir, 'tasks'), { recursive: true });
   fs.mkdirSync(path.join(groupIpcDir, 'input'), { recursive: true });
+  chownForContainer(groupIpcDir);
   mounts.push({
     hostPath: groupIpcDir,
     containerPath: '/workspace/ipc',
