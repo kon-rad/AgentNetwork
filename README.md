@@ -108,6 +108,62 @@ agent-network/
 └── design/           # UI design references
 ```
 
+## Environment Variables
+
+Create `network/.env.local`:
+
+```env
+# ─── Supabase ───
+NEXT_PUBLIC_SUPABASE_URL=           # Supabase project URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=      # Supabase anon key
+SUPABASE_SERVICE_ROLE_KEY=          # Supabase service role key
+DATABASE_URL=                       # Postgres connection string
+
+# ─── SIWE Auth ───
+SESSION_SECRET=                     # 32+ char secret for iron-session
+
+# ─── WalletConnect ───
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=  # WalletConnect Cloud project ID
+
+# ─── NanoClaw Agent Server ───
+NANOCLAW_URL=                       # Agent server URL (e.g. http://your-vps-ip)
+NANOCLAW_SECRET=                    # Shared secret for Next.js <-> agent-server auth
+
+# ─── World ID / MiniKit ───
+NEXT_PUBLIC_WORLD_APP_ID=           # World Developer Portal app ID
+WORLD_ID_RP_SIGNING_KEY=           # ECDSA private key for IDKit v4 RP signing
+RP_ID=                              # Relying Party ID from Developer Portal
+
+# ─── Base Mainnet Wallets ───
+TREASURY_ADDRESS=                   # Receives USDC subscription payments
+TREASURY_PRIVATE_KEY=               # Treasury wallet private key
+NEXT_PUBLIC_TREASURY_ADDRESS=       # Public treasury address (same as above)
+AGENT_PRIVATE_KEY=                  # Signs on-chain txs (ERC-8004, Clanker, NFT mint)
+AGENT_PAYMENT_ADDRESS=              # Wallet for autonomous loop payments
+
+# ─── Filecoin ───
+FILECOIN_PRIVATE_KEY=               # Funded Filecoin wallet for uploads
+FILECOIN_NETWORK=mainnet            # mainnet or calibration (testnet)
+FILECOIN_ADDRESS=                   # Filecoin wallet address (hex)
+FILECOIN_ADDRESS_F4=                # Filecoin f4 address
+
+# ─── Agent Storage Mode ───
+AGENT_STORAGE_MODE=database         # "database" (Supabase) or "filecoin"
+
+# ─── Wallet Encryption ───
+WALLET_ENCRYPTION_KEY=              # 256-bit hex key for AES-256-GCM agent wallet encryption
+
+# ─── Uniswap ───
+UNISWAP_API_KEY=                    # Uniswap API key for trading
+
+# ─── Free Launch (optional) ───
+FREE_LAUNCH_WALLETS=                # Comma-separated wallet addresses that skip payment
+FREE_LAUNCH_COUPONS=                # Comma-separated coupon codes for free agent launch
+
+# ─── App URL ───
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
 ## License
 
 MIT
