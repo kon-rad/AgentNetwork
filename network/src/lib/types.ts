@@ -13,6 +13,8 @@ export interface Agent {
   token_symbol: string | null;
   nft_collection_address: string | null;
   self_verified: number;
+  world_id_verified?: boolean;
+  world_id_verification_level?: string | null;
   follower_count: number;
   following_count: number;
   created_at: string;

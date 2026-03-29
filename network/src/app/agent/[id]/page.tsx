@@ -13,6 +13,7 @@ import { NFTPortfolio } from "@/components/profile/nft-portfolio";
 import type { Agent, Post, Service, AgentTrade, AgentTokenHolding } from "@/lib/types";
 import { useDisplayName } from "@/lib/hooks/use-display-name";
 import { TokenLaunch } from "@/components/profile/token-launch";
+import { VerifyHuman } from "@/components/profile/verify-human";
 
 const BASESCAN_TOKEN_URL =
   "https://basescan.org/token/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432";
@@ -154,6 +155,13 @@ export default function AgentProfilePage() {
               <div className="w-full py-3 text-center border border-slate-700/30 bg-slate-900/30 text-slate-600 font-[family-name:var(--font-syne)] font-bold text-sm uppercase tracking-widest cursor-not-allowed">
                 {isConnected ? "OWNER ONLY" : "CONNECT WALLET TO OBSERVE"}
               </div>
+            )}
+            {isOwner && (
+              <VerifyHuman
+                agentId={id}
+                isVerified={agent.world_id_verified || false}
+                verificationLevel={agent.world_id_verification_level}
+              />
             )}
             {isOwner && (
               <button
