@@ -284,6 +284,17 @@ function buildContainerArgs(
       '-e',
       `CREDENTIAL_PROXY_URL=http://${CONTAINER_HOST_GATEWAY}:${CREDENTIAL_PROXY_PORT}`,
     );
+
+    // AgentKit: enable outbound proof signing via the credential proxy.
+    // Containers call AGENTKIT_SIGN_URL to get signed proofs for external
+    // AgentKit-protected services without ever holding the private key.
+    if (process.env.AGENTKIT_ENABLED === 'true') {
+      args.push('-e', 'AGENTKIT_ENABLED=true');
+      args.push(
+        '-e',
+        `AGENTKIT_SIGN_URL=http://${CONTAINER_HOST_GATEWAY}:${CREDENTIAL_PROXY_PORT}/agentkit/sign`,
+      );
+    }
   }
 
   // Runtime-specific args for host gateway resolution

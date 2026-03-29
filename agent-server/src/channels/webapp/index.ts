@@ -12,10 +12,12 @@ import express from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { WEBAPP_PORT, WEBAPP_SHARED_SECRET } from '../../config.js';
+import { WEBAPP_PORT, WEBAPP_SHARED_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from '../../config.js';
 import { resolveGroupFolderPath } from '../../group-folder.js';
 import { logger } from '../../logger.js';
 import { createAgentWallet } from '../../wallet-manager.js';
+import { createAgentkitMiddleware } from '../../agentkit-middleware.js';
+import { SupabaseAgentKitStorage } from '../../agentkit-storage.js';
 import { Channel, NewMessage } from '../../types.js';
 import { ChannelFactory, registerChannel } from '../registry.js';
 
@@ -75,18 +77,45 @@ const factory: ChannelFactory = (opts): Channel | null => {
   app.use(express.json());
 
   // Shared secret auth middleware (NC-06)
-  // Every request must include x-shared-secret matching WEBAPP_SHARED_SECRET.
-  app.use((req, res, next) => {
+  // Applied to all routes except /message (which uses AgentKit middleware).
+  // /message has its own auth: owner bypass via shared secret OR AgentKit proof.
+  const sharedSecretAuth: express.RequestHandler = (req, res, next) => {
     const secret = req.headers['x-shared-secret'];
     if (!WEBAPP_SHARED_SECRET || secret !== WEBAPP_SHARED_SECRET) {
       res.status(401).json({ error: 'unauthorized' });
       return;
     }
     next();
+  };
+
+  // Initialize AgentKit middleware for /message route.
+  // External agents authenticate via AgentKit proof; owner requests bypass via shared secret.
+  let agentkitMiddleware: express.RequestHandler = sharedSecretAuth; // fallback if AgentKit not configured
+  if (process.env.AGENTKIT_ENABLED === 'true' && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+    const storage = new SupabaseAgentKitStorage(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const freeTrialUses = parseInt(process.env.AGENTKIT_FREE_TRIAL_USES || '3', 10);
+    agentkitMiddleware = createAgentkitMiddleware({
+      sharedSecret: WEBAPP_SHARED_SECRET,
+      storage,
+      mode: { type: 'free-trial', uses: freeTrialUses },
+    }) as express.RequestHandler;
+    logger.info({ freeTrialUses }, '[webapp] AgentKit middleware enabled');
+  } else {
+    logger.info('[webapp] AgentKit not enabled — using shared secret auth only');
+  }
+
+  // Apply shared-secret auth to all non-message routes
+  app.use((req, res, next) => {
+    // /message uses AgentKit middleware (applied per-route below)
+    if (req.path === '/message' && req.method === 'POST') {
+      return next();
+    }
+    return sharedSecretAuth(req, res, next);
   });
 
   // POST /message — receive a message from Next.js and route through NanoClaw (NC-02)
-  app.post('/message', (req, res) => {
+  // Protected by AgentKit middleware (owner bypass + external agent verification)
+  app.post('/message', agentkitMiddleware, (req, res) => {
     const { agentId, message, sessionToken } = req.body as {
       agentId?: string;
       message?: string;

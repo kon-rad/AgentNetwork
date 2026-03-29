@@ -4,10 +4,11 @@
  * The proxy injects real credentials so containers never see them.
  *
  * Route dispatching:
- *   /wallet/*    → wallet-manager (sign txs, get address)
- *   /uniswap/*   → Uniswap Trading API proxy (with API key injection)
- *   /rpc         → Base mainnet JSON-RPC proxy
- *   *            → Anthropic API (existing behavior)
+ *   /wallet/*      → wallet-manager (sign txs, get address)
+ *   /uniswap/*     → Uniswap Trading API proxy (with API key injection)
+ *   /rpc           → Base mainnet JSON-RPC proxy
+ *   /agentkit/sign → sign outbound AgentKit proofs using agent's wallet
+ *   *              → Anthropic API (existing behavior)
  *
  * Two auth modes for Anthropic:
  *   API key:  Proxy injects x-api-key on every request.
@@ -31,6 +32,7 @@ import {
   updateHoldings,
 } from './wallet-manager.js';
 import { initUniswapProxy, proxyUniswapRequest } from './uniswap-proxy.js';
+import { signAgentkitProof } from './agentkit-signer.js';
 
 export type AuthMode = 'api-key' | 'oauth';
 
@@ -198,6 +200,38 @@ async function handleUpdateHoldings(
   }
 }
 
+/** Handle /agentkit/sign — sign an outbound AgentKit proof using the agent's wallet. */
+async function handleAgentkitSign(
+  req: IncomingMessage,
+  res: ServerResponse,
+  body: Buffer,
+) {
+  const agentId = getAgentId(req);
+  if (!agentId) {
+    jsonResponse(res, 400, { error: 'X-Agent-Id header required for AgentKit signing' });
+    return;
+  }
+
+  try {
+    const { url, method } = JSON.parse(body.toString()) as {
+      url: string;
+      method?: string;
+    };
+
+    if (!url) {
+      jsonResponse(res, 400, { error: 'url field required' });
+      return;
+    }
+
+    const proof = await signAgentkitProof(agentId, url, method || 'GET');
+    jsonResponse(res, 200, { proof });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error({ err, agentId }, '[credential-proxy] agentkit sign error');
+    jsonResponse(res, 500, { error: message });
+  }
+}
+
 /** Handle /uniswap/* routes. */
 async function handleUniswapRoute(
   req: IncomingMessage,
@@ -323,6 +357,12 @@ export function startCredentialProxy(
         }
         if (urlPath === '/trade/update-holdings' && req.method === 'POST') {
           handleUpdateHoldings(req, res, body);
+          return;
+        }
+
+        // /agentkit/sign → sign outbound AgentKit proofs
+        if (urlPath === '/agentkit/sign' && req.method === 'POST') {
+          handleAgentkitSign(req, res, body);
           return;
         }
 

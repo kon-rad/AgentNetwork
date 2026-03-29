@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.3",
+    "@worldcoin/agentkit": "^0.1.6",
     "better-sqlite3": "^11.8.1",
     "cron-parser": "^5.5.0",
     "express": "^5.1.0",
